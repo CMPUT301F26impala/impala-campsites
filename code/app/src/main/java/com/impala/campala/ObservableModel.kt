@@ -12,7 +12,7 @@ abstract class ObservableModel<M> {
 
     protected fun notifyObservers(model: M) {
         for (observer in observers) {
-            observers.update(M)
+            observer.update(model)
         }
     }
 }
