@@ -2,6 +2,9 @@ package com.impala.campala
 
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.google.android.gms.tasks.Tasks
+import com.google.firebase.firestore.FirebaseFirestore
+import java.util.concurrent.TimeUnit
 
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -20,5 +23,24 @@ class ExampleInstrumentedTest {
         // Context of the app under test.
         val appContext = InstrumentationRegistry.getInstrumentation().targetContext
         assertEquals("com.impala.campala", appContext.packageName)
+    }
+
+    @Test
+    fun firestoreEmulatorRoundTrip() {
+        val firestore = FirebaseFirestore.getInstance()
+        firestore.useEmulator("127.0.0.1", 8080)
+
+        val document = firestore
+            .collection("emulatorTest")
+            .document("roundTrip")
+
+        Tasks.await(
+            document.set(mapOf("message" to "i hate technology")),
+            10,
+            TimeUnit.SECONDS
+        )
+        val snapshot = Tasks.await(document.get(), 10, TimeUnit.SECONDS)
+
+        assertEquals("i hate technology", snapshot.getString("message"))
     }
 }

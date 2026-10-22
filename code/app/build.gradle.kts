@@ -27,12 +27,20 @@ android {
             }
         }
     }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
     buildFeatures {
+        buildConfig = true
         compose = true
+    }
+}
+
+afterEvaluate {
+    tasks.named("preDebugBuild") {
+        dependsOn(rootProject.tasks.named("startFirebaseEmulators"))
     }
 }
 
