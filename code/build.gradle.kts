@@ -24,12 +24,13 @@ tasks.register("startFirebaseEmulators") {
     dependsOn(npmInstall)
 
     doLast {
+        val isWindows = System.getProperty("os.name").contains("Windows")
         val sdkDirectory = java.util.Properties().apply {
             rootDir.resolve("local.properties").inputStream().use(::load)
         }.getProperty("sdk.dir")
         val adbExecutable = sdkDirectory?.let {
             rootDir.resolve(it).resolve("platform-tools").resolve(
-                if (System.getProperty("os.name").contains("Windows")) "adb.exe" else "adb"
+                if (isWindows) "adb.exe" else "adb"
             )
         }
 
@@ -49,18 +50,21 @@ tasks.register("startFirebaseEmulators") {
             }
         }
 
-        val nodeDirectoryName = if (System.getProperty("os.name").contains("Windows")) {
-            "node-v$managedNodeVersion-win-x64"
-        } else {
-            "node-v$managedNodeVersion-linux-x64"
-        }
-        val nodeBinDirectory = rootDir.resolve(".gradle/nodejs/$nodeDirectoryName")
-        val nodeExecutable = if (System.getProperty("os.name").contains("Windows")) {
+        val nodeBinDirectory = rootDir.resolve(".gradle/nodejs")
+            .listFiles { file -> file.isDirectory && file.name.startsWith("node-v$managedNodeVersion-") }
+            ?.singleOrNull()
+            ?: throw GradleException(
+                "Expected exactly one Node $managedNodeVersion install under .gradle/nodejs; try deleting that folder and rebuilding."
+            )
+        val nodeExecutable = if (isWindows) {
             nodeBinDirectory.resolve("node.exe")
         } else {
             nodeBinDirectory.resolve("bin/node")
         }
         val firebaseScript = rootDir.resolve("node_modules/firebase-tools/lib/bin/firebase.js")
+        // firebase-tools runs `java` from PATH and needs JDK 21+, so use the daemon's JDK
+        // (pinned in gradle-daemon-jvm.properties) instead of whatever is on the user's PATH
+        val javaHome = System.getProperty("java.home")
 
         try {
             ProcessBuilder(
@@ -74,6 +78,10 @@ tasks.register("startFirebaseEmulators") {
             )
                 .directory(rootDir)
                 .inheritIO()
+                .apply {
+                    environment()["JAVA_HOME"] = javaHome
+                    environment()["PATH"] = "$javaHome${File.separator}bin${File.pathSeparator}${environment()["PATH"].orEmpty()}"
+                }
                 .start()
         } catch (error: java.io.IOException) {
             throw GradleException(
