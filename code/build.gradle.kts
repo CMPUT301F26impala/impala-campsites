@@ -20,8 +20,12 @@ val npmInstall = tasks.named("npmInstall")
 tasks.register("startFirebaseEmulators") {
     group = "firebase"
     description = "Starts the Firebase emulators for debug builds."
-    notCompatibleWithConfigurationCache("Starts a detached long-running Firebase emulator process.")
     dependsOn(npmInstall)
+
+    // copy script-level values into locals so doLast doesn't capture the build script,
+    // which the configuration cache can't serialize
+    val rootDir = rootDir
+    val managedNodeVersion = managedNodeVersion
 
     doLast {
         val isWindows = System.getProperty("os.name").contains("Windows")

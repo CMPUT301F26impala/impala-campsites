@@ -5,6 +5,7 @@ import com.google.android.gms.tasks.Tasks
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
 import com.impala.campala.model.CampsiteModel
+import org.junit.Assert.assertEquals
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.util.concurrent.TimeUnit
@@ -21,7 +22,7 @@ class CampsiteModelTest {
             69420,
             "TBD",
             "",
-            mutableListOf()
+            mutableListOf("slytherins welcome")
         )
 
         Tasks.await(campsite.save(), 10, TimeUnit.SECONDS)
@@ -32,6 +33,6 @@ class CampsiteModelTest {
             )
         )
 
-        assert(campsite == storedModel)
+        assertEquals(campsite, storedModel)
     }
 }
