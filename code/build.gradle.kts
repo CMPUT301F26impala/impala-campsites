@@ -83,8 +83,12 @@ tasks.register("startFirebaseEmulators") {
                 .directory(rootDir)
                 .inheritIO()
                 .apply {
-                    environment()["JAVA_HOME"] = javaHome
-                    environment()["PATH"] = "$javaHome${File.separator}bin${File.pathSeparator}${environment()["PATH"].orEmpty()}"
+                    val javaHome = java.io.File(System.getProperty("java.home"))
+                    environment()["JAVA_HOME"] = javaHome.absolutePath
+                    environment()["PATH"] =
+                        javaHome.resolve("bin").absolutePath +
+                            java.io.File.pathSeparator +
+                            environment()["PATH"]
                 }
                 .start()
         } catch (error: java.io.IOException) {
