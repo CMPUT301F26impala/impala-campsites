@@ -10,14 +10,14 @@ import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
 data class CampsiteModel @OptIn(ExperimentalUuidApi::class) constructor(
-    val name: String = "",
-    val location: String = "",
-    val description: String = "",
-    val maxOccupancy: Int = 0,
-    val mapLocation: String = "", // probably pair of float for lat and longitude
-    val imageUrl: String = "",
-    val tags: MutableList<String> = mutableListOf(),
-    val id: String = Uuid.random().toString()
+    var name: String = "",
+    var location: String = "",
+    var description: String = "",
+    var maxOccupancy: Int = 0,
+    var mapLocation: String = "", // probably pair of float for lat and longitude
+    var imageUrl: String = "",
+    var tags: MutableList<String> = mutableListOf(),
+    var id: String = Uuid.random().toString()
 ) {
     companion object {
         fun load(doc: DocumentSnapshot): CampsiteModel {
