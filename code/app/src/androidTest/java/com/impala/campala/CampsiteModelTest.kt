@@ -7,6 +7,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.firestore
 import com.impala.campala.model.CampsiteModel
 import com.impala.campala.model.CampsiteRepository
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.tasks.await
 import org.junit.Assert.assertEquals
 import org.junit.Before
@@ -32,7 +33,6 @@ class CampsiteModelTest {
      *
      * (Gemini, "how to clear the database for testing?", 2026-10-24)
      */
-    @Before
     suspend fun clearCampsitesCollection() {
         val db = FirebaseFirestore.getInstance()
         val snapshot = db.collection("campsites").get().await()
@@ -42,6 +42,11 @@ class CampsiteModelTest {
             batch.delete(document.reference)
         }
         batch.commit().await()
+    }
+
+    @Before
+    fun setUp() = runBlocking{
+        clearCampsitesCollection()
     }
 
     @Test
