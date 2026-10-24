@@ -10,6 +10,7 @@ import com.impala.campala.model.CampsiteRepository
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.tasks.await
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -33,20 +34,31 @@ class CampsiteModelTest {
      *
      * (Gemini, "how to clear the database for testing?", 2026-10-24)
      */
-    suspend fun clearCampsitesCollection() {
+//    suspend fun clearCampsitesCollection() {
+//        val db = FirebaseFirestore.getInstance()
+//        val snapshot = db.collection("campsites").get().await()
+//
+//        val batch = db.batch()
+//        for (document in snapshot.documents) {
+//            batch.delete(document.reference)
+//        }
+//        batch.commit().await()
+//    }
+
+    @Before
+    fun setUp() {
         val db = FirebaseFirestore.getInstance()
-        val snapshot = db.collection("campsites").get().await()
+
+        // Tasks.await() blocks the thread synchronously until the query finishes
+        val snapshot = Tasks.await(db.collection("campsites").get())
 
         val batch = db.batch()
         for (document in snapshot.documents) {
             batch.delete(document.reference)
         }
-        batch.commit().await()
-    }
 
-    @Before
-    fun setUp() = runBlocking{
-        clearCampsitesCollection()
+        // Commit the batch synchronously too
+        Tasks.await(batch.commit())
     }
 
     @Test
@@ -64,8 +76,23 @@ class CampsiteModelTest {
     }
 
     @Test
-    fun repositoryFirestoreEmulatorAddDelete(){
+    fun repositoryAddDelete(){
         repo.saveCampsite(campsite)
-        assert(repo.deleteCampsite(campsite))
+        repo.deleteCampsite(campsite)
+        val didDelete = Tasks.await(Firebase.firestore.collection("campsites").document(campsite.id).get())
+        assertFalse("Document should no longer exist in Firestore after deletion", didDelete.exists())
+    }
+
+    @Test
+    fun repositoryFirestoreEmulatorSave(){
+        repo.saveCampsite(campsite)
+
+        val storedModel = CampsiteModel.load(
+            Tasks.await(
+                Firebase.firestore.collection("campsites").document(campsite.id).get()
+            )
+        )
+
+        assertEquals(campsite, storedModel)
     }
 }

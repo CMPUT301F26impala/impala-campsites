@@ -52,15 +52,8 @@ class CampsiteRepository: ObservableModel<CampsiteRepository>() {
 
     /**
      * Deletes Campsite from database
-     *
-     * @return true if successful,false if campsite doesn't exist
      */
-    fun deleteCampsite(campsite: CampsiteModel): Boolean {
-        try{
-            campsitesRef.document(campsite.id).delete()
-            return true
-        }catch(e: Exception){
-            return false
-        }
+    fun deleteCampsite(campsite: CampsiteModel): Unit {
+        campsitesRef.document(campsite.id).delete()
     }
 }
