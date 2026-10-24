@@ -85,6 +85,7 @@ class CampsiteModelTest {
 
     @Test
     fun repositoryFirestoreEmulatorSave(){
+        repo.deleteCampsite(campsite)
         repo.saveCampsite(campsite)
 
         val storedModel = CampsiteModel.load(
