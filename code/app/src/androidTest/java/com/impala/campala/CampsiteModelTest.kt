@@ -29,22 +29,6 @@ class CampsiteModelTest {
     )
     val repo = CampsiteRepository()
 
-    /**
-     * Clears the campsite database before each test
-     *
-     * (Gemini, "how to clear the database for testing?", 2026-10-24)
-     */
-//    suspend fun clearCampsitesCollection() {
-//        val db = FirebaseFirestore.getInstance()
-//        val snapshot = db.collection("campsites").get().await()
-//
-//        val batch = db.batch()
-//        for (document in snapshot.documents) {
-//            batch.delete(document.reference)
-//        }
-//        batch.commit().await()
-//    }
-
     @Before
     fun setUp() {
         val db = FirebaseFirestore.getInstance()
@@ -95,5 +79,27 @@ class CampsiteModelTest {
         )
 
         assertEquals(campsite, storedModel)
+    }
+
+    @Test
+    fun repositorySearchString(){
+        repo.saveCampsite(campsite)
+        var campsites = repo.getFilteredCampsites("No match",null,null,null)
+        assertEquals(0,campsites.size)
+        campsites = repo.getFilteredCampsites("azkaban",null,null,null)
+        assertEquals(1,campsites.size)
+        campsites = repo.getFilteredCampsites("slytherins welcome",null,null,null)
+        assertEquals(1,campsites.size)
+    }
+
+    @Test
+    fun repositoryCapacity(){
+        repo.saveCampsite(campsite)
+        var campsites = repo.getFilteredCampsites(null,null,null,69420)
+        assertEquals(1,campsites.size)
+        campsites = repo.getFilteredCampsites(null,null,null,1)
+        assertEquals(1,campsites.size)
+        campsites = repo.getFilteredCampsites(null,null,null,69421)
+        assertEquals(0,campsites.size)
     }
 }

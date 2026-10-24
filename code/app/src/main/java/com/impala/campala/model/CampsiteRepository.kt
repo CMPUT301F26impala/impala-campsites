@@ -1,45 +1,68 @@
 package com.impala.campala.model
 
-import androidx.compose.runtime.mutableStateListOf
+import com.google.android.gms.tasks.Tasks
 import com.google.firebase.Firebase
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.firestore
 import com.impala.campala.ObservableModel
-import kotlinx.coroutines.tasks.await
+
 /**
  * Repository for storing the app's campsites.
  *
  * Model for anything in the app that wants to access the campsite info
  * including add/update/delete functionality
  *
- * @property _campsites Read-only list of all campsites, useful for views that browse campsites
- * @property db Firestore database reference
- * @property campsitesRef Reference to the campsites collection in firebase
+ * @property db Firestore database lazy reference
  */
 class CampsiteRepository: ObservableModel<CampsiteRepository>() {
-    private val _campsites = mutableStateListOf<CampsiteModel>()
-    private val db = Firebase.firestore
-    private val campsitesRef = db.collection("campsites")
-    // Taken/modified from lab 05
-    init{
-        campsitesRef.addSnapshotListener { snapshot, error ->
-            if(error != null){
-                return@addSnapshotListener
-            }
+    private val db: FirebaseFirestore by lazy { Firebase.firestore }
 
-            _campsites.clear()
+    /**
+     * Gets a list of campsites based on optional filters
+     *
+     * Used some code help from Gemini for querying
+     * (Google Gemini, "if i want one of the input string to match either the name or any of the
+     *  tags and it could be null, how would I? also the string is case sensitive and can match
+     *  substrings", 2026-10-24)
+     *
+     * All inputs are nullable as to make it possible for controllers to input what filters
+     * including no filters to get all campsites
+     *
+     * @param searchString Can match tags or name, case-insensitive
+     * @param location
+     * @param mapLocation
+     * @param numPeople
+     *
+     * @return List of matching campsites
+     */
+    fun getFilteredCampsites(searchString: String?, location: String?,
+                             mapLocation: String?,numPeople: Int?): List<CampsiteModel>{
+        var query: Query = db.collection("campsites")
 
-            snapshot?.documents?.forEach { document ->
-                val camp = document.toObject(CampsiteModel::class.java)
-                if (camp != null){
-                    _campsites.add(camp)
-                }
+        if(location!=null){
+            query = query.whereEqualTo("location",location)
+        }
+        if(mapLocation!=null){
+            query = query.whereEqualTo("mapLocation",mapLocation)
+        }
+        if(numPeople!=null){
+            query = query.whereGreaterThanOrEqualTo("maxOccupancy",numPeople)
+        }
 
-            }
+
+        // Done db querying, search string filtering is done with output
+        val snapshot = Tasks.await(query.get())
+        val allCampsites = snapshot.toObjects(CampsiteModel::class.java)
+        if (searchString.isNullOrBlank()) { // No search, just return
+            return allCampsites
+        }
+        return allCampsites.filter { campsite ->
+            val matchesName = campsite.name.contains(searchString, ignoreCase = true)
+            val matchesTags = campsite.tags.any { tag -> tag.contains(searchString, ignoreCase = true) }
+            matchesName || matchesTags
         }
     }
-
-    val campsites: List<CampsiteModel>
-        get() = _campsites
 
     /**
      * Saves a campsite to the database
@@ -61,6 +84,6 @@ class CampsiteRepository: ObservableModel<CampsiteRepository>() {
      * @param campsite CampsiteModel to delete
      */
     fun deleteCampsite(campsite: CampsiteModel): Unit {
-        campsitesRef.document(campsite.id).delete()
+        db.collection("campsites").document(campsite.id).delete()
     }
 }
