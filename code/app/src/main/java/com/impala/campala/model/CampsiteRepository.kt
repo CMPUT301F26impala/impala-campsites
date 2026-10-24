@@ -30,9 +30,9 @@ class CampsiteRepository: ObservableModel<CampsiteRepository>() {
      * including no filters to get all campsites
      *
      * @param searchString Can match tags or name, case-insensitive
-     * @param location
-     * @param mapLocation
-     * @param numPeople
+     * @param location TODO: change data type
+     * @param mapLocation TODO: Change data type
+     * @param numPeople Filters for campsites with capacity for numPeople
      *
      * @return List of matching campsites
      */
