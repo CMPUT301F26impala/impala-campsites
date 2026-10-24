@@ -41,17 +41,24 @@ class CampsiteRepository: ObservableModel<CampsiteRepository>() {
     val campsites: List<CampsiteModel>
         get() = _campsites
 
-    // When a screen updates a campsite, it's controller will end up calling this method
-    // with the new modifier Campsite object, then go and update the one with a matching
-    // ID. If the campsite didn't exist before (eg: you just went like Campsite()
-    // to create a new one) it will create it
+    /**
+     * Saves a campsite to the database
+     *
+     *  When a screen updates a campsite, it's controller will end up calling this method
+     *      with the new modifier Campsite object, then go and update the one with a matching
+     *      ID. If the campsite didn't exist before (eg: you just went like Campsite()
+     *      to create a new one) it will create it
+     *
+     * @param campsite CampsiteModel to be saved
+    */
     fun saveCampsite(campsite: CampsiteModel): Unit {
         campsite.save()
     }
 
-
     /**
      * Deletes Campsite from database
+     *
+     * @param campsite CampsiteModel to delete
      */
     fun deleteCampsite(campsite: CampsiteModel): Unit {
         campsitesRef.document(campsite.id).delete()
