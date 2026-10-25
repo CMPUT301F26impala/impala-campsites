@@ -2,7 +2,6 @@ package com.impala.campala
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -16,10 +15,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.impala.campala.ui.theme.AppTheme
-import android.content.res.Configuration
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -28,41 +24,67 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.InputChip
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Outline
-import androidx.compose.ui.modifier.modifierLocalOf
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
+import androidx.navigation.NavController
+import com.impala.campala.model.CampsiteModel
+
+/*
+TODO:
+ 1. maxOccupancy conversion logic before saving,
+    current function will crash when given anything not a number
+ */
+
+/*
+new campsites are added using an onSave function passed
+into the formScreen by whoever calls the function.
+It accepts a parameter fo the type Campsite declared in CampsiteModel
+ */
 
 // same screen component for both create and edit forms
-// is isEditing is true then prefill details, if not then its a create form
-// FormScreen() for Add
-// FormScreen(isEditing = true) for Edit
+// if campsite was not provided (its null) then create for, or else edit form
 @Composable
-// onCancel is temporary until the navController is working
 fun FormScreen(
-    isEditing: Boolean = false,
-    onSave: () -> Unit = {},
-    onCancel: () -> Unit = {}
+    navController: NavController,
+    campsite: CampsiteModel? = null,
+    onSave: (CampsiteModel) -> Unit
 ) {
+
     // title input box
-    var title by remember { mutableStateOf("") }
-    // description input box
-    var description by remember { mutableStateOf("") }
-    // maximum occupancy input box
-    var maximumOccupancy by remember { mutableStateOf("") }
+    var title by remember {
+        mutableStateOf(if (campsite == null) "" else campsite.name)
+    }
     // location dropdown
-    var location by remember { mutableStateOf("") }
+    var location by remember {
+        mutableStateOf(if (campsite == null) "" else campsite.location)
+    }
+    // description input box
+    var description by remember {
+        mutableStateOf(if (campsite == null) "" else campsite.description)
+    }
+    // maximum occupancy input box
+    var maximumOccupancy by remember {
+        // need to string here since input box uses string.
+        // can be converted to int later on submission
+        mutableStateOf(if (campsite == null) "" else campsite.maxOccupancy.toString())
+    }
     // tags
     var tagInput by remember { mutableStateOf("") }
-    val tags = remember { mutableStateListOf<String>() }
+    val tags = remember {
+        if (campsite == null) {
+            mutableStateListOf<String>()
+        } else {
+            campsite.tags.toMutableStateList()
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -79,7 +101,7 @@ fun FormScreen(
         ) {
 
             // heading
-            if (isEditing) {
+            if (campsite!=null) {
                 item {
                     Text(
                         text = "Edit Campsite",
@@ -207,15 +229,16 @@ fun FormScreen(
         } // personal reference, end of lazy column here
 
         Row(
-            modifier = Modifier.fillMaxWidth().padding(24.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(24.dp),
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically
         ) {
             // cancel button
             Button(
                 // go back to previous page
-                // onClick = { navController.popBackStack() }
-                onClick = onCancel
+                onClick = { navController.popBackStack() }
             ) {
                 Text("Cancel")
             }
@@ -223,19 +246,49 @@ fun FormScreen(
             Spacer(modifier = Modifier.width(24.dp))
 
             Button(
-                onClick = onSave
+                onClick = {
+                    // only works when updating
+                    if (campsite != null) {
+                        val newCampsite = campsite.copy(
+                            name = title,
+                            location = location,
+                            description = description,
+                            maxOccupancy = if (maximumOccupancy == "") 0 else maximumOccupancy.toInt(),
+                            tags = tags.toMutableList()
+                        )
+                        // update new campsite to the actual model
+                        // might change later based on MVC
+                        onSave(newCampsite)
+                    } else {
+                        // code for creating a new campsite
+                        val newCampsite = CampsiteModel(
+                            name = title,
+                            location = location,
+                            description = description,
+                            maxOccupancy = if (maximumOccupancy == "") 0 else maximumOccupancy.toInt(),
+                            tags = tags.toMutableList()
+                        )
+                        // update new campsite to the actual model
+                        // might change later based on MVC
+                        onSave(newCampsite)
+                    }
+
+                }
+                // write code for actually saving this new campsite to
             ) {
-                if (isEditing) {
-                    Text("Save")
-                } else {
+                if (campsite == null) {
                     Text("Create")
+                } else {
+                    Text("Save")
                 }
             }
         } // personal reference row ends here
     } // bracket for Column of overall screen
-
 }
-// test without building the app
+
+/*
+for testing as a preview without building the app
+
 @Preview(
     showBackground = true,
     uiMode = Configuration.UI_MODE_NIGHT_YES
@@ -243,6 +296,7 @@ fun FormScreen(
 @Composable
 fun FormPreview() {
     AppTheme {
-        FormScreen()
+        FormScreen(navController = rememberNavController())
     }
 }
+ */
