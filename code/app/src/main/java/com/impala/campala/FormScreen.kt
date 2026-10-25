@@ -22,12 +22,20 @@ import com.impala.campala.ui.theme.AppTheme
 import android.content.res.Configuration
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.InputChip
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Outline
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 
 // same screen component for both create and edit forms
 // is isEditing is true then prefill details, if not then its a create form
@@ -48,111 +56,143 @@ fun FormScreen(isEditing: Boolean = false) {
     var tagInput by remember { mutableStateOf("") }
     val tags = remember { mutableStateListOf<String>() }
 
-    Column(
+    LazyColumn(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
-            .padding(24.dp)
+            .padding(24.dp),
+        verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
 
         // heading
         if (isEditing) {
-            Text(
-                text = "Edit Campsite",
-                style = MaterialTheme.typography.headlineLarge,
-                color = MaterialTheme.colorScheme.onBackground
-            )
+            item {
+                Text(
+                    text = "Edit Campsite",
+                    style = MaterialTheme.typography.headlineLarge,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+            }
         } else {
-            Text(
-                text = "Create Campsite",
-                style = MaterialTheme.typography.headlineLarge,
-                color = MaterialTheme.colorScheme.onBackground
-            )
-        }
-
-        Spacer(modifier = Modifier.height(20.dp))
-
-        // Title input box
-        OutlinedTextField(
-            value = title,
-            onValueChange = { title = it },
-            label = { Text("Campsite Title") },
-            placeholder = { Text("Enter the title") },
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        Spacer(modifier = Modifier.height(20.dp))
-
-        // Location input box
-        OutlinedTextField(
-            value = location,
-            onValueChange = { location = it },
-            label = { Text("Campsite Location") },
-            placeholder = { Text("Enter the location") },
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        Spacer(modifier = Modifier.height(20.dp))
-
-        // Campsite Description input box
-        OutlinedTextField(
-            value = description,
-            onValueChange = { description = it },
-            label = { Text("Campsite Description") },
-            placeholder = { Text("Enter the description") },
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        Spacer(modifier = Modifier.height(20.dp))
-
-        // Maximum occupancy input box
-        OutlinedTextField(
-            value = maximumOccupancy,
-            onValueChange = { maximumOccupancy = it },
-            label = { Text("Maximum Occupancy") },
-            placeholder = { Text("Enter the number here") },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        Spacer(modifier = Modifier.height(20.dp))
-
-        // tags input box
-        OutlinedTextField(
-            value = tagInput,
-            onValueChange = {
-                if ('\n' in it) {
-                    // make a tag when user presses enter
-                    val trimmedTag = it.substringBefore("\n").trim()
-                    tags.add(trimmedTag)
-                    tagInput = ""
-                } else {
-                    tagInput = it
-                }
-            },
-            label = { Text("Tags") },
-            placeholder = { Text("Enter the tag details here") },
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        // list of the actual tags
-        // Flow row so I don't have to figure out wrapping horizontally
-        FlowRow(
-            horizontalArrangement = Arrangement.spacedBy(4.dp)
-        ) {
-            // loop on every tag inside the tags list
-            tags.forEach {tag ->
-                InputChip(
-                    selected = false,
-                    // remove the tag if you click anywhere on the tag itself
-                    onClick = { tags.remove(tag) },
-                    label = { Text(tag) },
-                    leadingIcon = {
-                        Text("X")
-                    }
+            item {
+                Text(
+                    text = "Create Campsite",
+                    style = MaterialTheme.typography.headlineLarge,
+                    color = MaterialTheme.colorScheme.onBackground
                 )
             }
         }
+
+        // Title input box
+        item {
+            OutlinedTextField(
+                value = title,
+                onValueChange = { title = it },
+                label = { Text("Campsite Title") },
+                placeholder = { Text("Enter the title") },
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
+
+        // Location input box
+        item {
+            OutlinedTextField(
+                value = location,
+                onValueChange = { location = it },
+                label = { Text("Campsite Location") },
+                placeholder = { Text("Enter the location") },
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
+
+        // Campsite Description input box
+        item {
+            OutlinedTextField(
+                value = description,
+                onValueChange = { description = it },
+                label = { Text("Campsite Description") },
+                placeholder = { Text("Enter the description") },
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
+
+
+        // Maximum occupancy input box
+        item {
+            OutlinedTextField(
+                value = maximumOccupancy,
+                onValueChange = { maximumOccupancy = it },
+                label = { Text("Maximum Occupancy") },
+                placeholder = { Text("Enter the number here") },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
+
+        // tags input box
+        item {
+            OutlinedTextField(
+                value = tagInput,
+                onValueChange = {
+                    if ('\n' in it) {
+                        // make a tag when user presses enter
+                        val trimmedTag = it.substringBefore("\n").trim()
+                        tags.add(trimmedTag)
+                        tagInput = ""
+                    } else {
+                        tagInput = it
+                    }
+                },
+                label = { Text("Tags") },
+                placeholder = { Text("Enter the tag details here") },
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
+
+        // list of the actual tags
+        // Flow row so I don't have to figure out wrapping horizontally
+        item {
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                // loop on every tag inside the tags list
+                tags.forEach {tag ->
+                    InputChip(
+                        selected = false,
+                        // remove the tag if you click anywhere on the tag itself
+                        onClick = { tags.remove(tag) },
+                        label = { Text(tag) },
+                        leadingIcon = {
+                            Text("X")
+                        }
+                    )
+                }
+            }
+        }
+
+        // image white placeholder, will be changed later
+        item {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(150.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(Color.White)
+            )
+        }
+
+        // button to pick an image from gallery
+        item {
+            Text(
+                text = "Upload Alternative Image",
+                color = MaterialTheme.colorScheme.primary,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
+
+        // Create/Save button and Cancel button
+
 
     } // personal reference, end of column here
 
