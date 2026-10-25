@@ -82,7 +82,7 @@ class CampsiteModelTest {
     }
 
     @Test
-    fun repositorySearchString(){
+    fun repositorySearchString(): Unit = runBlocking {
         repo.saveCampsite(campsite)
         var campsites = repo.getFilteredCampsites("No match",null,null,null)
         assertEquals(0,campsites.size)
@@ -93,7 +93,7 @@ class CampsiteModelTest {
     }
 
     @Test
-    fun repositoryCapacity(){
+    fun repositoryCapacity(): Unit = runBlocking {
         repo.saveCampsite(campsite)
         var campsites = repo.getFilteredCampsites(null,null,null,69420)
         assertEquals(1,campsites.size)

@@ -1,11 +1,13 @@
 package com.impala.campala.model
 
-import com.google.android.gms.tasks.Tasks
+import android.util.Log
+import androidx.compose.runtime.remember
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.firestore
 import com.impala.campala.ObservableModel
+import kotlinx.coroutines.tasks.await
 
 /**
  * Repository for storing the app's campsites.
@@ -17,6 +19,14 @@ import com.impala.campala.ObservableModel
  */
 class CampsiteRepository: ObservableModel<CampsiteRepository>() {
     private val db: FirebaseFirestore by lazy { Firebase.firestore }
+
+    // Things that use Task.await() can't run on the main thread
+    // I figured this out after doing debugging with Claude Opus 5.5 asking why I was getting UI crashes and pasting in the original version of this function in
+    // The solution I settled on was to make this a suspend fun, and then where it's called in the app it just needs to be inside of a coroutine scope.
+
+    // You can do this from any @Composable function by doing rememberCoroutineScope() and then using scope.launch
+    // Or you can use LaunchedEffect(Unit) if you want something to run as soon as that Composable function is rendered
+    // If you want to use it inside a model class, you just have to pass in the coroutine scope as a parameter. So we could create the scope inside the root of our app and pass it to our classes
 
     /**
      * Gets a list of campsites based on optional filters
@@ -34,10 +44,13 @@ class CampsiteRepository: ObservableModel<CampsiteRepository>() {
      * @param mapLocation TODO: Change data type
      * @param numPeople Filters for campsites with capacity for numPeople
      *
+     * Suspends instead of blocking, so it's safe to call from the main thread
+     * as long as it's inside a coroutine (eg: LaunchedEffect or rememberCoroutineScope in Compose)
+     *
      * @return List of matching campsites
      */
-    fun getFilteredCampsites(searchString: String?, location: String?,
-                             mapLocation: String?,numPeople: Int?): List<CampsiteModel>{
+    suspend fun getFilteredCampsites(searchString: String?, location: String?,
+                                     mapLocation: String?,numPeople: Int?): List<CampsiteModel>{
         var query: Query = db.collection("campsites")
 
         if(location!=null){
@@ -52,7 +65,7 @@ class CampsiteRepository: ObservableModel<CampsiteRepository>() {
 
 
         // Done db querying, search string filtering is done with output
-        val snapshot = Tasks.await(query.get())
+        val snapshot = query.get().await()
         val allCampsites = snapshot.toObjects(CampsiteModel::class.java)
         if (searchString.isNullOrBlank()) { // No search, just return
             return allCampsites
