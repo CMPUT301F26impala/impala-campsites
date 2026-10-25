@@ -1,6 +1,7 @@
 package com.impala.campala.entrant.search_campsites
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -9,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
@@ -33,7 +35,6 @@ import androidx.compose.material3.getSelectedDate
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -42,13 +43,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import com.impala.campala.ViewObserver
+import com.impala.campala.model.CampsiteModel
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 /**
  * The 'Browse Campsites' screen
  *
- * This class has no useful logic; it's just a documentation example.
+ * This renders for an entrant and allows them to search through campsites
  *
  * @param controller the SearchCampsitesController instance that is connected to the model
  */
@@ -58,11 +60,14 @@ class SearchCampsitesView(val controller: SearchCampsitesController): ViewObserv
     private var locationFilter by mutableStateOf<String?>(null);
     private var dateFilter by mutableStateOf<LocalDate?>( null);
 
+    private var results by mutableStateOf<List<CampsiteModel>>(mutableListOf())
+
     override fun update(model: SearchCampsitesModel) {
         this.searchString = model.searchString
         this.minimumOccupantsFilter = model.minimumOccupantsFilter
         this.locationFilter = model.locationFilter
         this.dateFilter = model.dateFilter
+        this.results = model.results
     }
 
     /**
@@ -97,9 +102,9 @@ class SearchCampsitesView(val controller: SearchCampsitesController): ViewObserv
                     CapacityFilter(modifier = Modifier.weight(1f))
                 }
             }
-            items(count=10, itemContent = { item ->
-                CampsiteRenderItem()
-            })
+            items(results, key = { it.id }) { campsite ->
+                CampsiteRenderItem(campsite)
+            }
         }
     }
 
@@ -232,20 +237,21 @@ class SearchCampsitesView(val controller: SearchCampsitesController): ViewObserv
     }
 
     @Composable
-    private fun CampsiteRenderItem() {
-        Column () {
-            // TODO: Put the image in here once it's ready
+    private fun CampsiteRenderItem(campsite: CampsiteModel) {
+        Column(modifier = Modifier.clickable {
+            this.controller.onCampsitePress(campsite)
+        }) {
             Box(modifier = Modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(16.dp))
                 .background(color= MaterialTheme.colorScheme.primary)
                 .height(192.dp)) {}
             Column(modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)) {
-                Text("Campsite Name", style = MaterialTheme.typography.headlineMedium)
+                Text(campsite.name, style = MaterialTheme.typography.headlineMedium)
                 Row() {
                     Row(modifier = Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
                         Icon(Icons.Default.LocationOn, contentDescription = "Location Icon", tint = MaterialTheme.colorScheme.onSurfaceVariant)
-                        Text("Location", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(campsite.location, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                     Row(modifier = Modifier.weight(1f),verticalAlignment = Alignment.CenterVertically) {
                         Icon(Icons.Default.Star, contentDescription = "Star Icon", tint = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -253,7 +259,7 @@ class SearchCampsitesView(val controller: SearchCampsitesController): ViewObserv
                     }
                     Row(modifier = Modifier.weight(1f),verticalAlignment = Alignment.CenterVertically) {
                         Icon(Icons.Default.Person, contentDescription = "Person Icon", tint = MaterialTheme.colorScheme.onSurfaceVariant)
-                        Text("Up to 5 People", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(campsite.maxOccupancy.toString() + " People", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
             }

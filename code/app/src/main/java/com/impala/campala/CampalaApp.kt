@@ -2,9 +2,11 @@ package com.impala.campala
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import com.impala.campala.entrant.search_campsites.SearchCampsitesController
 import com.impala.campala.entrant.search_campsites.SearchCampsitesModel
 import com.impala.campala.entrant.search_campsites.SearchCampsitesView
+import com.impala.campala.model.CampsiteRepository
 
 @Composable
 fun CampalaApp() {
@@ -12,7 +14,10 @@ fun CampalaApp() {
     // In here, we need to create instances of each of our classes (models, views, controllers, etc)
     // And then the navController is how we register our root stack navigation
 
-    val searchCampsitesModel = remember { SearchCampsitesModel() }
+    val coroutineScope = rememberCoroutineScope()
+    val campsiteRepo = CampsiteRepository()
+
+    val searchCampsitesModel = remember { SearchCampsitesModel(campsiteRepo, coroutineScope) }
     val searchCampsitesController = remember { SearchCampsitesController(searchCampsitesModel) }
     val searchCampsitesView = remember { SearchCampsitesView(searchCampsitesController) }
     searchCampsitesModel.addObserver(searchCampsitesView)

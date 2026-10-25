@@ -1,6 +1,7 @@
 package com.impala.campala.entrant.search_campsites
 
 import com.impala.campala.Controller
+import com.impala.campala.model.CampsiteModel
 import java.time.LocalDate
 
 
@@ -16,6 +17,10 @@ class SearchCampsitesController(val model: SearchCampsitesModel): Controller {
     }
     fun onDateChange(newDate: LocalDate?) {
         model.setDate(newDate)
+    }
+
+    fun onCampsitePress(campsite: CampsiteModel) {
+        // TODO: Take the user to that campsite details page
     }
 }
 
