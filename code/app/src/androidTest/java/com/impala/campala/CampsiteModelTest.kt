@@ -60,7 +60,7 @@ class CampsiteModelTest {
     }
 
     @Test
-    fun repositoryAddDelete(){
+    fun repositoryAddDelete(): Unit = runBlocking {
         repo.saveCampsite(campsite)
         repo.deleteCampsite(campsite)
         val didDelete = Tasks.await(Firebase.firestore.collection("campsites").document(campsite.id).get())
@@ -68,7 +68,7 @@ class CampsiteModelTest {
     }
 
     @Test
-    fun repositoryFirestoreEmulatorSave(){
+    fun repositoryFirestoreEmulatorSave(): Unit = runBlocking {
         repo.deleteCampsite(campsite)
         repo.saveCampsite(campsite)
 

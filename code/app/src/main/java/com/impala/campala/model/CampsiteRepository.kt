@@ -85,18 +85,22 @@ class CampsiteRepository {
      *      ID. If the campsite didn't exist before (eg: you just went like Campsite()
      *      to create a new one) it will create it
      *
+     *  Suspends until the write finishes, and throws if it fails
+     *
      * @param campsite CampsiteModel to be saved
     */
-    fun saveCampsite(campsite: CampsiteModel): Unit {
-        campsite.save()
+    suspend fun saveCampsite(campsite: CampsiteModel): Unit {
+        campsite.save().await()
     }
 
     /**
      * Deletes Campsite from database
      *
+     * Suspends until the delete finishes, and throws if it fails
+     *
      * @param campsite CampsiteModel to delete
      */
-    fun deleteCampsite(campsite: CampsiteModel): Unit {
-        db.collection("campsites").document(campsite.id).delete()
+    suspend fun deleteCampsite(campsite: CampsiteModel): Unit {
+        db.collection("campsites").document(campsite.id).delete().await()
     }
 }
