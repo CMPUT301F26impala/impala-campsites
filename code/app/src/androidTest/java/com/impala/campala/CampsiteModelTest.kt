@@ -11,6 +11,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.tasks.await
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -62,6 +63,9 @@ class CampsiteModelTest {
     @Test
     fun repositoryAddDelete(): Unit = runBlocking {
         repo.saveCampsite(campsite)
+        val didSave = Tasks.await(Firebase.firestore.collection("campsites").document(campsite.id).get())
+        assertTrue("Document should exist in Firestore after saving", didSave.exists())
+
         repo.deleteCampsite(campsite)
         val didDelete = Tasks.await(Firebase.firestore.collection("campsites").document(campsite.id).get())
         assertFalse("Document should no longer exist in Firestore after deletion", didDelete.exists())
