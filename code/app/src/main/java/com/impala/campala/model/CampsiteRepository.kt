@@ -43,14 +43,14 @@ class CampsiteRepository: ObservableModel<CampsiteRepository>() {
      * @param location TODO: change data type
      * @param mapLocation TODO: Change data type
      * @param numPeople Filters for campsites with capacity for numPeople
+     * @param authorId TODO: The Campsite Owner ID of the creator, used so that campsite owners can filter to only their own campsites
      *
      * Suspends instead of blocking, so it's safe to call from the main thread
      * as long as it's inside a coroutine (eg: LaunchedEffect or rememberCoroutineScope in Compose)
      *
      * @return List of matching campsites
      */
-    suspend fun getFilteredCampsites(searchString: String?, location: String?,
-                                     mapLocation: String?,numPeople: Int?): List<CampsiteModel>{
+    suspend fun getFilteredCampsites(searchString: String? = null, location: String? = null, mapLocation: String? = null, numPeople: Int? = null, campsiteOwnerId: String? = null): List<CampsiteModel>{
         var query: Query = db.collection("campsites")
 
         if(location!=null){
