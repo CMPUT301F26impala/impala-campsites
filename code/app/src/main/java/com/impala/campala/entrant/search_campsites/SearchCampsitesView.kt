@@ -63,6 +63,7 @@ class SearchCampsitesView(val controller: SearchCampsitesController): ViewObserv
 
     private var results by mutableStateOf<List<CampsiteModel>>(mutableListOf())
 
+    // No KDoc because that's described in the ViewObserver contract
     override fun update(model: SearchCampsitesModel) {
         this.searchString = model.searchString
         this.minimumOccupantsFilter = model.minimumOccupantsFilter
@@ -73,6 +74,9 @@ class SearchCampsitesView(val controller: SearchCampsitesController): ViewObserv
 
     /**
      * The main render function to output the screen
+     *
+     * Also asks the controller to load the campsites whenever the screen is shown
+     *
      * @return Unit, but it does render Composable UI as a side effect
      */
     @OptIn(ExperimentalMaterial3Api::class)
