@@ -17,7 +17,7 @@ class SearchCampsitesController(val model: SearchCampsitesModel): Controller {
      * Called in a LaunchedEffect in the View, loads the campsites when the screen is shown
      */
     fun onFirstRender() {
-        model.updateResults()
+        model.getInitialData()
     }
 
     /**

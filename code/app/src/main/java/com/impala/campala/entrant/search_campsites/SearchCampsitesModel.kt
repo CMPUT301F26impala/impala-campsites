@@ -43,6 +43,12 @@ class SearchCampsitesModel(val repo: CampsiteRepository, val scope: CoroutineSco
             notifyObservers(this@SearchCampsitesModel)
         }
     }
+    /**
+     * Seeds results with just the unfiltered list of campsites
+     */
+    fun getInitialData() {
+        this.updateResults()
+    }
 
     /**
      * Sets the search bar text and updates results
