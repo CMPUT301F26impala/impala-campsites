@@ -34,6 +34,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.getSelectedDate
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -77,6 +78,10 @@ class SearchCampsitesView(val controller: SearchCampsitesController): ViewObserv
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     fun Render() {
+        // Get the campsites on first launch, so that we have data
+        LaunchedEffect(Unit) {
+            controller.onFirstRender()
+        }
         LazyColumn(verticalArrangement = Arrangement.spacedBy(24.dp)) {
             item {
                 // https://developer.android.com/develop/ui/compose/components/search-bar

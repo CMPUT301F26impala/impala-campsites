@@ -6,6 +6,9 @@ import java.time.LocalDate
 
 
 class SearchCampsitesController(val model: SearchCampsitesModel): Controller {
+    fun onFirstRender() {
+        model.updateResults()
+    }
     fun onSearchBarInputChange(newValue: String) {
         model.setSearchBarString(newValue);
     }

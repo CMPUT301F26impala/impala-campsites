@@ -1,10 +1,10 @@
 package com.impala.campala.entrant.search_campsites
 
-import androidx.annotation.Nullable
 import com.impala.campala.ObservableModel
 import com.impala.campala.model.CampsiteModel
 import com.impala.campala.model.CampsiteRepository
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 
@@ -16,8 +16,12 @@ class SearchCampsitesModel(val repo: CampsiteRepository, val scope: CoroutineSco
 
     var results: List<CampsiteModel> = mutableListOf()
 
-    private fun updateResults() {
-        this.scope.launch {
+    private var resultsJob: Job? = null
+    fun updateResults() {
+        // If you type, technically this would fire on every keystroke
+        // We need to cancel the previous one before starting a new one, that way we don't have a bunch going at once
+        resultsJob?.cancel()
+        resultsJob = this.scope.launch {
             results = repo.getFilteredCampsites(searchString, locationFilter, null, minimumOccupantsFilter, null)
             notifyObservers(this@SearchCampsitesModel)
         }

@@ -14,8 +14,10 @@ fun CampalaApp() {
     // In here, we need to create instances of each of our classes (models, views, controllers, etc)
     // And then the navController is how we register our root stack navigation
 
+    // Here, remember basically means "make this one, and even if this rerenders use the old version"
+    // That way, we aren't recreating these classes a bunch of times.
     val coroutineScope = rememberCoroutineScope()
-    val campsiteRepo = CampsiteRepository()
+    val campsiteRepo = remember { CampsiteRepository() }
 
     val searchCampsitesModel = remember { SearchCampsitesModel(campsiteRepo, coroutineScope) }
     val searchCampsitesController = remember { SearchCampsitesController(searchCampsitesModel) }
