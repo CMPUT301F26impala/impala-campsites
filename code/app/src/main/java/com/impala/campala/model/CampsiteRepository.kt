@@ -17,7 +17,7 @@ import kotlinx.coroutines.tasks.await
  *
  * @property db Firestore database lazy reference
  */
-class CampsiteRepository: ObservableModel<CampsiteRepository>() {
+class CampsiteRepository {
     private val db: FirebaseFirestore by lazy { Firebase.firestore }
 
     // Things that use Task.await() can't run on the main thread
