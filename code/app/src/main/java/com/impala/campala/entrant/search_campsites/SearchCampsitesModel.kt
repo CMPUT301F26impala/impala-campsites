@@ -14,7 +14,8 @@ class SearchCampsitesModel(val repo: CampsiteRepository, val scope: CoroutineSco
     var locationFilter: String? = null;
     var dateFilter: LocalDate? = null;
 
-    var results: List<CampsiteModel> = mutableListOf()
+    var results: List<CampsiteModel> = emptyList()
+        private set
 
     private var resultsJob: Job? = null
     fun updateResults() {
