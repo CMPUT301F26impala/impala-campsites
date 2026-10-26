@@ -23,6 +23,14 @@ val bodyFontFamily = FontFamily(
     )
 )
 
+val bodyFontFamilyBold = FontFamily(
+    Font(
+        googleFont = GoogleFont("Roboto"),
+        weight = FontWeight.W500,
+        fontProvider = provider,
+    )
+)
+
 val displayFontFamily = FontFamily(
     Font(
         googleFont = GoogleFont("DM Sans"),
@@ -46,8 +54,8 @@ val AppTypography = Typography(
     bodyLarge = baseline.bodyLarge.copy(fontFamily = bodyFontFamily),
     bodyMedium = baseline.bodyMedium.copy(fontFamily = bodyFontFamily),
     bodySmall = baseline.bodySmall.copy(fontFamily = bodyFontFamily),
-    labelLarge = baseline.labelLarge.copy(fontFamily = bodyFontFamily),
-    labelMedium = baseline.labelMedium.copy(fontFamily = bodyFontFamily),
-    labelSmall = baseline.labelSmall.copy(fontFamily = bodyFontFamily),
+    labelLarge = baseline.labelLarge.copy(fontFamily = bodyFontFamilyBold),
+    labelMedium = baseline.labelMedium.copy(fontFamily = bodyFontFamilyBold),
+    labelSmall = baseline.labelSmall.copy(fontFamily = bodyFontFamilyBold),
 )
 

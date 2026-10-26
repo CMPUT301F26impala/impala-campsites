@@ -36,15 +36,16 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.impala.campala.ui_sections.search_campsites.SearchCampsitesView
 
 @Composable
-fun EntrantNavigationRoot() {
+fun EntrantNavigationRoot(searchCampsitesScreen: SearchCampsitesView) {
     val navController = rememberNavController()
 
     NavHost(navController = navController, startDestination = "home") {
         // "home" is the tab navigation, the 4 tabs inside of home are controlled by the EntrantHomeScreen function
         // Any screens that aren't part of the tabs and are 'fullscreen' should be declared here
-        composable("home") { EntrantHomeScreen(navController) }
+        composable("home") { EntrantHomeScreen(navController, searchCampsitesScreen) }
         composable("screen1") { ExampleScreenOne(navController) }
     }
 }
@@ -66,7 +67,7 @@ enum class EntrantTab(val label: String, val icon: ImageVector) {
 // This may change in the future into a 100% human-derived solution, but I'm just disclosing this for transaprency
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun EntrantHomeScreen(navController: NavController) {
+fun EntrantHomeScreen(navController: NavController, searchCampsitesScreen: SearchCampsitesView) {
     var selected by rememberSaveable { mutableStateOf(EntrantTab.Search) }
     val tabState = rememberSaveableStateHolder() // keeps each tab's scroll/state
     Scaffold(
@@ -88,7 +89,7 @@ fun EntrantHomeScreen(navController: NavController) {
         Box(Modifier.padding(padding).padding(horizontal = 16.dp)) {
             tabState.SaveableStateProvider(selected.name) {
                 when (selected) {
-                    EntrantTab.Search -> SearchTab(navController)
+                    EntrantTab.Search -> searchCampsitesScreen.Render()
                     EntrantTab.Lotteries -> LotteriesTab(navController)
                     EntrantTab.Reservations -> ReservationsTab(navController)
                     EntrantTab.Profile -> ProfileTab(navController)
