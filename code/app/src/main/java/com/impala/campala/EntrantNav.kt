@@ -36,7 +36,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.impala.campala.entrant.search_campsites.SearchCampsitesView
+import com.impala.campala.ui_sections.search_campsites.SearchCampsitesView
 
 @Composable
 fun EntrantNavigationRoot(searchCampsitesScreen: SearchCampsitesView) {

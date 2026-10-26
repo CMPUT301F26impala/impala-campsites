@@ -3,9 +3,10 @@ package com.impala.campala
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import com.impala.campala.entrant.search_campsites.SearchCampsitesController
-import com.impala.campala.entrant.search_campsites.SearchCampsitesModel
-import com.impala.campala.entrant.search_campsites.SearchCampsitesView
+import com.impala.campala.ui_sections.search_campsites.SearchCampsitesController
+import com.impala.campala.ui_sections.search_campsites.SearchCampsitesModel
+import com.impala.campala.ui_sections.search_campsites.SearchCampsitesView
+import com.impala.campala.ui_sections.search_campsites.SearchCampsitesViewMode
 import com.impala.campala.model.CampsiteRepository
 
 @Composable
@@ -19,7 +20,7 @@ fun CampalaApp() {
     val coroutineScope = rememberCoroutineScope()
     val campsiteRepo = remember { CampsiteRepository() }
 
-    val searchCampsitesModel = remember { SearchCampsitesModel(campsiteRepo, coroutineScope) }
+    val searchCampsitesModel = remember { SearchCampsitesModel(campsiteRepo, coroutineScope, SearchCampsitesViewMode.ENTRANT) }
     val searchCampsitesController = remember { SearchCampsitesController(searchCampsitesModel) }
     val searchCampsitesView = remember { SearchCampsitesView(searchCampsitesController) }
     searchCampsitesModel.addObserver(searchCampsitesView)

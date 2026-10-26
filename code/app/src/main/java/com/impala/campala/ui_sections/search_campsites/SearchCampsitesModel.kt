@@ -1,4 +1,4 @@
-package com.impala.campala.entrant.search_campsites
+package com.impala.campala.ui_sections.search_campsites
 
 import com.impala.campala.ObservableModel
 import com.impala.campala.model.CampsiteModel
@@ -9,6 +9,13 @@ import kotlinx.coroutines.launch
 import java.time.LocalDate
 
 /**
+ * Which user type the 'Browse Campsites' screen is being shown to
+ *
+ * ENTRANT sees every campsite, CAMPSITE_OWNER only sees the campsites they own
+ */
+enum class SearchCampsitesViewMode { ENTRANT, CAMPSITE_OWNER }
+
+/**
  * Model for the 'Browse Campsites' screen
  *
  * This tracks all the filter state (the search string and the filter values)
@@ -16,6 +23,7 @@ import java.time.LocalDate
  *
  * @param repo the CampsiteRepository to fetch campsites from
  * @param scope the CoroutineScope that the suspend fetches run in
+ * @param viewMode whether this screen is for an entrant or a campsite owner
  *
  * @property searchString text typed into the search bar
  * @property minimumOccupantsFilter the minimum capacity a user wants, or null for "any is fine"
@@ -23,7 +31,7 @@ import java.time.LocalDate
  * @property dateFilter the date the entrant wants to camp on, null for any, CURRENTLY NOT IMPLEMENTED
  * @property results campsites matching the current filters
  */
-class SearchCampsitesModel(val repo: CampsiteRepository, val scope: CoroutineScope): ObservableModel<SearchCampsitesModel>() {
+class SearchCampsitesModel(val repo: CampsiteRepository, val scope: CoroutineScope, val viewMode: SearchCampsitesViewMode): ObservableModel<SearchCampsitesModel>() {
     var searchString = "";
     var minimumOccupantsFilter: Int? = null;
     var locationFilter: String? = null;
@@ -39,6 +47,7 @@ class SearchCampsitesModel(val repo: CampsiteRepository, val scope: CoroutineSco
         // We need to cancel the previous one before starting a new one, that way we don't have a bunch going at once
         resultsJob?.cancel()
         resultsJob = this.scope.launch {
+            // TODO: if viewMode == CAMPSITE_OWNER, use CampsiteOwnerProfileRepository to only show campsites owned by the current user
             results = repo.getFilteredCampsites(searchString, locationFilter, null, minimumOccupantsFilter, null)
             notifyObservers(this@SearchCampsitesModel)
         }

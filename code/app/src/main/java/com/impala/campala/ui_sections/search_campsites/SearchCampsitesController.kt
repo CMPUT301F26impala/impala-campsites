@@ -1,4 +1,4 @@
-package com.impala.campala.entrant.search_campsites
+package com.impala.campala.ui_sections.search_campsites
 
 import com.impala.campala.Controller
 import com.impala.campala.model.CampsiteModel
