@@ -7,7 +7,11 @@ import com.impala.campala.ui_sections.search_campsites.SearchCampsitesController
 import com.impala.campala.ui_sections.search_campsites.SearchCampsitesModel
 import com.impala.campala.ui_sections.search_campsites.SearchCampsitesView
 import com.impala.campala.ui_sections.search_campsites.SearchCampsitesViewMode
+import com.impala.campala.ui_sections.form_campsites.FormCampsitesModel
+import com.impala.campala.ui_sections.form_campsites.FormCampsitesController
+import com.impala.campala.ui_sections.form_campsites.FormCampsitesView
 import com.impala.campala.model.CampsiteRepository
+
 
 @Composable
 fun CampalaApp() {
@@ -24,6 +28,11 @@ fun CampalaApp() {
     val searchCampsitesController = remember { SearchCampsitesController(searchCampsitesModel) }
     val searchCampsitesView = remember { SearchCampsitesView(searchCampsitesController) }
     searchCampsitesModel.addObserver(searchCampsitesView)
+
+    val formCampsitesModel = remember { FormCampsitesModel(campsiteRepo, coroutineScope) }
+    val formCampsitesController = remember { FormCampsitesController(formCampsitesModel) }
+    val formCampsitesView = remember { FormCampsitesView(formCampsitesController) }
+    formCampsitesModel.addObserver((formCampsitesView))
 
     var currentViewType = "entrant" // TODO: Figure out actual user type from firebase here (entrant or campsiteowner or admin)
     // More than likely this will need to do like userModel.getAccountType() or something like that
