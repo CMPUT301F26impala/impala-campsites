@@ -58,7 +58,7 @@ It accepts a parameter fo the type Campsite declared in CampsiteModel
 
 class FormCampsitesView(
     val controller: FormCampsitesController
-): ViewObserver<CampsiteFormModel> {
+): ViewObserver<FormCampsitesModel> {
 
     private var title by mutableStateOf("")
     private var location by mutableStateOf("")
@@ -69,7 +69,7 @@ class FormCampsitesView(
     private var isEditing by mutableStateOf(false)
     private var wasCampsiteSavedSuccessfully by mutableStateOf(false)
 
-    override fun update(model: CampsiteFormModel) {
+    override fun update(model: FormCampsitesModel) {
         title = model.title
         location = model.location
         description = model.description

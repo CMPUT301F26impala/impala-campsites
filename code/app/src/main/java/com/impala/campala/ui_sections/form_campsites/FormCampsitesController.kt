@@ -3,7 +3,7 @@ package com.impala.campala.ui_sections.form_campsites
 import com.impala.campala.Controller
 
 class FormCampsitesController(
-    val model: CampsiteFormModel
+    val model: FormCampsitesModel
 ) : Controller {
 
     fun onTitleChange(newTitle: String) {
