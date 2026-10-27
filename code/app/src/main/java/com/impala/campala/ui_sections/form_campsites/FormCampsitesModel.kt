@@ -6,11 +6,11 @@ import com.impala.campala.model.CampsiteRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
-class CampsiteFormModel(
+class FormCampsitesModel(
     val repo: CampsiteRepository,
     val scope: CoroutineScope,
     val campsite: CampsiteModel? = null
-): ObservableModel<CampsiteFormModel>() {
+): ObservableModel<FormCampsitesModel>() {
 
     var title = if (campsite == null) "" else campsite.name
     var location = if (campsite == null) "" else campsite.location
@@ -83,7 +83,7 @@ class CampsiteFormModel(
         scope.launch {
             repo.saveCampsite(updatedCampsite)
             wasCampsiteSavedSuccessfully = true
-            notifyObservers(this@CampsiteFormModel)
+            notifyObservers(this@FormCampsitesModel)
         }
     }
 }
