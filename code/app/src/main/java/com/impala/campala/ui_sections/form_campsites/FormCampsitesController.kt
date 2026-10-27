@@ -29,4 +29,8 @@ class FormCampsitesController(
     fun onRemoveTag(tag: String) {
         model.removeTag(tag)
     }
+
+    fun onSaveClick() {
+        model.saveCampsite()
+    }
 }

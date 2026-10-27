@@ -4,6 +4,7 @@ import com.impala.campala.ObservableModel
 import com.impala.campala.model.CampsiteModel
 import com.impala.campala.model.CampsiteRepository
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 
 class CampsiteFormModel(
     val repo: CampsiteRepository,
@@ -16,6 +17,9 @@ class CampsiteFormModel(
     var description = if (campsite == null) "" else campsite.description
     var maximumOccupancy = if (campsite == null) "" else campsite.maxOccupancy.toString()
     var tags = if (campsite == null) mutableListOf<String>() else campsite.tags.toMutableList()
+
+    // if campiste was saved successfully
+    var wasCampsiteSavedSuccessfully = false
 
     fun setTitle(newTitle: String) {
         title = newTitle
@@ -48,5 +52,38 @@ class CampsiteFormModel(
     fun removeTag(tag: String) {
         tags.remove(tag)
         notifyObservers(this)
+    }
+
+    fun saveCampsite() {
+        // convert maximum occupancy to integer (its a string right now in the input box)
+        val occupancy = if (maximumOccupancy == "") 0 else maximumOccupancy.toInt()
+
+        // editing an existing campsite, updatedCampsite stores the datatype we will send after create/edit
+        val updatedCampsite: CampsiteModel
+        if (campsite != null) {
+            updatedCampsite = campsite.copy(
+                name = title,
+                location = location,
+                description = description,
+                maxOccupancy = occupancy,
+                tags = tags.toMutableList()
+            )
+        } else {
+            // creating a new campsite
+            updatedCampsite = CampsiteModel(
+                name = title,
+                location = location,
+                description = description,
+                maxOccupancy = occupancy,
+                tags = tags.toMutableList()
+            )
+        }
+
+        //save to firebase
+        scope.launch {
+            repo.saveCampsite(updatedCampsite)
+            wasCampsiteSavedSuccessfully = true
+            notifyObservers(this@CampsiteFormModel)
+        }
     }
 }

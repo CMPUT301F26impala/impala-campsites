@@ -242,8 +242,7 @@ class FormCampsitesView(
                 Spacer(modifier = Modifier.width(24.dp))
 
                 Button(
-                    onClick = {},
-                    enabled = false
+                    onClick = { controller.onSaveClick() }
                 ) {
                     if (isEditing) {
                         Text("Save")
