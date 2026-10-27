@@ -40,7 +40,7 @@ import com.impala.campala.model.CampsiteModel
 /*
 TODO:
  1. maxOccupancy conversion logic before saving,
-    current function will crash when given anything not a number
+    current function will crash when given anything not a number or empty
  */
 
 /*
