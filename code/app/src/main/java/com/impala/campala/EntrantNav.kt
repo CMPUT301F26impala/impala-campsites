@@ -3,6 +3,7 @@ package com.impala.campala
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -13,6 +14,7 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -31,6 +33,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
@@ -71,7 +74,24 @@ fun EntrantHomeScreen(navController: NavController, searchCampsitesScreen: Searc
     var selected by rememberSaveable { mutableStateOf(EntrantTab.Search) }
     val tabState = rememberSaveableStateHolder() // keeps each tab's scroll/state
     Scaffold(
-        topBar = { TopAppBar({ Text("CAMPALA LOGO GOES HERE") }) },
+        topBar = {
+            TopAppBar(
+                title = {
+                    Icon(
+                        painterResource(R.drawable.campala_logo),
+                        contentDescription = "Campala",
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.height(20.dp)
+                    )
+                },
+                actions = {
+                    // TODO: switch between entrant and campsite owner
+                    FilledIconButton(onClick = {}, modifier = Modifier.padding(end = 8.dp)) {
+                        Icon(Icons.Default.Person, contentDescription = "Switch user mode")
+                    }
+                }
+            )
+        },
         bottomBar = {
             NavigationBar {
                 EntrantTab.entries.forEach { tab ->
