@@ -21,21 +21,21 @@ class FormCampsitesModel(
     // if campiste was saved successfully
     var wasCampsiteSavedSuccessfully = false
 
-    fun setTitle(newTitle: String) {
+    fun updateTitle(newTitle: String) {
         title = newTitle
         notifyObservers(this)
     }
-    fun setLocation(newLocation: String) {
+    fun updateLocation(newLocation: String) {
         location = newLocation
         notifyObservers(this)
     }
 
-    fun setDescription(newDescription: String) {
+    fun updateDescription(newDescription: String) {
         description = newDescription
         notifyObservers(this)
     }
 
-    fun setMaximumOccupancy(newOccupancy: String) {
+    fun updateMaximumOccupancy(newOccupancy: String) {
         maximumOccupancy = newOccupancy
         notifyObservers(this)
     }

@@ -7,19 +7,19 @@ class FormCampsitesController(
 ) : Controller {
 
     fun onTitleChange(newTitle: String) {
-        model.setTitle(newTitle)
+        model.updateTitle(newTitle)
     }
 
     fun onLocationChange(newLocation: String) {
-        model.setLocation(newLocation)
+        model.updateLocation(newLocation)
     }
 
     fun onDescriptionChange(newDescription: String) {
-        model.setDescription(newDescription)
+        model.updateDescription(newDescription)
     }
 
     fun onMaximumOccupancyChange(newOccupancy: String) {
-        model.setMaximumOccupancy(newOccupancy)
+        model.updateMaximumOccupancy(newOccupancy)
     }
 
     fun onAddTag(newTag: String) {
