@@ -33,4 +33,9 @@ class FormCampsitesController(
     fun onSaveClick() {
         model.saveCampsite()
     }
+
+    // for setting flag to false after user pressed save, otherwise the flag stays true
+    fun onSaveNavigationBecomesFalse() {
+        model.changeSaveFLagFalse()
+    }
 }

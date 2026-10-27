@@ -86,7 +86,10 @@ class FormCampsitesView(
     @Composable
     fun Render(navController: NavController) {
         LaunchedEffect(wasCampsiteSavedSuccessfully) {
-            if (wasCampsiteSavedSuccessfully == true) navController.popBackStack()
+            if (wasCampsiteSavedSuccessfully == true) {
+                controller.onSaveNavigationBecomesFalse()
+                navController.popBackStack()
+            }
         }
         Column(
             modifier = Modifier

@@ -86,4 +86,12 @@ class FormCampsitesModel(
             notifyObservers(this@FormCampsitesModel)
         }
     }
+
+    // set the "saved succesful flag" to false
+    // after user is popped back in the stack (the popbackstack thing in nav)
+    // to prevent the flag from staying true across multiple form usage
+    fun changeSaveFLagFalse() {
+        wasCampsiteSavedSuccessfully = false
+        notifyObservers(this)
+    }
 }
