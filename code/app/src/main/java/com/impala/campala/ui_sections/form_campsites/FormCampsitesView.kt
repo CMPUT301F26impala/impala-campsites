@@ -27,6 +27,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.InputChip
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
@@ -66,6 +67,7 @@ class FormCampsitesView(
     private var tags by mutableStateOf<List<String>>(emptyList())
     private var tagInput by mutableStateOf("")
     private var isEditing by mutableStateOf(false)
+    private var wasCampsiteSavedSuccessfully by mutableStateOf(false)
 
     override fun update(model: CampsiteFormModel) {
         title = model.title
@@ -74,6 +76,7 @@ class FormCampsitesView(
         maximumOccupancy = model.maximumOccupancy
         tags = model.tags.toList()
         isEditing = model.campsite != null
+        wasCampsiteSavedSuccessfully = model.wasCampsiteSavedSuccessfully
     }
 
     init {
@@ -82,6 +85,9 @@ class FormCampsitesView(
 
     @Composable
     fun Render(navController: NavController) {
+        LaunchedEffect(wasCampsiteSavedSuccessfully) {
+            if (wasCampsiteSavedSuccessfully == true) navController.popBackStack()
+        }
         Column(
             modifier = Modifier
                 .fillMaxSize()
