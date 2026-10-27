@@ -3,6 +3,7 @@ package com.impala.campala
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -13,6 +14,7 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -31,20 +33,22 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.impala.campala.ui_sections.search_campsites.SearchCampsitesView
 
 @Composable
-fun EntrantNavigationRoot() {
+fun EntrantNavigationRoot(searchCampsitesScreen: SearchCampsitesView) {
     val navController = rememberNavController()
 
     NavHost(navController = navController, startDestination = "home") {
         // "home" is the tab navigation, the 4 tabs inside of home are controlled by the EntrantHomeScreen function
         // Any screens that aren't part of the tabs and are 'fullscreen' should be declared here
-        composable("home") { EntrantHomeScreen(navController) }
+        composable("home") { EntrantHomeScreen(navController, searchCampsitesScreen) }
         composable("screen1") { ExampleScreenOne(navController) }
     }
 }
@@ -66,11 +70,28 @@ enum class EntrantTab(val label: String, val icon: ImageVector) {
 // This may change in the future into a 100% human-derived solution, but I'm just disclosing this for transaprency
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun EntrantHomeScreen(navController: NavController) {
+fun EntrantHomeScreen(navController: NavController, searchCampsitesScreen: SearchCampsitesView) {
     var selected by rememberSaveable { mutableStateOf(EntrantTab.Search) }
     val tabState = rememberSaveableStateHolder() // keeps each tab's scroll/state
     Scaffold(
-        topBar = { TopAppBar({ Text("CAMPALA LOGO GOES HERE") }) },
+        topBar = {
+            TopAppBar(
+                title = {
+                    Icon(
+                        painterResource(R.drawable.campala_logo),
+                        contentDescription = "Campala",
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.height(20.dp)
+                    )
+                },
+                actions = {
+                    // TODO: switch between entrant and campsite owner
+                    FilledIconButton(onClick = {}, modifier = Modifier.padding(end = 8.dp)) {
+                        Icon(Icons.Default.Person, contentDescription = "Switch user mode")
+                    }
+                }
+            )
+        },
         bottomBar = {
             NavigationBar {
                 EntrantTab.entries.forEach { tab ->
@@ -88,7 +109,7 @@ fun EntrantHomeScreen(navController: NavController) {
         Box(Modifier.padding(padding).padding(horizontal = 16.dp)) {
             tabState.SaveableStateProvider(selected.name) {
                 when (selected) {
-                    EntrantTab.Search -> SearchTab(navController)
+                    EntrantTab.Search -> searchCampsitesScreen.Render()
                     EntrantTab.Lotteries -> LotteriesTab(navController)
                     EntrantTab.Reservations -> ReservationsTab(navController)
                     EntrantTab.Profile -> ProfileTab(navController)
