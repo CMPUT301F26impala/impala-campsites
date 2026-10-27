@@ -1,6 +1,8 @@
 package com.impala.campala
 
 import android.app.Application
+import com.google.firebase.Firebase
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
 // i got ai to make this cuz setting up this db thing was hell
@@ -13,6 +15,7 @@ class CampalaApplication : Application() {
 
         if (BuildConfig.DEBUG) {
             FirebaseFirestore.getInstance().useEmulator("127.0.0.1", 8080)
+            FirebaseAuth.getInstance().useEmulator("127.0.0.1",9099)
         }
     }
 }

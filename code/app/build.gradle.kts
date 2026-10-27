@@ -62,7 +62,8 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     debugImplementation(libs.androidx.compose.ui.tooling)
     implementation(libs.androidx.compose.ui.text.google.fonts)
-    implementation("androidx.compose.material:material-icons-core")
-    implementation(platform("com.google.firebase:firebase-bom:35.0.2"))
-    implementation("com.google.firebase:firebase-firestore")
+    implementation(libs.androidx.compose.material.icons.core)
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.firestore)
+    implementation(libs.firebase.auth)
 }
