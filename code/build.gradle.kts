@@ -39,18 +39,20 @@ tasks.register("startFirebaseEmulators") {
         }
 
         if (adbExecutable?.isFile == true) {
-            val reverseExitCode = ProcessBuilder(
-                adbExecutable.absolutePath,
-                "reverse",
-                "tcp:8080",
-                "tcp:8080"
-            )
-                .inheritIO()
-                .start()
-                .waitFor()
+            for (port in listOf(8080, 9099, 4000)) {
+                val reverseExitCode = ProcessBuilder(
+                    adbExecutable.absolutePath,
+                    "reverse",
+                    "tcp:$port",
+                    "tcp:$port"
+                )
+                    .inheritIO()
+                    .start()
+                    .waitFor()
 
-            if (reverseExitCode != 0) {
-                logger.warn("Could not configure adb reverse for the Firestore emulator.")
+                if (reverseExitCode != 0) {
+                    logger.warn("Could not configure adb reverse for port $port.")
+                }
             }
         }
 
@@ -75,8 +77,6 @@ tasks.register("startFirebaseEmulators") {
                 nodeExecutable.absolutePath,
                 firebaseScript.absolutePath,
                 "emulators:start",
-                "--only",
-                "firestore",
                 "--project",
                 "campala-b8671"
             )
