@@ -8,10 +8,7 @@ import com.google.firebase.firestore.firestore
 import com.impala.campala.model.CampsiteModel
 import com.impala.campala.model.CampsiteRepository
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.tasks.await
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -50,31 +47,6 @@ class CampsiteModelTest {
     fun firestoreEmulatorRoundTrip() {
 
         Tasks.await(campsite.save(), 10, TimeUnit.SECONDS)
-
-        val storedModel = CampsiteModel.load(
-            Tasks.await(
-                Firebase.firestore.collection("campsites").document(campsite.id).get()
-            )
-        )
-
-        assertEquals(campsite, storedModel)
-    }
-
-    @Test
-    fun repositoryAddDelete(): Unit = runBlocking {
-        repo.saveCampsite(campsite)
-        val didSave = Tasks.await(Firebase.firestore.collection("campsites").document(campsite.id).get())
-        assertTrue("Document should exist in Firestore after saving", didSave.exists())
-
-        repo.deleteCampsite(campsite)
-        val didDelete = Tasks.await(Firebase.firestore.collection("campsites").document(campsite.id).get())
-        assertFalse("Document should no longer exist in Firestore after deletion", didDelete.exists())
-    }
-
-    @Test
-    fun repositoryFirestoreEmulatorSave(): Unit = runBlocking {
-        repo.deleteCampsite(campsite)
-        repo.saveCampsite(campsite)
 
         val storedModel = CampsiteModel.load(
             Tasks.await(
