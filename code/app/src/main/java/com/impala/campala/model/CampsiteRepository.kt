@@ -1,12 +1,9 @@
 package com.impala.campala.model
 
-import android.util.Log
-import androidx.compose.runtime.remember
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.firestore
-import com.impala.campala.ObservableModel
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.tasks.await
 
