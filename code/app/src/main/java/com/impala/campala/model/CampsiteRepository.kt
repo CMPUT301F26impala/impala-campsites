@@ -7,6 +7,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.firestore
 import com.impala.campala.ObservableModel
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.tasks.await
 
 /**
@@ -74,6 +75,26 @@ class CampsiteRepository {
             val matchesName = campsite.name.contains(searchString, ignoreCase = true)
             val matchesTags = campsite.tags.any { tag -> tag.contains(searchString, ignoreCase = true) }
             matchesName || matchesTags
+        }
+    }
+
+    /**
+     * Gets a single campsite by its ID
+     *
+     * Must be launched inside of a coroutine because it's suspend
+     *
+     * @param id ID of the campsite to fetch
+     *
+     * @return The matching campsite, or null if it doesn't exist or the fetch fails
+     */
+    suspend fun getCampsiteById(id: String): CampsiteModel? {
+        return try {
+            val snapshot = db.collection("campsites").document(id).get().await()
+            snapshot.toObject(CampsiteModel::class.java) // null if the document doesn't exist
+        } catch (e: CancellationException) {
+            throw e // We don't need proper error feedback, we're just going to make it null.
+        } catch (e: Exception) {
+            return null
         }
     }
 
