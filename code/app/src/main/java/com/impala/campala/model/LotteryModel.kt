@@ -31,6 +31,7 @@ import kotlin.uuid.Uuid
  * @property entrantIds IDs of people entered in the lottery
  * @property waitlistCapacity Max number of people on the waitlist
  * @property waitlistIds IDs of people on the waitlist, in the order they joined (earliest first)
+ * @property ownerId ID of the campsite owner who created the lottery
  */
 data class LotteryModel @OptIn(ExperimentalUuidApi::class) constructor(
     var campsiteIds: MutableList<String> = mutableListOf(),
@@ -42,6 +43,7 @@ data class LotteryModel @OptIn(ExperimentalUuidApi::class) constructor(
     var entrantIds: MutableList<String> = mutableListOf(),
     var waitlistCapacity: Int = 0,
     var waitlistIds: MutableList<String> = mutableListOf(),
+    var ownerId: String = "",
     var id: String = Uuid.random().toString()
 ) {
 
@@ -88,6 +90,7 @@ data class LotteryModel @OptIn(ExperimentalUuidApi::class) constructor(
      */
     @Exclude
     fun validate() {
+        require(ownerId.isNotBlank()) { "A lottery must have an owner" }
         require(campsiteIds.isNotEmpty()) { "A lottery must be linked to at least one campsite" }
         require(lotteryEndTime <= registrationEndTime) { "Registration can't end before winners are drawn" }
         require(reservationStartDate <= reservationEndDate) { "Reservation range can't end before it starts" }
