@@ -1,0 +1,37 @@
+package com.impala.campala.model
+
+import com.google.android.gms.tasks.Task
+import com.google.firebase.Firebase
+import com.google.firebase.firestore.DocumentReference
+import com.google.firebase.firestore.DocumentSnapshot
+import com.google.firebase.firestore.Exclude
+import com.google.firebase.firestore.firestore
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
+
+data class ReservationModel @OptIn(ExperimentalUuidApi::class) constructor(
+    var campsiteId: String, // Campsite
+    var ownerId: String, // Owner of campsite
+    var entrantId: String, // Entrant that reserved
+    var startDate: com.google.firebase.Timestamp, // start of stay
+    var endDate: com.google.firebase.Timestamp, // end of stay
+    var isPast: Boolean = false, // Already happened, check if current date > endDate
+    var hasRating: Boolean = false, // Whether the entrant rated the stay
+    var rating: Int? = null, // rating from 1 to 5, null if hasRating == false
+    var id: String = Uuid.random().toString()
+) {
+    companion object {
+        fun load(doc: DocumentSnapshot): ReservationModel {
+            return doc.toObject(ReservationModel::class.java)!!
+        }
+    }
+
+    @get:Exclude
+    var doc: DocumentReference? = null
+    fun save(): Task<Void> {
+        doc = Firebase.firestore.document("reservations/" + id)
+        return doc!!.set(this)
+    }
+
+
+}
