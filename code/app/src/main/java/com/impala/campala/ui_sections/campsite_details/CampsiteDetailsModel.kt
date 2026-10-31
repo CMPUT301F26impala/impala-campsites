@@ -15,7 +15,6 @@ class CampsiteDetailsModel(
     var description: String = ""
     var maxOccupancy: Int = 0
     var tags: MutableList<String> = mutableListOf()
-    val detailsView: CampsiteDetailsView = CampsiteDetailsView(controller = CampsiteDetailsController(this))
     var campsite: CampsiteModel? = null
 
     suspend fun loadCampsite(campsiteId: String) {
@@ -25,7 +24,7 @@ class CampsiteDetailsModel(
         this.description = campsite?.description ?: ""
         this.maxOccupancy = campsite?.maxOccupancy ?: 0
         this.tags = campsite?.tags ?: mutableListOf()
-        detailsView.update(this)
+        notifyObservers(this)
     }
 
     fun joinLottery() {
