@@ -1,12 +1,15 @@
-package com.impala.campala.campsite_details
+package com.impala.campala.ui_sections.campsite_details
 
-class CampsiteDetailsController {
+import androidx.navigation.NavController
+import com.impala.campala.Controller
+
+class CampsiteDetailsController(val model: CampsiteDetailsModel) : Controller {
     fun moveToEdit() {
         // TODO: Add functionality to move to the edit campsite screen
     }
 
-    fun moveToBrowse() {
-        // TODO: Add functionality to move back to the browse campsite screen
+    fun moveToBrowse(navController: NavController) {
+        navController.popBackStack()
     }
 
     fun moveToBookings() {
@@ -18,6 +21,6 @@ class CampsiteDetailsController {
     }
 
     fun joinLottery() {
-        // TODO: Add functionality to join the lottery for this campsite
+        model.joinLottery()
     }
 }

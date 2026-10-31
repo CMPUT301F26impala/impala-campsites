@@ -1,12 +1,10 @@
 package com.impala.campala.model
 
-import android.util.Log
-import androidx.compose.runtime.remember
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.firestore
-import com.impala.campala.ObservableModel
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.tasks.await
 
 /**
@@ -78,6 +76,26 @@ class CampsiteRepository {
     }
 
     /**
+     * Gets a single campsite by its ID
+     *
+     * Must be launched inside of a coroutine because it's suspend
+     *
+     * @param id ID of the campsite to fetch
+     *
+     * @return The matching campsite, or null if it doesn't exist or the fetch fails
+     */
+    suspend fun getCampsiteById(id: String): CampsiteModel? {
+        return try {
+            val snapshot = db.collection("campsites").document(id).get().await()
+            snapshot.toObject(CampsiteModel::class.java) // null if the document doesn't exist
+        } catch (e: CancellationException) {
+            throw e // We don't need proper error feedback, we're just going to make it null.
+        } catch (e: Exception) {
+            return null
+        }
+    }
+
+    /**
      * Saves a campsite to the database
      *
      *  When a screen updates a campsite, it's controller will end up calling this method
@@ -88,7 +106,7 @@ class CampsiteRepository {
      *  Suspends until the write finishes, and throws if it fails
      *
      * @param campsite CampsiteModel to be saved
-    */
+     */
     suspend fun saveCampsite(campsite: CampsiteModel): Unit {
         campsite.save().await()
     }

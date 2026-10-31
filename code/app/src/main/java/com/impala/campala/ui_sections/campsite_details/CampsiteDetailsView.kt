@@ -1,4 +1,4 @@
-package com.impala.campala.campsite_details
+package com.impala.campala.ui_sections.campsite_details
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -29,31 +29,27 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import com.impala.campala.ViewObserver
-import com.impala.campala.model.CampsiteModel
 
 /**
  * The Campsite Details Screen
  * This takes several flags and the buttons that are displayed vary depending on which are active
  *
  * @param controller the CampsiteDetailsController instance that is connected to the model
- * @param isOwner a flag indicating whether the user viewing the campsite owns it
- * @param isInLottery a flag showing whether the viewing user is in a related lottery
- * @param lotteryExists a flag showing whether a related lottery exists
- * @param lotteryClosed a flag indicating whether the related lottery is closed
  */
-class CampsiteDetailsView(val controller: CampsiteDetailsController,
-                          val isOwner: Boolean,
-                          val isInLottery: Boolean,
-                          val lotteryExists: Boolean,
-                          val lotteryClosed: Boolean): ViewObserver<CampsiteModel> {
+class CampsiteDetailsView(val controller: CampsiteDetailsController): ViewObserver<CampsiteDetailsModel> {
+    val isOwner: Boolean = false
+    val isInLottery: Boolean = false
+    val lotteryExists: Boolean = false
+    val lotteryClosed: Boolean = false
     private var name by mutableStateOf("")
     private var location by mutableStateOf("")
     private var description by mutableStateOf("")
     private var maxOccupancy by mutableIntStateOf(0)
     private var tags = mutableStateListOf<String>()
 
-    override fun update(model: CampsiteModel) {
+    override fun update(model: CampsiteDetailsModel) {
         this.name = model.name
         this.location = model.location
         this.description = model.description
@@ -67,7 +63,7 @@ class CampsiteDetailsView(val controller: CampsiteDetailsController,
      * @return Unit, but it does render Composable UI as a side effect
      */
     @Composable
-    fun Render() {
+    fun Render(navController: NavController) {
         Column(modifier = Modifier.fillMaxHeight()) {
             Box(
                 modifier = Modifier
@@ -93,7 +89,7 @@ class CampsiteDetailsView(val controller: CampsiteDetailsController,
             RenderIconText()
             RenderTextSection("Description", description)
             RenderTextSection("Tags", tags.joinToString())
-            RenderBottomButtons(modifier = Modifier.weight(1f))
+            RenderBottomButtons(modifier = Modifier.weight(1f), navController)
         }
     }
 
@@ -129,7 +125,7 @@ class CampsiteDetailsView(val controller: CampsiteDetailsController,
      * @return Unit, but it does render Composable UI as a side effect
      */
     @Composable
-    private fun RenderBottomButtons(modifier: Modifier = Modifier) {
+    private fun RenderBottomButtons(modifier: Modifier = Modifier, navController: NavController) {
         Column(modifier = modifier.padding(all = 10.dp).fillMaxWidth(),
             horizontalAlignment = Alignment.End,
             verticalArrangement = Arrangement.Bottom
@@ -163,7 +159,7 @@ class CampsiteDetailsView(val controller: CampsiteDetailsController,
                     enabled = enabled) {
                     Text(buttonText) }
             }
-            IconButton(onClick = { controller.moveToBrowse() }) {
+            IconButton(onClick = { controller.moveToBrowse(navController) }) {
                 Icon(Icons.Default.Close, contentDescription = "Back Icon", tint = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
