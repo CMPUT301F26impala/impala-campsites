@@ -4,6 +4,15 @@ import androidx.navigation.NavController
 import com.impala.campala.Controller
 
 class CampsiteDetailsController(val model: CampsiteDetailsModel) : Controller {
+    /**
+     * Called in a LaunchedEffect in the View, loads the campsite whenever the screen is shown
+     *
+     * @param campsiteId the id of the campsite to show
+     */
+    suspend fun onOpen(campsiteId: String) {
+        model.loadCampsite(campsiteId)
+    }
+
     fun moveToEdit() {
         // TODO: Add functionality to move to the edit campsite screen
     }

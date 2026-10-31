@@ -43,6 +43,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import com.impala.campala.ViewObserver
 import com.impala.campala.model.CampsiteModel
 import java.time.LocalDate
@@ -77,11 +78,12 @@ class SearchCampsitesView(val controller: SearchCampsitesController): ViewObserv
      *
      * Also asks the controller to load the campsites whenever the screen is shown
      *
+     * @param navController the root NavController, used to open a campsite's details screen
      * @return Unit, but it does render Composable UI as a side effect
      */
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
-    fun Render() {
+    fun Render(navController: NavController) {
         // Get the campsites on first launch, so that we have data
         LaunchedEffect(Unit) {
             controller.onFirstRender()
@@ -112,7 +114,7 @@ class SearchCampsitesView(val controller: SearchCampsitesController): ViewObserv
                 }
             }
             items(results, key = { it.id }) { campsite ->
-                CampsiteRenderItem(campsite)
+                CampsiteRenderItem(campsite, navController)
             }
         }
     }
@@ -246,9 +248,9 @@ class SearchCampsitesView(val controller: SearchCampsitesController): ViewObserv
     }
 
     @Composable
-    private fun CampsiteRenderItem(campsite: CampsiteModel) {
+    private fun CampsiteRenderItem(campsite: CampsiteModel, navController: NavController) {
         Column(modifier = Modifier.clickable {
-            this.controller.onCampsitePress(campsite)
+            this.controller.onCampsitePress(campsite, navController)
         }) {
             Box(modifier = Modifier
                 .fillMaxWidth()

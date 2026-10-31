@@ -16,6 +16,9 @@ import com.impala.campala.ui_sections.form_campsites.FormCampsitesController
 import com.impala.campala.ui_sections.form_campsites.FormCampsitesView
 import com.impala.campala.model.CampsiteRepository
 import com.impala.campala.model.EntrantProfileRepository
+import com.impala.campala.ui_sections.campsite_details.CampsiteDetailsController
+import com.impala.campala.ui_sections.campsite_details.CampsiteDetailsModel
+import com.impala.campala.ui_sections.campsite_details.CampsiteDetailsView
 
 
 @Composable
@@ -40,6 +43,11 @@ fun CampalaApp() {
     val formCampsitesView = remember { FormCampsitesView(formCampsitesController) }
     formCampsitesModel.addObserver((formCampsitesView))
 
+    val campsiteDetailsModel = remember { CampsiteDetailsModel(campsiteRepo, coroutineScope) }
+    val campsiteDetailsController = remember { CampsiteDetailsController(campsiteDetailsModel) }
+    val campsiteDetailsView = remember { CampsiteDetailsView(campsiteDetailsController) }
+    campsiteDetailsModel.addObserver(campsiteDetailsView)
+
     // Get (or create) the User record for this device as soon as the app starts
     // Anything that needs the entrant profile for this device can do entrantProfileRepo.getEntrantProfileById(user.getUID())
     var user by remember { mutableStateOf<User?>(null) }
@@ -49,7 +57,7 @@ fun CampalaApp() {
 
     user?.let { // This is kotlin code equivalent to: if user == null do nothing, else switch case state on the role
         when (it.getCurrentRole()) {
-            UserViewMode.ENTRANT -> EntrantNavigationRoot(searchCampsitesScreen=searchCampsitesView)
+            UserViewMode.ENTRANT -> EntrantNavigationRoot(searchCampsitesScreen=searchCampsitesView, campsiteDetailsScreen=campsiteDetailsView)
             UserViewMode.CAMPSITE_OWNER -> {
                 // TODO: CAMPSITE OWNER UI
             }
@@ -61,7 +69,7 @@ fun CampalaApp() {
             null -> {
                 // TODO: Intro UI, asking them to choose admin, campsite owner, or entrant, and then assigning that to their user object
                 // Until that exists, just send them to the entrant UI so the app is still usable
-                EntrantNavigationRoot(searchCampsitesScreen=searchCampsitesView)
+                EntrantNavigationRoot(searchCampsitesScreen=searchCampsitesView, campsiteDetailsScreen=campsiteDetailsView)
             }
         }
     }
