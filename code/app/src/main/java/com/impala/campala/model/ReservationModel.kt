@@ -10,15 +10,15 @@ import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
 data class ReservationModel @OptIn(ExperimentalUuidApi::class) constructor(
-    var campsiteId: String, // Campsite
-    var ownerId: String, // Owner of campsite
-    var entrantId: String, // Entrant that reserved
+    val campsiteId: String, // Campsite
+    val ownerId: String, // Owner of campsite
+    val entrantId: String, // Entrant that reserved
     var startDate: com.google.firebase.Timestamp, // start of stay
     var endDate: com.google.firebase.Timestamp, // end of stay
     var isPast: Boolean = false, // Already happened, check if current date > endDate
     var hasRating: Boolean = false, // Whether the entrant rated the stay
     var rating: Int? = null, // rating from 1 to 5, null if hasRating == false
-    var id: String = Uuid.random().toString()
+    val id: String = Uuid.random().toString()
 ) {
     companion object {
         fun load(doc: DocumentSnapshot): ReservationModel {

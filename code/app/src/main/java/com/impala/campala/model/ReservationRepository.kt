@@ -18,6 +18,16 @@ class ReservationRepository {
     private val db: FirebaseFirestore by lazy { Firebase.firestore }
 
     /**
+     * Updates the isPast val to true IF current day is after the end date
+     *
+     * @param reservationId ID for reservation
+     *
+     * @return value of isPast after this function call.
+     * note: if it is already true return true
+     */
+    suspend fun updateIsPast(reservationId: String): Boolean{}
+
+    /**
      * Gets a single reservation by its ID
      *
      * @param reservationId ID for reservation
