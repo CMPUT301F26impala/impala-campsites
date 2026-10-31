@@ -64,4 +64,17 @@ class EntrantProfileRepository {
     suspend fun saveEntrantProfile(profile: EntrantProfileModel): Unit {
         profile.save().await()
     }
+
+    /**
+     * Records that a entrant is in a lottery
+     *
+     * Whether an entrant has joined the waitlist OR the lottery, this should be called
+     * To know which one an entrant is in, you can get the list of lotteryIDs and then check the lottery objects themselves
+     *
+     * @param profile EntrantProfileModel to be saved
+     */
+    suspend fun putEntrantInLottery(profile: EntrantProfileModel, lotteryId: String) {
+        profile.enteredLotteries.add(lotteryId)
+        this.saveEntrantProfile(profile)
+    }
 }
