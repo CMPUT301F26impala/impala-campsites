@@ -3,6 +3,8 @@ package com.impala.campala
 
 import kotlinx.coroutines.tasks.await
 import com.google.firebase.Firebase
+import com.google.firebase.FirebaseException
+import com.google.firebase.FirebaseNetworkException
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.firestore
 import android.util.Log // Recommended for keeping track of bugs and flags and such. Click "Logcat" in the bottom left of Android Studio to view logs. I have placed logs throughout this class for debugging purposes.
@@ -47,8 +49,24 @@ open class User() {
 
     public suspend fun initialize() : User {
 
-        val currentUser = auth.currentUser
+        var currentUser = auth.currentUser
         var intermediateUID : String? = null // Nullable so that it takes the beating that we don't want uid to take.
+
+        // This makes sure that, if you start up and you've already authenticated, but you did on a different server (eg: the firebase emulator has been reset since last time)
+        // It will log you out and re-log you back in
+        if (currentUser != null) {
+            try {
+                currentUser.getIdToken(true).await()
+            }
+            catch (e: FirebaseNetworkException) {
+                // A network error does not mean the user wasn't found, it just means no network
+            }
+            catch (e: FirebaseException) {
+                Log.w(TAG, "Saved user no longer exists in the auth emulator, signing in again.", e)
+                auth.signOut()
+                currentUser = null
+            }
+        }
 
         if (currentUser == null) { // Note: currentUser is nullable by default
 
