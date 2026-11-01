@@ -21,6 +21,7 @@ import com.impala.campala.ui_sections.form_campsites.FormCampsitesView
 import com.impala.campala.model.CampsiteRepository
 import com.impala.campala.model.CampsiteOwnerProfileRepository
 import com.impala.campala.model.EntrantProfileRepository
+import com.impala.campala.model.LotteryRepository
 import com.impala.campala.ui_sections.campsite_details.CampsiteDetailsController
 import com.impala.campala.ui_sections.campsite_details.CampsiteDetailsModel
 import com.impala.campala.ui_sections.campsite_details.CampsiteDetailsView
@@ -35,33 +36,8 @@ fun CampalaApp() {
     // In here, we need to create instances of each of our classes (models, views, controllers, etc)
     // And then the navController is how we register our root stack navigation
 
-    // Here, remember basically means "make this one, and even if this rerenders use the old version"
-    // That way, we aren't recreating these classes a bunch of times.
-    val coroutineScope = rememberCoroutineScope()
-    val campsiteRepo = remember { CampsiteRepository() }
-    val entrantProfileRepo = remember { EntrantProfileRepository() }
-    val campsiteOwnerProfileRepo = remember { CampsiteOwnerProfileRepository() }
-
-    val searchCampsitesModel = remember { SearchCampsitesModel(campsiteRepo, coroutineScope, SearchCampsitesViewMode.ENTRANT) }
-    val searchCampsitesController = remember { SearchCampsitesController(searchCampsitesModel) }
-    val searchCampsitesView = remember { SearchCampsitesView(searchCampsitesController) }
-    searchCampsitesModel.addObserver(searchCampsitesView)
-
-    val formCampsitesModel = remember { FormCampsitesModel(campsiteRepo, coroutineScope) }
-    val formCampsitesController = remember { FormCampsitesController(formCampsitesModel) }
-    val formCampsitesView = remember { FormCampsitesView(formCampsitesController) }
-    formCampsitesModel.addObserver((formCampsitesView))
-
-    val campsiteDetailsModel = remember { CampsiteDetailsModel(campsiteRepo, coroutineScope) }
-    val campsiteDetailsController = remember { CampsiteDetailsController(campsiteDetailsModel) }
-    val campsiteDetailsView = remember { CampsiteDetailsView(campsiteDetailsController) }
-    campsiteDetailsModel.addObserver(campsiteDetailsView)
-
-    val chooseRoleModel = remember { ChooseRoleModel(entrantProfileRepo, campsiteOwnerProfileRepo, coroutineScope) }
-    val chooseRoleController = remember { ChooseRoleController(chooseRoleModel) }
-    val chooseRoleView = remember { ChooseRoleView(chooseRoleController) }
-    chooseRoleModel.addObserver(chooseRoleView)
-
+    // Get (or create) the User record for this device as soon as the app starts
+    // Anything that needs the entrant profile for this device can do entrantProfileRepo.getEntrantProfileById(user.getUID())
     var user by remember { mutableStateOf<User?>(null) }
     // This is just a property on user, but it's cleaner to extract it out
     var currentRole by remember { mutableStateOf<UserViewMode?>(null) }
@@ -74,6 +50,34 @@ fun CampalaApp() {
         needsRoleChoice = !loadedUser.getHasCreatedEntrantProfile() && !loadedUser.getHasCreatedCampsiteOwnerProfile()
         user = loadedUser
     }
+
+    // Here, remember basically means "make this one, and even if this rerenders use the old version"
+    // That way, we aren't recreating these classes a bunch of times.
+    val coroutineScope = rememberCoroutineScope()
+    val campsiteRepo = remember { CampsiteRepository() }
+    val entrantProfileRepo = remember { EntrantProfileRepository() }
+    val campsiteOwnerProfileRepo = remember { CampsiteOwnerProfileRepository() }
+    val lotteryRepo = remember { LotteryRepository() }
+
+    val searchCampsitesModel = remember { SearchCampsitesModel(campsiteRepo, coroutineScope, SearchCampsitesViewMode.ENTRANT) }
+    val searchCampsitesController = remember { SearchCampsitesController(searchCampsitesModel) }
+    val searchCampsitesView = remember { SearchCampsitesView(searchCampsitesController) }
+    searchCampsitesModel.addObserver(searchCampsitesView)
+
+    val formCampsitesModel = remember { FormCampsitesModel(campsiteRepo, coroutineScope) }
+    val formCampsitesController = remember { FormCampsitesController(formCampsitesModel) }
+    val formCampsitesView = remember { FormCampsitesView(formCampsitesController) }
+    formCampsitesModel.addObserver((formCampsitesView))
+
+    val campsiteDetailsModel = remember { CampsiteDetailsModel(campsiteRepo, lotteryRepo, entrantProfileRepo, user, coroutineScope) }
+    val campsiteDetailsController = remember { CampsiteDetailsController(campsiteDetailsModel) }
+    val campsiteDetailsView = remember { CampsiteDetailsView(campsiteDetailsController) }
+    campsiteDetailsModel.addObserver(campsiteDetailsView)
+
+    val chooseRoleModel = remember { ChooseRoleModel(entrantProfileRepo, campsiteOwnerProfileRepo, coroutineScope) }
+    val chooseRoleController = remember { ChooseRoleController(chooseRoleModel) }
+    val chooseRoleView = remember { ChooseRoleView(chooseRoleController) }
+    chooseRoleModel.addObserver(chooseRoleView)
 
     user?.let { // This is kotlin code equivalent to: if user == null do nothing, else switch case state on the role
         if (needsRoleChoice) {
