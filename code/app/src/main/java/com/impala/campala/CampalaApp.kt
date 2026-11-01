@@ -1,5 +1,8 @@
 package com.impala.campala
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -7,6 +10,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Modifier
 import com.impala.campala.ui_sections.search_campsites.SearchCampsitesController
 import com.impala.campala.ui_sections.search_campsites.SearchCampsitesModel
 import com.impala.campala.ui_sections.search_campsites.SearchCampsitesView
@@ -15,10 +19,14 @@ import com.impala.campala.ui_sections.form_campsites.FormCampsitesModel
 import com.impala.campala.ui_sections.form_campsites.FormCampsitesController
 import com.impala.campala.ui_sections.form_campsites.FormCampsitesView
 import com.impala.campala.model.CampsiteRepository
+import com.impala.campala.model.CampsiteOwnerProfileRepository
 import com.impala.campala.model.EntrantProfileRepository
 import com.impala.campala.ui_sections.campsite_details.CampsiteDetailsController
 import com.impala.campala.ui_sections.campsite_details.CampsiteDetailsModel
 import com.impala.campala.ui_sections.campsite_details.CampsiteDetailsView
+import com.impala.campala.ui_sections.choose_role.ChooseRoleController
+import com.impala.campala.ui_sections.choose_role.ChooseRoleModel
+import com.impala.campala.ui_sections.choose_role.ChooseRoleView
 
 
 @Composable
@@ -32,6 +40,7 @@ fun CampalaApp() {
     val coroutineScope = rememberCoroutineScope()
     val campsiteRepo = remember { CampsiteRepository() }
     val entrantProfileRepo = remember { EntrantProfileRepository() }
+    val campsiteOwnerProfileRepo = remember { CampsiteOwnerProfileRepository() }
 
     val searchCampsitesModel = remember { SearchCampsitesModel(campsiteRepo, coroutineScope, SearchCampsitesViewMode.ENTRANT) }
     val searchCampsitesController = remember { SearchCampsitesController(searchCampsitesModel) }
@@ -48,30 +57,53 @@ fun CampalaApp() {
     val campsiteDetailsView = remember { CampsiteDetailsView(campsiteDetailsController) }
     campsiteDetailsModel.addObserver(campsiteDetailsView)
 
-    // Get (or create) the User record for this device as soon as the app starts
-    // Anything that needs the entrant profile for this device can do entrantProfileRepo.getEntrantProfileById(user.getUID())
+    val chooseRoleModel = remember { ChooseRoleModel(entrantProfileRepo, campsiteOwnerProfileRepo, coroutineScope) }
+    val chooseRoleController = remember { ChooseRoleController(chooseRoleModel) }
+    val chooseRoleView = remember { ChooseRoleView(chooseRoleController) }
+    chooseRoleModel.addObserver(chooseRoleView)
+
     var user by remember { mutableStateOf<User?>(null) }
+    // This is just a property on user, but it's cleaner to extract it out
+    var currentRole by remember { mutableStateOf<UserViewMode?>(null) }
+    // This is basically 'is this a new user who doesn't have an entrant or campsite owner profile'
+    var needsRoleChoice by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
-        user = User().initialize()
+        val loadedUser = User().initialize()
+        currentRole = loadedUser.getCurrentRole()
+        // If they have never had an entrant or campsite owner profile, they're new and should get the welcome screen
+        needsRoleChoice = !loadedUser.getHasCreatedEntrantProfile() && !loadedUser.getHasCreatedCampsiteOwnerProfile()
+        user = loadedUser
     }
 
     user?.let { // This is kotlin code equivalent to: if user == null do nothing, else switch case state on the role
-        when (it.getCurrentRole()) {
-            UserViewMode.ENTRANT -> EntrantNavigationRoot(searchCampsitesScreen=searchCampsitesView, campsiteDetailsScreen=campsiteDetailsView)
-            UserViewMode.CAMPSITE_OWNER -> {
-                // TODO: CAMPSITE OWNER UI
+        if (needsRoleChoice) {
+            // Scaffold is just here so the screen respects the status bar / nav bar insets
+            Scaffold { padding ->
+                Box(Modifier.padding(padding)) {
+                    chooseRoleView.Render(it, onRoleChosen = { role ->
+                        currentRole = role
+                        needsRoleChoice = false
+                    })
+                }
             }
+        } else {
+            when (currentRole) {
+                UserViewMode.ENTRANT -> EntrantNavigationRoot(searchCampsitesScreen=searchCampsitesView, campsiteDetailsScreen=campsiteDetailsView)
+                UserViewMode.CAMPSITE_OWNER -> {
+                    // TODO: CAMPSITE OWNER UI
+                }
 
-            UserViewMode.ADMIN -> {
-                // TODO: ADMING UI
-            }
+                UserViewMode.ADMIN -> {
+                    // TODO: ADMING UI
+                }
 
-            null -> {
-                // TODO: Intro UI, asking them to choose admin, campsite owner, or entrant, and then assigning that to their user object
-                // Until that exists, just send them to the entrant UI so the app is still usable
-                EntrantNavigationRoot(searchCampsitesScreen=searchCampsitesView, campsiteDetailsScreen=campsiteDetailsView)
+                null -> {
+                    // They have a profile but no role saved, so just send them to the entrant UI so the app is still usable
+                    EntrantNavigationRoot(searchCampsitesScreen=searchCampsitesView, campsiteDetailsScreen=campsiteDetailsView)
+                }
             }
         }
+
     }
 
 
