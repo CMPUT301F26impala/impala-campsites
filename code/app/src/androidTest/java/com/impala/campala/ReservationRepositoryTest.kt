@@ -4,6 +4,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.android.gms.tasks.Tasks
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FirebaseFirestore
+import com.impala.campala.model.CampsiteModel
 import com.impala.campala.model.CampsiteRepository
 import com.impala.campala.model.ReservationModel
 import com.impala.campala.model.ReservationRepository
@@ -74,8 +75,12 @@ class ReservationRepositoryTest {
         stored = repo.getReservationsByOwner("Does_not_exist")
         assertEquals(0,stored.size)
 
-        val other = reservation.copy(id = "other-1", entrantId = "other-entrant", ownerId = "other-owner")
+        val other = reservation.copy(id = "other", entrantId = "other-entrant", ownerId = "other-owner")
         val other1 = reservation.copy(id = "other-1", ownerId = "other-owner")
+        // @Before is run on every test, so we have to set up our states again
+        repo.saveReservation(reservation)
+        repo.saveReservation(other)
+        repo.saveReservation(other1)
         stored = repo.getReservationsByOwner(reservation.ownerId)
         assertEquals(1,stored.size) // original
         stored = repo.getReservationsByOwner("other-owner")

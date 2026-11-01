@@ -1,7 +1,6 @@
 package com.impala.campala.model
 
 import com.google.firebase.Firebase
-import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.firestore
 import kotlinx.coroutines.tasks.await
 
@@ -12,20 +11,10 @@ import kotlinx.coroutines.tasks.await
  * Model for anything in the app that wants to access any
  * reservation info, with filtering by owner or entrant
  *
- * @property db Firestore database lazy reference
+ * @property collection Reference to the Firestore reservations collection
  */
 class ReservationRepository {
-    private val db: FirebaseFirestore by lazy { Firebase.firestore }
-
-    /**
-     * Updates the isPast val to true IF current day is after the end date
-     *
-     * @param reservationId ID for reservation
-     *
-     * @return value of isPast after this function call.
-     * note: if it is already true return true
-     */
-    suspend fun updateIsPast(reservationId: String): Boolean{}
+    private val collection by lazy { Firebase.firestore.collection("reservations") }
 
     /**
      * Gets a single reservation by its ID
@@ -34,7 +23,18 @@ class ReservationRepository {
      *
      * @return the matching reservation or null if none match
      */
-    suspend fun getReservationById(reservationId:String): ReservationModel?{}
+    suspend fun getReservationById(reservationId: String): ReservationModel? {
+        try {
+            return ReservationModel.load(collection.document(reservationId).get().await())
+        } catch (e: NullPointerException) {
+            // realistically the model should probably return a nullable type as well
+            // but since i haphazardly put a null assertion in the campsite model and
+            // everyone is following my footstep, ill leave it for consistency for now
+            return null
+        } catch (e: Exception) {
+            throw e
+        }
+    }
 
     /**
      * Gets all Reservations (past and future) for campsites owned by a specified owner
@@ -45,7 +45,10 @@ class ReservationRepository {
      *
      * @return list of owner's reservations
      */
-    suspend fun getReservationsByOwner(ownerId: String): List<ReservationModel>{}
+    suspend fun getReservationsByOwner(ownerId: String): List<ReservationModel> {
+        return collection.whereEqualTo("ownerId", ownerId).get().await()
+            .map { ReservationModel.load(it) }
+    }
 
     /**
      * Gets all Reservations from a user
@@ -56,7 +59,10 @@ class ReservationRepository {
      *
      * @return list of entrant's reservations
      */
-    suspend fun getReservationsByUser(UserId:String): List<ReservationModel>{}
+    suspend fun getReservationsByUser(UserId: String): List<ReservationModel> {
+        return collection.whereEqualTo("entrantId", UserId).get().await()
+            .map { ReservationModel.load(it) }
+    }
 
     /**
      * Saves a Reservation to the database
@@ -81,6 +87,6 @@ class ReservationRepository {
      * @param reservation ReservationModel to delete
      */
     suspend fun deleteReservation(reservation: ReservationModel): Unit {
-        db.collection("reservations").document(reservation.id).delete().await()
+        collection.document(reservation.id).delete().await()
     }
 }

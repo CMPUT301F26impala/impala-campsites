@@ -6,6 +6,7 @@ import com.google.firebase.Firebase
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.firestore
+import com.impala.campala.model.CampsiteModel
 import com.impala.campala.model.CampsiteRepository
 import com.impala.campala.model.ReservationModel
 import com.impala.campala.model.ReservationRepository
@@ -70,17 +71,5 @@ class ReservationModelTest {
         )
 
         assertEquals(reservation, storedModel)
-    }
-
-    @Test
-    fun updateIsPast(){
-        val storedModel = ReservationModel.load(
-            Tasks.await(
-                Firebase.firestore.collection("reservations").document(reservation.id).get()
-            )
-        )
-        assert(!storedModel.isPast) { "IsPast should be initialized to false" }
-        repo.updateIsPast(reservation.id)
-        assert(storedModel.isPast) { "IsPast should be updated to true" }
     }
 }
