@@ -32,4 +32,8 @@ class CampsiteDetailsController(val model: CampsiteDetailsModel) : Controller {
     fun joinLottery() {
         model.joinLottery()
     }
+
+    fun leaveWaitlist() {
+        model.leaveWaitlist()
+    }
 }

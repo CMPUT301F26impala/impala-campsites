@@ -32,6 +32,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.impala.campala.ViewObserver
+import com.impala.campala.model.LotteryModel
 
 /**
  * The Campsite Details Screen
@@ -40,15 +41,14 @@ import com.impala.campala.ViewObserver
  * @param controller the CampsiteDetailsController instance that is connected to the model
  */
 class CampsiteDetailsView(val controller: CampsiteDetailsController): ViewObserver<CampsiteDetailsModel> {
-    val isOwner: Boolean = false
-    val isInLottery: Boolean = false
-    val lotteryExists: Boolean = false
-    val lotteryClosed: Boolean = false
+    private var isOwner: Boolean = false
+    private var lotteryExists: Boolean = false
     private var name by mutableStateOf("")
     private var location by mutableStateOf("")
     private var description by mutableStateOf("")
     private var maxOccupancy by mutableIntStateOf(0)
     private var tags = mutableStateListOf<String>()
+    private var joinStatus by mutableStateOf<LotteryModel.ProspectiveJoinStatus?>(null)
 
     override fun update(model: CampsiteDetailsModel) {
         this.name = model.name
@@ -57,6 +57,9 @@ class CampsiteDetailsView(val controller: CampsiteDetailsController): ViewObserv
         this.maxOccupancy = model.maxOccupancy
         this.tags.clear()
         this.tags.addAll(model.tags)
+        this.isOwner = model.userIsOwner
+        this.lotteryExists = model.lotteryExists
+        this.joinStatus = model.joinStatus
     }
 
     /**
@@ -141,30 +144,35 @@ class CampsiteDetailsView(val controller: CampsiteDetailsController): ViewObserv
         ) {
             if(isOwner) {
                 Button(onClick = { controller.generateQRCode() }) { Text("Generate QR") }
-                if(lotteryClosed) {
-                    Button(onClick = { controller.moveToBookings() }) { Text("View Booked Dates") }
-                }
+                Button(onClick = { controller.moveToBookings() }) { Text("View Booked Dates") }
             }
             else {
                 var buttonText: String
                 var enabled = true
+                var buttonAction: () -> Unit = {}
 
-                if(!lotteryExists) {
-                    buttonText = "Join Waitlist"
-                }
-                else if(isInLottery) {
-                    buttonText = "Already In Lottery"
-                    enabled = false
-                }
-                else if(lotteryClosed) {
+                if(!lotteryExists || joinStatus == LotteryModel.ProspectiveJoinStatus.FULL) {
                     buttonText = "Lottery Closed"
                     enabled = false
                 }
-                else {
+                else if(joinStatus == LotteryModel.ProspectiveJoinStatus.ALREADY_IN_LOTTERY) {
+                    buttonText = "Already In Lottery"
+                    enabled = false
+                }
+                else if(joinStatus == LotteryModel.ProspectiveJoinStatus.CAN_JOIN_LOTTERY) {
                     buttonText = "Join Lottery"
+                    buttonAction = { controller.joinLottery() }
+                }
+                else if(joinStatus == LotteryModel.ProspectiveJoinStatus.ALREADY_IN_WAITLIST) {
+                    buttonText = "Leave Waitlist"
+                    buttonAction = { controller.leaveWaitlist() }
+                }
+                else {
+                    buttonText = "Join Waitlist"
+                    buttonAction = { controller.joinLottery() }
                 }
                 Button(
-                    onClick = { controller.joinLottery() },
+                    onClick = { buttonAction },
                     enabled = enabled) {
                     Text(buttonText) }
             }
