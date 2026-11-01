@@ -12,6 +12,30 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlin.uuid.Uuid
 
+/**
+ * Model for the Campsite Details screen
+ *
+ * There will be one of these objects, not one for each campsite
+ * The attributes will be updated when a different campsite is displayed
+ *
+ * @param campsiteRepo the repo to fetch relevant campsite from
+ * @param lotteryRepo the repo to fetch the campsite lottery from
+ * @param entrantRepo the repo to fetch the user's entrant profile from
+ * @param user the object which contains the current user's information
+ * @param scope the CoroutineScope that the suspend fetches run in
+ *
+ * @property name the Campsite name
+ * @property location the Campsite location
+ * @property description the Campsite description
+ * @property maxOccupancy the Campsite occupancy limit
+ * @property tags the set of tags the Campsite has
+ * @property campsite the Campsite object whose details are displayed
+ * @property lottery the Lottery for the Campsite, if it exists
+ * @property entrantProfile the user's entrant profile, used to enter a lottery
+ * @property joinStatus indicates whether a user can join a lottery or the reason they cannot
+ * @property userIsOwner flag for if the current user owns the campsite
+ * @property lotteryExists flag indicating if there is a lottery for the selected campsite
+ */
 class CampsiteDetailsModel(
     val campsiteRepo: CampsiteRepository,
     val lotteryRepo: LotteryRepository,
@@ -32,6 +56,15 @@ class CampsiteDetailsModel(
     var lotteryExists: Boolean = false
 
 
+    /**
+     * Called every time the screen is rendered.
+     * Gets a campsite object from the repo by ID and uses it to update the properites of this class.
+     * Finds a lottery for the campsite if it exists.
+     * Also loads the current user's entrant profile.
+     * Will notify the view that a change has been made
+     *
+     * @param campsiteId the ID of the selected campsite, used to get the campsite from the repo
+     */
     suspend fun loadCampsite(campsiteId: String) {
         campsite = campsiteRepo.getCampsiteById(campsiteId)
         this.name = campsite?.name ?: ""
@@ -53,6 +86,9 @@ class CampsiteDetailsModel(
         notifyObservers(this)
     }
 
+    /**
+     * Called when the entrant tries to join the lottery or waitlist
+     */
     fun joinLottery() {
         this.scope.launch {
             user?.let {
@@ -62,6 +98,9 @@ class CampsiteDetailsModel(
         }
     }
 
+    /**
+     * Called when the entrant tries to leave the waitlist
+     */
     fun leaveWaitlist() {
         this.scope.launch {
             user?.let {

@@ -146,6 +146,7 @@ class CampsiteDetailsView(val controller: CampsiteDetailsController): ViewObserv
                 Button(onClick = { controller.generateQRCode() }) { Text("Generate QR") }
                 Button(onClick = { controller.moveToBookings() }) { Text("View Booked Dates") }
             }
+            // Show a different button based on whether the lottery exists and is full
             else {
                 var buttonText: String
                 var enabled = true
@@ -176,6 +177,7 @@ class CampsiteDetailsView(val controller: CampsiteDetailsController): ViewObserv
                     enabled = enabled) {
                     Text(buttonText) }
             }
+            // This button will move the user back to the Browse Campsite screen
             IconButton(onClick = { controller.moveToBrowse(navController) }) {
                 Icon(Icons.Default.Close, contentDescription = "Back Icon", tint = MaterialTheme.colorScheme.onSurfaceVariant)
             }
