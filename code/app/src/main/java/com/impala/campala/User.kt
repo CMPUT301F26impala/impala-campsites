@@ -29,6 +29,8 @@ enum class UserViewMode { ENTRANT, CAMPSITE_OWNER, ADMIN }
  * @property isEntrant Does the user have entrant permissions? Almost always, yes.
  * @property hasCreatedEntrantProfile A boolean for if this user has ever made an entrant profile? Some users only ever act as campsite owners and so this would be false.
  * @property hasActiveEntrantProfile Is this user's entrant profile still usable? False if it was never made, or if it got banned/deleted.
+ * @property hasCreatedCampsiteOwnerProfile A boolean for if this user has ever made a campsite owner profile? Some users only ever act as entrants and so this would be false.
+ * @property hasActiveCampsiteOwnerProfile Is this user's campsite owner profile still usable? False if it was never made, or if it got banned/deleted.
  * @property currentRole Which view the app should open in on start. Null if they haven't picked one yet.
  */
 
@@ -44,6 +46,8 @@ open class User() {
     private var userName : String? = null
     private var hasCreatedEntrantProfile = false
     private var hasActiveEntrantProfile = false
+    private var hasCreatedCampsiteOwnerProfile = false
+    private var hasActiveCampsiteOwnerProfile = false
     private var currentRole : UserViewMode? = null
     private val TAG = "User" // TODO: Looks like this is just for error reporting but I should clarify with Liam
 
@@ -132,6 +136,8 @@ open class User() {
         setuserName(document.getString("userName"))
         setHasCreatedEntrantProfile(document.getBoolean("hasCreatedEntrantProfile") == true)
         setHasActiveEntrantProfile(document.getBoolean("hasActiveEntrantProfile") == true)
+        setHasCreatedCampsiteOwnerProfile(document.getBoolean("hasCreatedCampsiteOwnerProfile") == true)
+        setHasActiveCampsiteOwnerProfile(document.getBoolean("hasActiveCampsiteOwnerProfile") == true)
         setCurrentRole(UserViewMode.entries.find { it.name == document.getString("currentRole") })
     }
 
@@ -144,6 +150,8 @@ open class User() {
             "userName" to userName,
             "hasCreatedEntrantProfile" to hasCreatedEntrantProfile,
             "hasActiveEntrantProfile" to hasActiveEntrantProfile,
+            "hasCreatedCampsiteOwnerProfile" to hasCreatedCampsiteOwnerProfile,
+            "hasActiveCampsiteOwnerProfile" to hasActiveCampsiteOwnerProfile,
             "currentRole" to currentRole?.name
         )
 
@@ -189,6 +197,16 @@ open class User() {
     fun getHasActiveEntrantProfile(): Boolean = hasActiveEntrantProfile
     fun setHasActiveEntrantProfile(value: Boolean) {
         hasActiveEntrantProfile = value
+    }
+
+    fun getHasCreatedCampsiteOwnerProfile(): Boolean = hasCreatedCampsiteOwnerProfile
+    fun setHasCreatedCampsiteOwnerProfile(value: Boolean) {
+        hasCreatedCampsiteOwnerProfile = value
+    }
+
+    fun getHasActiveCampsiteOwnerProfile(): Boolean = hasActiveCampsiteOwnerProfile
+    fun setHasActiveCampsiteOwnerProfile(value: Boolean) {
+        hasActiveCampsiteOwnerProfile = value
     }
 
     fun getCurrentRole(): UserViewMode? = currentRole
