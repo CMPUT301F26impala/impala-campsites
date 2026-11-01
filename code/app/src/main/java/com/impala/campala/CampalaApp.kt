@@ -2,7 +2,9 @@ package com.impala.campala
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -41,7 +43,7 @@ fun CampalaApp() {
     var user by remember { mutableStateOf<User?>(null) }
     // This is just a property on user, but it's cleaner to extract it out
     var currentRole by remember { mutableStateOf<UserViewMode?>(null) }
-    // This is basically 'is this a new user who doesn't have an entrant or campsite owner profile'
+    // This is true either if it's first-app-open or if the user requested to change view modes / roles
     var needsRoleChoice by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
         val loadedUser = User().initialize()
@@ -92,18 +94,24 @@ fun CampalaApp() {
             }
         } else {
             when (currentRole) {
-                UserViewMode.ENTRANT -> EntrantNavigationRoot(searchCampsitesScreen=searchCampsitesView, campsiteDetailsScreen=campsiteDetailsView)
+                UserViewMode.ENTRANT -> EntrantNavigationRoot(searchCampsitesScreen=searchCampsitesView, campsiteDetailsScreen=campsiteDetailsView, onSwitchRole={ needsRoleChoice = true })
                 UserViewMode.CAMPSITE_OWNER -> {
-                    // TODO: CAMPSITE OWNER UI
+                    Button(onClick = { needsRoleChoice = true}) {
+                        Text("Go Back, Not Done Yet")
+                    }
+                    // TODO: CAMPSITE OWNER U I
                 }
 
                 UserViewMode.ADMIN -> {
-                    // TODO: ADMING UI
+                    Button(onClick = { needsRoleChoice = true}) {
+                        Text("Go Back, Not Done Yet")
+                    }
+                    // TODO: ADMIN UI
                 }
 
                 null -> {
                     // They have a profile but no role saved, so just send them to the entrant UI so the app is still usable
-                    EntrantNavigationRoot(searchCampsitesScreen=searchCampsitesView, campsiteDetailsScreen=campsiteDetailsView)
+                    EntrantNavigationRoot(searchCampsitesScreen=searchCampsitesView, campsiteDetailsScreen=campsiteDetailsView, onSwitchRole={ needsRoleChoice = true })
                 }
             }
         }

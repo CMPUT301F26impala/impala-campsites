@@ -20,7 +20,6 @@ class ChooseRoleModel(
     // true while the profile is being created, so the buttons can't be pressed twice
     var isSaving = false
 
-    // set once the role is saved, the view watches this to know when to leave the choose role screen
     var chosenRole: UserViewMode? = null
 
     /**
@@ -57,5 +56,14 @@ class ChooseRoleModel(
             isSaving = false
             notifyObservers(this@ChooseRoleModel)
         }
+    }
+
+    /**
+     * Clears the chosen role once the app has left the screen, otherwise the next time the screen is opened
+     * it would see the old role and close itself straight away
+     */
+    fun clearChosenRole() {
+        chosenRole = null
+        notifyObservers(this)
     }
 }

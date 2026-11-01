@@ -12,4 +12,8 @@ class ChooseRoleController(val model: ChooseRoleModel) : Controller {
     fun useAsCampsiteOwner(user: User) {
         model.chooseRole(user, UserViewMode.CAMPSITE_OWNER)
     }
+
+    fun onRoleChosenHandled() {
+        model.clearChosenRole()
+    }
 }

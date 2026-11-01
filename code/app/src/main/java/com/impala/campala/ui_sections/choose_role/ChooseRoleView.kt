@@ -51,7 +51,10 @@ class ChooseRoleView(val controller: ChooseRoleController) : ViewObserver<Choose
     fun Render(user: User, onRoleChosen: (UserViewMode) -> Unit) {
         LaunchedEffect(chosenRole) {
             // This is needed to be able to tell CampalaApp.kt (the root navigation stuff) "Hey, I've picked a role now, close this page and open the proper nav"
-            chosenRole?.let { onRoleChosen(it) } // This is basically (if (chosenRole != null) { onRoleChosen(chosenRole) }
+            chosenRole?.let { // This is basically (if (chosenRole != null) { onRoleChosen(chosenRole) }
+                onRoleChosen(it)
+                controller.onRoleChosenHandled() // This clears the chosenRole variable so that next time you come back to this page you can pick a new one
+            }
         }
         Column(
             modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
