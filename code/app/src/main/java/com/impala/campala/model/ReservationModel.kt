@@ -21,6 +21,8 @@ data class ReservationModel @OptIn(ExperimentalUuidApi::class) constructor(
 ) {
     @get:Exclude
     val isPast: Boolean
+        // TODO: use server time instead of this, since clients can change
+        //  their system time. from brief research this might need server functions
         get() = Timestamp.now() > endDate
     @get:Exclude
     val hasRating: Boolean
