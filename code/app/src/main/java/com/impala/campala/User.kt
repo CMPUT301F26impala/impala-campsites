@@ -3,6 +3,8 @@ package com.impala.campala
 
 import kotlinx.coroutines.tasks.await
 import com.google.firebase.Firebase
+import com.google.firebase.FirebaseException
+import com.google.firebase.FirebaseNetworkException
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.firestore
 import android.util.Log // Recommended for keeping track of bugs and flags and such. Click "Logcat" in the bottom left of Android Studio to view logs. I have placed logs throughout this class for debugging purposes.
@@ -10,16 +12,24 @@ import com.google.firebase.Timestamp // Useful for figuring out when a user prof
 import com.google.firebase.auth.AuthResult
 import kotlinx.coroutines.tasks.await
 
+/**
+ * The user object stores what view mode the user is in (for the frontend to display the right UI)
+ */
+enum class UserViewMode { ENTRANT, CAMPSITE_OWNER, ADMIN }
+
 //TODO: Documentation
 /**
  * REMEMBER TO CALL initialize()!
  * Represents a user of the site, their permissions, their name (if they set one), and their currently selected role (Owner, Admin, Entrant).
- *
+ * Details of the Entrant Profile or Campsite Owner Profile are contained in their own classes and pointed to by User's ID
  *
  * @property uid The unique ID for this user.
  * @property isAdmin Does the user have admin permissions? True on first sign in, and potentially after.
  * @property isOwner Does the user have owner permissions? True on first sign in, and potentially after.
  * @property isEntrant Does the user have entrant permissions? Almost always, yes.
+ * @property hasCreatedEntrantProfile A boolean for if this user has ever made an entrant profile? Some users only ever act as campsite owners and so this would be false.
+ * @property hasActiveEntrantProfile Is this user's entrant profile still usable? False if it was never made, or if it got banned/deleted.
+ * @property currentRole Which view the app should open in on start. Null if they haven't picked one yet.
  */
 
 open class User() {
@@ -32,13 +42,31 @@ open class User() {
     private var isOwner = true
     private var isEntrant = true
     private var userName : String? = null
-    private var currentRole = ""
-    private val TAG = "User"
+    private var hasCreatedEntrantProfile = false
+    private var hasActiveEntrantProfile = false
+    private var currentRole : UserViewMode? = null
+    private val TAG = "User" // TODO: Looks like this is just for error reporting but I should clarify with Liam
 
     public suspend fun initialize() : User {
 
-        val currentUser = auth.currentUser
+        var currentUser = auth.currentUser
         var intermediateUID : String? = null // Nullable so that it takes the beating that we don't want uid to take.
+
+        // This makes sure that, if you start up and you've already authenticated, but you did on a different server (eg: the firebase emulator has been reset since last time)
+        // It will log you out and re-log you back in
+        if (currentUser != null) {
+            try {
+                currentUser.getIdToken(true).await()
+            }
+            catch (e: FirebaseNetworkException) {
+                // A network error does not mean the user wasn't found, it just means no network
+            }
+            catch (e: FirebaseException) {
+                Log.w(TAG, "Saved user no longer exists in the auth emulator, signing in again.", e)
+                auth.signOut()
+                currentUser = null
+            }
+        }
 
         if (currentUser == null) { // Note: currentUser is nullable by default
 
@@ -102,6 +130,9 @@ open class User() {
         setIsOwner(document.getBoolean("isOwner") == true)
         setIsEntrant(document.getBoolean("isEntrant") == true)
         setuserName(document.getString("userName"))
+        setHasCreatedEntrantProfile(document.getBoolean("hasCreatedEntrantProfile") == true)
+        setHasActiveEntrantProfile(document.getBoolean("hasActiveEntrantProfile") == true)
+        setCurrentRole(UserViewMode.entries.find { it.name == document.getString("currentRole") })
     }
 
 
@@ -110,7 +141,10 @@ open class User() {
             "isAdmin" to isAdmin,
             "isOwner" to isOwner,
             "isEntrant" to isEntrant,
-            "userName" to userName
+            "userName" to userName,
+            "hasCreatedEntrantProfile" to hasCreatedEntrantProfile,
+            "hasActiveEntrantProfile" to hasActiveEntrantProfile,
+            "currentRole" to currentRole?.name
         )
 
         db.collection("users").document(uid)
@@ -145,6 +179,21 @@ open class User() {
     fun getuserName(): String? = userName
     fun setuserName(value: String?) {
         userName = value
+    }
+
+    fun getHasCreatedEntrantProfile(): Boolean = hasCreatedEntrantProfile
+    fun setHasCreatedEntrantProfile(value: Boolean) {
+        hasCreatedEntrantProfile = value
+    }
+
+    fun getHasActiveEntrantProfile(): Boolean = hasActiveEntrantProfile
+    fun setHasActiveEntrantProfile(value: Boolean) {
+        hasActiveEntrantProfile = value
+    }
+
+    fun getCurrentRole(): UserViewMode? = currentRole
+    fun setCurrentRole(value: UserViewMode?) {
+        currentRole = value
     }
 
     fun getUID(): String = uid

@@ -1,5 +1,6 @@
 package com.impala.campala.ui_sections.search_campsites
 
+import androidx.navigation.NavController
 import com.impala.campala.Controller
 import com.impala.campala.model.CampsiteModel
 import java.time.LocalDate
@@ -56,8 +57,14 @@ class SearchCampsitesController(val model: SearchCampsitesModel): Controller {
         model.setDate(newDate)
     }
 
-    fun onCampsitePress(campsite: CampsiteModel) {
-        // TODO: Take the user to that campsite details page
+    /**
+     * Called when the entrant taps on a campsite in the results list, takes them to that campsite's details screen
+     *
+     * @param campsite the campsite that was tapped
+     * @param navController the root NavController, used to push the details screen
+     */
+    fun onCampsitePress(campsite: CampsiteModel, navController: NavController) {
+        navController.navigate("campsite/${campsite.id}")
     }
 }
 

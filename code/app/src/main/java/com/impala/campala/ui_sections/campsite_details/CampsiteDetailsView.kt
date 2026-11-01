@@ -21,6 +21,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
@@ -60,10 +61,18 @@ class CampsiteDetailsView(val controller: CampsiteDetailsController): ViewObserv
 
     /**
      * The main render function to output the screen
+     *
+     * Also asks the controller to load the campsite whenever the screen is shown with a new id
+     *
+     * @param navController the root NavController, used to go back to the previous screen
+     * @param campsiteId the id of the campsite to show
      * @return Unit, but it does render Composable UI as a side effect
      */
     @Composable
-    fun Render(navController: NavController) {
+    fun Render(navController: NavController, campsiteId: String) {
+        LaunchedEffect(campsiteId) {
+            controller.onOpen(campsiteId)
+        }
         Column(modifier = Modifier.fillMaxHeight()) {
             Box(
                 modifier = Modifier

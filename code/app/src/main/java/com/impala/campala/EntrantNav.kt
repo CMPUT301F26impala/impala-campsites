@@ -21,7 +21,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SearchBar
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -39,10 +38,14 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.impala.campala.ui_sections.campsite_details.CampsiteDetailsView
 import com.impala.campala.ui_sections.search_campsites.SearchCampsitesView
 
 @Composable
-fun EntrantNavigationRoot(searchCampsitesScreen: SearchCampsitesView) {
+fun EntrantNavigationRoot(
+    searchCampsitesScreen: SearchCampsitesView,
+    campsiteDetailsScreen: CampsiteDetailsView
+) {
     val navController = rememberNavController()
 
     NavHost(navController = navController, startDestination = "home") {
@@ -50,6 +53,15 @@ fun EntrantNavigationRoot(searchCampsitesScreen: SearchCampsitesView) {
         // Any screens that aren't part of the tabs and are 'fullscreen' should be declared here
         composable("home") { EntrantHomeScreen(navController, searchCampsitesScreen) }
         composable("screen1") { ExampleScreenOne(navController) }
+        composable("campsite/{campsiteId}") { backStackEntry ->
+            val campsiteId = backStackEntry.arguments?.getString("campsiteId") ?: ""
+            // Scaffold is just here so the screen respects the status bar / nav bar insets
+            Scaffold { padding ->
+                Box(Modifier.padding(padding)) {
+                    campsiteDetailsScreen.Render(navController, campsiteId)
+                }
+            }
+        }
     }
 }
 
@@ -109,7 +121,7 @@ fun EntrantHomeScreen(navController: NavController, searchCampsitesScreen: Searc
         Box(Modifier.padding(padding).padding(horizontal = 16.dp)) {
             tabState.SaveableStateProvider(selected.name) {
                 when (selected) {
-                    EntrantTab.Search -> searchCampsitesScreen.Render()
+                    EntrantTab.Search -> searchCampsitesScreen.Render(navController)
                     EntrantTab.Lotteries -> LotteriesTab(navController)
                     EntrantTab.Reservations -> ReservationsTab(navController)
                     EntrantTab.Profile -> ProfileTab(navController)
