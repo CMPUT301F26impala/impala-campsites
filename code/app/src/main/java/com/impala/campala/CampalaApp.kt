@@ -62,12 +62,18 @@ fun SignedInApp(user: User) {
     val campsiteOwnerProfileRepo = remember { CampsiteOwnerProfileRepository() }
     val lotteryRepo = remember { LotteryRepository() }
 
-    val searchCampsitesModel = remember { SearchCampsitesModel(campsiteRepo, coroutineScope, SearchCampsitesViewMode.ENTRANT) }
+    val searchCampsitesModel = remember { SearchCampsitesModel(campsiteRepo, campsiteOwnerProfileRepo, user, coroutineScope, SearchCampsitesViewMode.ENTRANT) }
     val searchCampsitesController = remember { SearchCampsitesController(searchCampsitesModel) }
     val searchCampsitesView = remember { SearchCampsitesView(searchCampsitesController) }
     searchCampsitesModel.addObserver(searchCampsitesView)
 
-    val formCampsitesModel = remember { FormCampsitesModel(campsiteRepo, coroutineScope) }
+    // Same screen as above, but in campsite owner mode it only shows the user's own campsites and has the Add Campsite button
+    val ownerSearchCampsitesModel = remember { SearchCampsitesModel(campsiteRepo, campsiteOwnerProfileRepo, user, coroutineScope, SearchCampsitesViewMode.CAMPSITE_OWNER) }
+    val ownerSearchCampsitesController = remember { SearchCampsitesController(ownerSearchCampsitesModel) }
+    val ownerSearchCampsitesView = remember { SearchCampsitesView(ownerSearchCampsitesController) }
+    ownerSearchCampsitesModel.addObserver(ownerSearchCampsitesView)
+
+    val formCampsitesModel = remember { FormCampsitesModel(campsiteRepo, campsiteOwnerProfileRepo, user, coroutineScope) }
     val formCampsitesController = remember { FormCampsitesController(formCampsitesModel) }
     val formCampsitesView = remember { FormCampsitesView(formCampsitesController) }
     formCampsitesModel.addObserver((formCampsitesView))
@@ -95,12 +101,7 @@ fun SignedInApp(user: User) {
     } else {
         when (currentRole) {
             UserViewMode.ENTRANT -> EntrantNavigationRoot(searchCampsitesScreen=searchCampsitesView, campsiteDetailsScreen=campsiteDetailsView, onSwitchRole={ needsRoleChoice = true })
-            UserViewMode.CAMPSITE_OWNER -> {
-                Button(onClick = { needsRoleChoice = true}) {
-                    Text("Go Back, Not Done Yet")
-                }
-                // TODO: CAMPSITE OWNER U I
-            }
+            UserViewMode.CAMPSITE_OWNER -> CampsiteOwnerNavigationRoot(searchCampsitesScreen=ownerSearchCampsitesView, campsiteDetailsScreen=campsiteDetailsView, formCampsitesScreen=formCampsitesView, onSwitchRole={ needsRoleChoice = true })
 
             UserViewMode.ADMIN -> {
                 Button(onClick = { needsRoleChoice = true}) {
