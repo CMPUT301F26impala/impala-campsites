@@ -1,6 +1,8 @@
 package com.impala.campala.model
 
 import com.google.firebase.Firebase
+import com.google.firebase.Timestamp
+import com.google.firebase.firestore.Filter
 import com.google.firebase.firestore.firestore
 import kotlinx.coroutines.tasks.await
 
@@ -62,6 +64,34 @@ class ReservationRepository {
     suspend fun getReservationsByUser(UserId: String): List<ReservationModel> {
         return collection.whereEqualTo("entrantId", UserId).get().await()
             .map { ReservationModel.load(it) }
+    }
+
+    suspend fun getReservationsByDateRange(start: Timestamp, end: Timestamp): List<ReservationModel> {
+        // someone should use their 272 knowledge and clean this up
+        return collection.where(
+            Filter.or(
+                // start<=startDate<=end
+                Filter.and(
+                    Filter.greaterThanOrEqualTo("startDate", start),
+                    Filter.lessThanOrEqualTo("startDate", end)
+                ),
+                // start<=endDate<=end
+                Filter.and(
+                    Filter.greaterThanOrEqualTo("endDate", start),
+                    Filter.lessThanOrEqualTo("endDate", end)
+                ),
+                // startDate<=start<=endDate
+                Filter.and(
+                    Filter.lessThanOrEqualTo("startDate", start),
+                    Filter.greaterThanOrEqualTo("endDate", start)
+                ),
+                // startDate<=end<=endDate
+                Filter.and(
+                    Filter.lessThanOrEqualTo("startDate", end),
+                    Filter.greaterThanOrEqualTo("endDate", end)
+                ),
+            )
+        ).get().await().map { ReservationModel.load(it) }
     }
 
     /**
