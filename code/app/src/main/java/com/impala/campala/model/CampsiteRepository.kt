@@ -106,7 +106,7 @@ class CampsiteRepository {
      *  Suspends until the write finishes, and throws if it fails
      *
      * @param campsite CampsiteModel to be saved
-    */
+     */
     suspend fun saveCampsite(campsite: CampsiteModel): Unit {
         campsite.save().await()
     }
