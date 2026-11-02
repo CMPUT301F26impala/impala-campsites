@@ -44,14 +44,15 @@ import com.impala.campala.ui_sections.search_campsites.SearchCampsitesView
 @Composable
 fun EntrantNavigationRoot(
     searchCampsitesScreen: SearchCampsitesView,
-    campsiteDetailsScreen: CampsiteDetailsView
+    campsiteDetailsScreen: CampsiteDetailsView,
+    onSwitchRole: () -> Unit
 ) {
     val navController = rememberNavController()
 
     NavHost(navController = navController, startDestination = "home") {
         // "home" is the tab navigation, the 4 tabs inside of home are controlled by the EntrantHomeScreen function
         // Any screens that aren't part of the tabs and are 'fullscreen' should be declared here
-        composable("home") { EntrantHomeScreen(navController, searchCampsitesScreen) }
+        composable("home") { EntrantHomeScreen(navController, searchCampsitesScreen, onSwitchRole) }
         composable("screen1") { ExampleScreenOne(navController) }
         composable("campsite/{campsiteId}") { backStackEntry ->
             val campsiteId = backStackEntry.arguments?.getString("campsiteId") ?: ""
@@ -82,7 +83,7 @@ enum class EntrantTab(val label: String, val icon: ImageVector) {
 // This may change in the future into a 100% human-derived solution, but I'm just disclosing this for transaprency
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun EntrantHomeScreen(navController: NavController, searchCampsitesScreen: SearchCampsitesView) {
+fun EntrantHomeScreen(navController: NavController, searchCampsitesScreen: SearchCampsitesView, onSwitchRole: () -> Unit) {
     var selected by rememberSaveable { mutableStateOf(EntrantTab.Search) }
     val tabState = rememberSaveableStateHolder() // keeps each tab's scroll/state
     Scaffold(
@@ -97,8 +98,8 @@ fun EntrantHomeScreen(navController: NavController, searchCampsitesScreen: Searc
                     )
                 },
                 actions = {
-                    // TODO: switch between entrant and campsite owner
-                    FilledIconButton(onClick = {}, modifier = Modifier.padding(end = 8.dp)) {
+                    // Takes you back to the choose role screen, CampalaApp.kt does the work for that
+                    FilledIconButton(onClick = onSwitchRole, modifier = Modifier.padding(end = 8.dp)) {
                         Icon(Icons.Default.Person, contentDescription = "Switch user mode")
                     }
                 }
