@@ -2,7 +2,9 @@ package com.impala.campala.ui_sections.campsite_details
 
 import com.impala.campala.ObservableModel
 import com.impala.campala.User
+import com.impala.campala.UserViewMode
 import com.impala.campala.model.CampsiteModel
+import com.impala.campala.model.CampsiteOwnerProfileRepository
 import com.impala.campala.model.CampsiteRepository
 import com.impala.campala.model.EntrantProfileModel
 import com.impala.campala.model.EntrantProfileRepository
@@ -21,6 +23,7 @@ import kotlin.uuid.Uuid
  * @param campsiteRepo the repo to fetch relevant campsite from
  * @param lotteryRepo the repo to fetch the campsite lottery from
  * @param entrantRepo the repo to fetch the user's entrant profile from
+ * @param campsiteOwnerProfileRepo the repo to check which campsites the user owns
  * @param user the object which contains the current user's information
  * @param scope the CoroutineScope that the suspend fetches run in
  *
@@ -40,6 +43,7 @@ class CampsiteDetailsModel(
     val campsiteRepo: CampsiteRepository,
     val lotteryRepo: LotteryRepository,
     val entrantRepo: EntrantProfileRepository,
+    val campsiteOwnerProfileRepo: CampsiteOwnerProfileRepository,
     val user: User,
     val scope: CoroutineScope
 ) : ObservableModel<CampsiteDetailsModel>() {
@@ -72,6 +76,9 @@ class CampsiteDetailsModel(
         this.description = campsite?.description ?: ""
         this.maxOccupancy = campsite?.maxOccupancy ?: 0
         this.tags = campsite?.tags ?: mutableListOf()
+
+        userIsOwner = user.getCurrentRole() == UserViewMode.CAMPSITE_OWNER &&
+            campsiteOwnerProfileRepo.getCampsiteOwnerProfileById(user.getUID())?.ownedCampsites?.contains(campsiteId) == true
 
         lottery = lotteryRepo.getLotteryByCampsiteId(campsiteId)
 

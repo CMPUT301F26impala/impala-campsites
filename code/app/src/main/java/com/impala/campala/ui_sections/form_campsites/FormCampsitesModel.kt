@@ -8,21 +8,22 @@ import com.impala.campala.model.CampsiteRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
+// TODO: Needs KDOC!!!!
 class FormCampsitesModel(
     val repo: CampsiteRepository,
     val campsiteOwnerProfileRepo: CampsiteOwnerProfileRepository,
     val user: User,
     val scope: CoroutineScope,
-    val campsite: CampsiteModel? = null
+    var campsite: CampsiteModel? = null
 ): ObservableModel<FormCampsitesModel>() {
 
-    var title = if (campsite == null) "" else campsite.name
-    var location = if (campsite == null) "" else campsite.location
-    var description = if (campsite == null) "" else campsite.description
-    var maximumOccupancy = if (campsite == null) "" else campsite.maxOccupancy.toString()
-    var tags = if (campsite == null) mutableListOf<String>() else campsite.tags.toMutableList()
+    var title = campsite?.name ?: "" // The ?: is equivalent to "campsite.name if exists else empty string"
+    var location = campsite?.location ?: ""
+    var description = campsite?.description ?: ""
+    var maximumOccupancy = campsite?.maxOccupancy?.toString() ?: ""
+    var tags = campsite?.tags?.toMutableList() ?: mutableListOf()
 
-    // if campiste was saved successfully
+    // if campsite was saved successfully
     var wasCampsiteSavedSuccessfully = false
 
     fun updateTitle(newTitle: String) {
@@ -58,14 +59,34 @@ class FormCampsitesModel(
         notifyObservers(this)
     }
 
+    fun startNewCampsite() {
+        setFields(null)
+    }
+
+    suspend fun loadCampsite(campsiteId: String) {
+        setFields(repo.getCampsiteById(campsiteId))
+    }
+
+    private fun setFields(newCampsite: CampsiteModel?) {
+        campsite = newCampsite
+        title = newCampsite?.name ?: ""
+        location = newCampsite?.location ?: ""
+        description = newCampsite?.description ?: ""
+        maximumOccupancy = newCampsite?.maxOccupancy?.toString() ?: ""
+        tags = newCampsite?.tags?.toMutableList() ?: mutableListOf()
+        notifyObservers(this)
+    }
+
     fun saveCampsite() {
         // convert maximum occupancy to integer (its a string right now in the input box)
         val occupancy = if (maximumOccupancy == "") 0 else maximumOccupancy.toInt()
 
         // editing an existing campsite, updatedCampsite stores the datatype we will send after create/edit
+        // campsite is a var now, so it's copied into a val first so kotlin knows it can't change underneath us
+        val existingCampsite = campsite
         val updatedCampsite: CampsiteModel
-        if (campsite != null) {
-            updatedCampsite = campsite.copy(
+        if (existingCampsite != null) {
+            updatedCampsite = existingCampsite.copy(
                 name = title,
                 location = location,
                 description = description,
@@ -87,7 +108,7 @@ class FormCampsitesModel(
         scope.launch {
             repo.saveCampsite(updatedCampsite)
             // If this is a new campsite, make sure to actually add it to the campsite owner profile too
-            if (campsite == null) {
+            if (existingCampsite == null) {
                 campsiteOwnerProfileRepo.getCampsiteOwnerProfileById(user.getUID())?.let {
                     campsiteOwnerProfileRepo.addOwnedCampsite(it, updatedCampsite.id)
                 }

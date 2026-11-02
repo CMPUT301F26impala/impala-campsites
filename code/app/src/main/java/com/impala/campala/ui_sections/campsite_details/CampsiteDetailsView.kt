@@ -91,7 +91,7 @@ class CampsiteDetailsView(val controller: CampsiteDetailsController): ViewObserv
                 Text(name, style = MaterialTheme.typography.headlineMedium)
                 if(isOwner) {
                     IconButton(
-                        onClick = { controller.moveToEdit() }
+                        onClick = { controller.moveToEdit(navController, campsiteId) }
                     ) {
                         Icon(Icons.Default.Edit, contentDescription = "Edit Icon", tint = MaterialTheme.colorScheme.onSurfaceVariant)
                     }

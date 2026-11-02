@@ -66,6 +66,16 @@ fun CampsiteOwnerNavigationRoot(
                 }
             }
         }
+        // Since we only have one FormCampsitesView, the different between add and edit is set here
+        // The navigation sees that you've navigated to EDIT, and it tells the view that and passed in the campsite id
+        composable("editCampsite/{campsiteId}") { backStackEntry ->
+            val campsiteId = backStackEntry.arguments?.getString("campsiteId") ?: ""
+            Scaffold { padding ->
+                Box(Modifier.padding(padding)) {
+                    formCampsitesScreen.Render(navController, campsiteId)
+                }
+            }
+        }
     }
 }
 

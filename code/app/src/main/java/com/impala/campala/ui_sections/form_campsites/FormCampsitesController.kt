@@ -6,6 +6,19 @@ class FormCampsitesController(
     val model: FormCampsitesModel
 ) : Controller {
 
+    /**
+     * Called in a LaunchedEffect in the View whenever the form is opened to set up the state of the screen
+     *
+     * @param campsiteId the id of the campsite to edit, or null if it's 'add campsite' mode
+     */
+    suspend fun onOpen(campsiteId: String?) {
+        if (campsiteId == null) {
+            model.startNewCampsite()
+        } else {
+            model.loadCampsite(campsiteId)
+        }
+    }
+
     fun onTitleChange(newTitle: String) {
         model.updateTitle(newTitle)
     }
