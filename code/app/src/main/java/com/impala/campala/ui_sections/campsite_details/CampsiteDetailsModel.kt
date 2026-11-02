@@ -40,7 +40,7 @@ class CampsiteDetailsModel(
     val campsiteRepo: CampsiteRepository,
     val lotteryRepo: LotteryRepository,
     val entrantRepo: EntrantProfileRepository,
-    val user: User?,
+    val user: User,
     val scope: CoroutineScope
 ) : ObservableModel<CampsiteDetailsModel>() {
     var name: String = ""
@@ -75,12 +75,10 @@ class CampsiteDetailsModel(
 
         lottery = lotteryRepo.getLotteryByCampsiteId(campsiteId)
 
-        user?.let {
-            entrantProfile = entrantRepo.getEntrantProfileById(user.getUID())
-            lottery?.let {
-                joinStatus = it.evaluateUserAction(user.getUID())
-                lotteryExists = true
-            }
+        entrantProfile = entrantRepo.getEntrantProfileById(user.getUID())
+        lottery?.let {
+            joinStatus = it.evaluateUserAction(user.getUID())
+            lotteryExists = true
         }
 
         notifyObservers(this)
@@ -91,10 +89,8 @@ class CampsiteDetailsModel(
      */
     fun joinLottery() {
         this.scope.launch {
-            user?.let {
-                lotteryRepo.joinLottery(lottery!!.id, user.getUID())
-                entrantRepo.putEntrantInLottery(entrantProfile!!, lottery!!.id)
-            }
+            lotteryRepo.joinLottery(lottery!!.id, user.getUID())
+            entrantRepo.putEntrantInLottery(entrantProfile!!, lottery!!.id)
         }
     }
 
@@ -103,9 +99,7 @@ class CampsiteDetailsModel(
      */
     fun leaveWaitlist() {
         this.scope.launch {
-            user?.let {
-                lotteryRepo.leaveLottery(lottery!!.id, user.getUID())
-            }
+            lotteryRepo.leaveLottery(lottery!!.id, user.getUID())
         }
     }
 }
