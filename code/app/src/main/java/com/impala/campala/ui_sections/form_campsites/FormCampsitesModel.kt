@@ -1,13 +1,17 @@
 package com.impala.campala.ui_sections.form_campsites
 
 import com.impala.campala.ObservableModel
+import com.impala.campala.User
 import com.impala.campala.model.CampsiteModel
+import com.impala.campala.model.CampsiteOwnerProfileRepository
 import com.impala.campala.model.CampsiteRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 class FormCampsitesModel(
     val repo: CampsiteRepository,
+    val campsiteOwnerProfileRepo: CampsiteOwnerProfileRepository,
+    val user: User,
     val scope: CoroutineScope,
     val campsite: CampsiteModel? = null
 ): ObservableModel<FormCampsitesModel>() {
@@ -82,6 +86,12 @@ class FormCampsitesModel(
         //save to firebase
         scope.launch {
             repo.saveCampsite(updatedCampsite)
+            // If this is a new campsite, make sure to actually add it to the campsite owner profile too
+            if (campsite == null) {
+                campsiteOwnerProfileRepo.getCampsiteOwnerProfileById(user.getUID())?.let {
+                    campsiteOwnerProfileRepo.addOwnedCampsite(it, updatedCampsite.id)
+                }
+            }
             wasCampsiteSavedSuccessfully = true
             notifyObservers(this@FormCampsitesModel)
         }
