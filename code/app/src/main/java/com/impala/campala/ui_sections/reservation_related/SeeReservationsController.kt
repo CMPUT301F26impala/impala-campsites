@@ -33,7 +33,7 @@ import com.impala.campala.model.ReservationRepository
 import java.time.format.DateTimeFormatter
 import kotlin.collections.List
 
-public class SeeReservationsController(val view: SeeReservationsView) {
+public class SeeReservationsController() {
     var resDB = ReservationRepository()
     var reservations: List<ReservationModel> = emptyList()
     var oldReservations: List<ReservationModel> = emptyList()

@@ -28,6 +28,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import com.impala.campala.ViewObserver
 import com.impala.campala.model.ReservationRepository
 import com.impala.campala.ui.theme.tertiaryContainerDark
@@ -41,7 +42,7 @@ class SeeReservationsView(val controller: SeeReservationsController) {
     private enum class UiTarget { SCREEN_A, SCREEN_B }
 
     @Composable
-    fun mainView() {
+    fun Render(navController: NavController) {
 
         var selectedTabIndex by remember { mutableIntStateOf(0) }
         var currentScreen by remember {mutableStateOf(UiTarget.SCREEN_A)}

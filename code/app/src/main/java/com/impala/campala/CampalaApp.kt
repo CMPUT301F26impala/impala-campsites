@@ -30,6 +30,8 @@ import com.impala.campala.ui_sections.campsite_details.CampsiteDetailsView
 import com.impala.campala.ui_sections.choose_role.ChooseRoleController
 import com.impala.campala.ui_sections.choose_role.ChooseRoleModel
 import com.impala.campala.ui_sections.choose_role.ChooseRoleView
+import com.impala.campala.ui_sections.reservation_related.SeeReservationsController
+import com.impala.campala.ui_sections.reservation_related.SeeReservationsView
 
 
 @Composable
@@ -81,6 +83,10 @@ fun CampalaApp() {
     val chooseRoleView = remember { ChooseRoleView(chooseRoleController) }
     chooseRoleModel.addObserver(chooseRoleView)
 
+    val seeReservationsController = remember { SeeReservationsController() }
+    val seeReservationsView = remember { SeeReservationsView(seeReservationsController) }
+
+
     user?.let { // This is kotlin code equivalent to: if user == null do nothing, else switch case state on the role
         if (needsRoleChoice) {
             // Scaffold is just here so the screen respects the status bar / nav bar insets
@@ -94,7 +100,7 @@ fun CampalaApp() {
             }
         } else {
             when (currentRole) {
-                UserViewMode.ENTRANT -> EntrantNavigationRoot(searchCampsitesScreen=searchCampsitesView, campsiteDetailsScreen=campsiteDetailsView, onSwitchRole={ needsRoleChoice = true })
+                UserViewMode.ENTRANT -> EntrantNavigationRoot(searchCampsitesScreen=searchCampsitesView, campsiteDetailsScreen=campsiteDetailsView, seeReservationsScreen=seeReservationsView, onSwitchRole={ needsRoleChoice = true })
                 UserViewMode.CAMPSITE_OWNER -> {
                     Button(onClick = { needsRoleChoice = true}) {
                         Text("Go Back, Not Done Yet")
@@ -111,7 +117,7 @@ fun CampalaApp() {
 
                 null -> {
                     // They have a profile but no role saved, so just send them to the entrant UI so the app is still usable
-                    EntrantNavigationRoot(searchCampsitesScreen=searchCampsitesView, campsiteDetailsScreen=campsiteDetailsView, onSwitchRole={ needsRoleChoice = true })
+                    EntrantNavigationRoot(searchCampsitesScreen=searchCampsitesView, campsiteDetailsScreen=campsiteDetailsView, seeReservationsScreen=seeReservationsView, onSwitchRole={ needsRoleChoice = true })
                 }
             }
         }
