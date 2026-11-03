@@ -154,7 +154,7 @@ fun LotteriesTab(navController: NavController) {
 @Composable
 fun ReservationsTab(navController: NavController) {
     Column() {
-        Text("Reservations Screen!!!!")
+        Text("Reservations Screen!!!!") // TODO: Wire this up to the SeeReservations View & Controller
     }
 }
 
