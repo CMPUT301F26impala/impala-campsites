@@ -21,6 +21,7 @@ class FormLotteriesModel(
     var waitlistSize = if (lottery == null) "" else lottery.waitlistCapacity.toString()
 
     // lottery model didn't have a variable for this so empty string for now
+    // text logan or maybe talk to him next morning
     var numberOfWinners = ""
 
     var wasLotterySavedSuccessfully = false
