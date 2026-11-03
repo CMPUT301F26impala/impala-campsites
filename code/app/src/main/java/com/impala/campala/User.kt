@@ -34,7 +34,7 @@ enum class UserViewMode { ENTRANT, CAMPSITE_OWNER, ADMIN }
  * @property currentRole Which view the app should open in on start. Null if they haven't picked one yet.
  */
 
-open class User() {
+class User() {
 
     private val auth = FirebaseAuth.getInstance()
     private val db = Firebase.firestore // TODO: figure out if this and auth can be sourced from outside the user class. It feels... dumb, having them inside.

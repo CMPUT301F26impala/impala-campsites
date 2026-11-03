@@ -35,23 +35,24 @@ import com.impala.campala.ui_sections.choose_role.ChooseRoleView
 @Composable
 fun CampalaApp() {
     // This is the root of the app
-    // In here, we need to create instances of each of our classes (models, views, controllers, etc)
-    // And then the navController is how we register our root stack navigation
-
-    // Get (or create) the User record for this device as soon as the app starts
-    // Anything that needs the entrant profile for this device can do entrantProfileRepo.getEntrantProfileById(user.getUID())
+    // What this does is just set up the User, and then SignedInApp does the rest
+    // That way, the entire rest of the code can just assume User is not null and is already initialized.
+    // Makes our lives a lot easier.
     var user by remember { mutableStateOf<User?>(null) }
-    // This is just a property on user, but it's cleaner to extract it out
-    var currentRole by remember { mutableStateOf<UserViewMode?>(null) }
-    // This is true either if it's first-app-open or if the user requested to change view modes / roles
-    var needsRoleChoice by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
-        val loadedUser = User().initialize()
-        currentRole = loadedUser.getCurrentRole()
-        // If they have never had an entrant or campsite owner profile, they're new and should get the welcome screen
-        needsRoleChoice = !loadedUser.getHasCreatedEntrantProfile() && !loadedUser.getHasCreatedCampsiteOwnerProfile()
-        user = loadedUser
+        user = User().initialize()
     }
+
+    user?.let { SignedInApp(it) } // Nothing is shown until the user has loaded
+}
+
+@Composable
+fun SignedInApp(user: User) {
+    // This is just a property on user, but it's cleaner to extract it out
+    var currentRole by remember { mutableStateOf(user.getCurrentRole()) }
+    // This is true either if it's first-app-open or if the user requested to change view modes / roles
+    // If they have never had an entrant or campsite owner profile, they're new and should start on the choose role screen
+    var needsRoleChoice by remember { mutableStateOf(!user.getHasCreatedEntrantProfile() && !user.getHasCreatedCampsiteOwnerProfile()) }
 
     // Here, remember basically means "make this one, and even if this rerenders use the old version"
     // That way, we aren't recreating these classes a bunch of times.
@@ -61,17 +62,23 @@ fun CampalaApp() {
     val campsiteOwnerProfileRepo = remember { CampsiteOwnerProfileRepository() }
     val lotteryRepo = remember { LotteryRepository() }
 
-    val searchCampsitesModel = remember { SearchCampsitesModel(campsiteRepo, coroutineScope, SearchCampsitesViewMode.ENTRANT) }
+    val searchCampsitesModel = remember { SearchCampsitesModel(campsiteRepo, campsiteOwnerProfileRepo, user, coroutineScope, SearchCampsitesViewMode.ENTRANT) }
     val searchCampsitesController = remember { SearchCampsitesController(searchCampsitesModel) }
     val searchCampsitesView = remember { SearchCampsitesView(searchCampsitesController) }
     searchCampsitesModel.addObserver(searchCampsitesView)
 
-    val formCampsitesModel = remember { FormCampsitesModel(campsiteRepo, coroutineScope) }
+    // Same screen as above, but in campsite owner mode it only shows the user's own campsites and has the Add Campsite button
+    val ownerSearchCampsitesModel = remember { SearchCampsitesModel(campsiteRepo, campsiteOwnerProfileRepo, user, coroutineScope, SearchCampsitesViewMode.CAMPSITE_OWNER) }
+    val ownerSearchCampsitesController = remember { SearchCampsitesController(ownerSearchCampsitesModel) }
+    val ownerSearchCampsitesView = remember { SearchCampsitesView(ownerSearchCampsitesController) }
+    ownerSearchCampsitesModel.addObserver(ownerSearchCampsitesView)
+
+    val formCampsitesModel = remember { FormCampsitesModel(campsiteRepo, campsiteOwnerProfileRepo, user, coroutineScope) }
     val formCampsitesController = remember { FormCampsitesController(formCampsitesModel) }
     val formCampsitesView = remember { FormCampsitesView(formCampsitesController) }
     formCampsitesModel.addObserver((formCampsitesView))
 
-    val campsiteDetailsModel = remember { CampsiteDetailsModel(campsiteRepo, lotteryRepo, entrantProfileRepo, user, coroutineScope) }
+    val campsiteDetailsModel = remember { CampsiteDetailsModel(campsiteRepo, lotteryRepo, entrantProfileRepo, campsiteOwnerProfileRepo, user, coroutineScope) }
     val campsiteDetailsController = remember { CampsiteDetailsController(campsiteDetailsModel) }
     val campsiteDetailsView = remember { CampsiteDetailsView(campsiteDetailsController) }
     campsiteDetailsModel.addObserver(campsiteDetailsView)
@@ -81,42 +88,32 @@ fun CampalaApp() {
     val chooseRoleView = remember { ChooseRoleView(chooseRoleController) }
     chooseRoleModel.addObserver(chooseRoleView)
 
-    user?.let { // This is kotlin code equivalent to: if user == null do nothing, else switch case state on the role
-        if (needsRoleChoice) {
-            // Scaffold is just here so the screen respects the status bar / nav bar insets
-            Scaffold { padding ->
-                Box(Modifier.padding(padding)) {
-                    chooseRoleView.Render(it, onRoleChosen = { role ->
-                        currentRole = role
-                        needsRoleChoice = false
-                    })
-                }
-            }
-        } else {
-            when (currentRole) {
-                UserViewMode.ENTRANT -> EntrantNavigationRoot(searchCampsitesScreen=searchCampsitesView, campsiteDetailsScreen=campsiteDetailsView, onSwitchRole={ needsRoleChoice = true })
-                UserViewMode.CAMPSITE_OWNER -> {
-                    Button(onClick = { needsRoleChoice = true}) {
-                        Text("Go Back, Not Done Yet")
-                    }
-                    // TODO: CAMPSITE OWNER U I
-                }
-
-                UserViewMode.ADMIN -> {
-                    Button(onClick = { needsRoleChoice = true}) {
-                        Text("Go Back, Not Done Yet")
-                    }
-                    // TODO: ADMIN UI
-                }
-
-                null -> {
-                    // They have a profile but no role saved, so just send them to the entrant UI so the app is still usable
-                    EntrantNavigationRoot(searchCampsitesScreen=searchCampsitesView, campsiteDetailsScreen=campsiteDetailsView, onSwitchRole={ needsRoleChoice = true })
-                }
+    if (needsRoleChoice) {
+        // Scaffold is just here so the screen respects the status bar / nav bar insets
+        Scaffold { padding ->
+            Box(Modifier.padding(padding)) {
+                chooseRoleView.Render(user, onRoleChosen = { role ->
+                    currentRole = role
+                    needsRoleChoice = false
+                })
             }
         }
+    } else {
+        when (currentRole) {
+            UserViewMode.ENTRANT -> EntrantNavigationRoot(searchCampsitesScreen=searchCampsitesView, campsiteDetailsScreen=campsiteDetailsView, onSwitchRole={ needsRoleChoice = true })
+            UserViewMode.CAMPSITE_OWNER -> CampsiteOwnerNavigationRoot(searchCampsitesScreen=ownerSearchCampsitesView, campsiteDetailsScreen=campsiteDetailsView, formCampsitesScreen=formCampsitesView, onSwitchRole={ needsRoleChoice = true })
 
+            UserViewMode.ADMIN -> {
+                Button(onClick = { needsRoleChoice = true}) {
+                    Text("Go Back, Not Done Yet")
+                }
+                // TODO: ADMIN UI
+            }
+
+            null -> {
+                // They have a profile but no role saved, so just send them to the entrant UI so the app is still usable
+                EntrantNavigationRoot(searchCampsitesScreen=searchCampsitesView, campsiteDetailsScreen=campsiteDetailsView, onSwitchRole={ needsRoleChoice = true })
+            }
+        }
     }
-
-
 }
