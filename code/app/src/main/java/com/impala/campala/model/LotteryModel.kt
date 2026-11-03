@@ -100,6 +100,8 @@ data class LotteryModel @OptIn(ExperimentalUuidApi::class) constructor(
         require(campsiteIds.isNotEmpty()) { "A lottery must be linked to at least one campsite" }
         require(lotteryEndTime <= registrationEndTime) { "Registration can't end before winners are drawn" }
         require(reservationStartDate <= reservationEndDate) { "Reservation range can't end before it starts" }
+        require(lotteryStartTime <= lotteryEndTime) {"Lottery can't end before it starts."}
+        require(registrationStartTime <= registrationEndTime) {"Booking can't start before it ends"}
         require(lotteryCapacity > 0) { "Lottery capacity must be at least 1" }
         require(waitlistCapacity >= 0) { "Waitlist capacity can't be negative" }
         require(entrantIds.size <= lotteryCapacity) { "More entrants than the lottery capacity" }
