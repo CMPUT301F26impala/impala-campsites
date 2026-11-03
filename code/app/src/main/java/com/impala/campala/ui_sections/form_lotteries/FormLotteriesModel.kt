@@ -5,11 +5,13 @@ import com.impala.campala.model.LotteryModel
 import com.impala.campala.model.LotteryRepository
 import kotlinx.coroutines.CoroutineScope
 import com.google.firebase.Timestamp
+import kotlinx.coroutines.launch
 
 class FormLotteriesModel(
     val repo: LotteryRepository,
     val scope: CoroutineScope,
-    val lottery: LotteryModel? = null
+    val lottery: LotteryModel? = null,
+    val ownerId: String
 ): ObservableModel<FormLotteriesModel>() {
 
     var campsiteIds = if (lottery == null) mutableListOf<String>() else lottery.campsiteIds.toMutableList()
@@ -20,6 +22,8 @@ class FormLotteriesModel(
 
     // lottery model didn't have a variable for this so empty string for now
     var numberOfWinners = ""
+
+    var wasLotterySavedSuccessfully = false
 
     // start dates not present in the lottery model so left alone for now
     var registrationPeriodStartDate: Timestamp? = null
@@ -85,7 +89,53 @@ class FormLotteriesModel(
         numberOfWinners = newNumberOfWinners
         notifyObservers(this)
     }
+    fun saveLottery() {
+        val participants = if (maximumParticipants == "") 0 else maximumParticipants.toInt()
+        val waitlistCapacity = if (waitlistSize == "") 0 else waitlistSize.toInt()
+        val winnersCount = if (numberOfWinners == "") 0 else numberOfWinners.toInt()
+        // use later for error messages in part 4 maybe like
+        // please choose a registration date or please do blah blah
+        if (registrationPeriodEndDate == null) return
+        if (bookingPeriodEndDate == null) return
+        if (availableDatesStart == null) return
+        if (availableDatesEnd == null) return
+        val updatedLottery: LotteryModel
+        if (lottery == null) {
+            updatedLottery = LotteryModel(
+                campsiteIds = campsiteIds.toMutableList(),
+                lotteryCapacity = participants,
+                waitlistCapacity = waitlistCapacity,
+                // cheecked for being null earlier so this forced ignore CANNOT give an error (i think)
+                lotteryEndTime = registrationPeriodEndDate!!,
+                registrationEndTime = bookingPeriodEndDate!!,
+                reservationStartDate = availableDatesStart!!,
+                reservationEndDate = availableDatesEnd!!,
+                ownerId = ownerId
+            )
+        } else {
+            updatedLottery = lottery.copy(
+                campsiteIds = campsiteIds.toMutableList(),
+                lotteryCapacity = participants,
+                waitlistCapacity = waitlistCapacity,
+                lotteryEndTime = registrationPeriodEndDate!!,
+                registrationEndTime = bookingPeriodEndDate!!,
+                reservationStartDate = availableDatesStart!!,
+                reservationEndDate = availableDatesEnd!!,
+            )
+        }
+        scope.launch {
+            repo.saveLottery(updatedLottery)
+            wasLotterySavedSuccessfully = true
+            notifyObservers(this@FormLotteriesModel)
+        }
+    } // personal reference, end of save fucntion
 
+    // use later to change flag to false since the user can keep
+    // using the form after one submission and it needs to be changed for second try
+    fun changeSaveFlagFalse() {
+        wasLotterySavedSuccessfully = false
+        notifyObservers(this)
+    }
 
 }
 
