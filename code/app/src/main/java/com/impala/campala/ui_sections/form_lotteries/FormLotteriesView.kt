@@ -46,10 +46,20 @@ import java.util.Locale
 import java.util.TimeZone
 import java.util.Date
 
+// testing ui, removeMe
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.platform.LocalInspectionMode
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.navigation.compose.rememberNavController
+import com.impala.campala.model.LotteryRepository
+import com.impala.campala.model.CampsiteRepository
+import com.impala.campala.ui.theme.AppTheme
+import android.content.res.Configuration
+
 class FormLotteriesView(
     val controller: FormLotteriesController
 ): ViewObserver<FormLotteriesModel> {
-    // variables maxparticipi, waitlist, winners,
+    // variables max participants, waitlist, winners,
     // for the list of campsites since we have multiple campsite
     private var selectedCampsiteIds by mutableStateOf(listOf<String>())
     private var maximumParticipants by mutableStateOf("")
@@ -65,7 +75,7 @@ class FormLotteriesView(
     private var availableDatesEnd by mutableStateOf<Timestamp?>(null)
 
     // when true it means lottery was passed, so edit mode
-    // if not then go for create lottery versino
+    // if not then go for create lottery version
     private var isEditing by mutableStateOf(false)
     private var wasLotterySavedSuccessfully by mutableStateOf(false)
 
@@ -74,7 +84,7 @@ class FormLotteriesView(
     private var dropdownDroppedFlag by mutableStateOf(false) // checks if the dropdown dropped
 
     override fun update(model: FormLotteriesModel) {
-        // variables maxparticipi, waitlist, winners,
+        // variables max participants, waitlist, winners,
         // for the list of campsites since we have multiple campsite
         selectedCampsiteIds = model.campsiteIds.toList()
         maximumParticipants = model.maximumParticipants
@@ -109,6 +119,10 @@ class FormLotteriesView(
     @Composable
     @OptIn(ExperimentalMaterial3Api::class)
     fun Render(navController: NavController) {
+
+        // testing ui, removeMe
+        val isPreview = LocalInspectionMode.current
+
         LaunchedEffect(wasLotterySavedSuccessfully) {
             if (wasLotterySavedSuccessfully == true) {
                 controller.onSaveNavigationBecomesFalse()
@@ -116,7 +130,12 @@ class FormLotteriesView(
             }
             // get data for campsites dropdown every time the screen is open so its updated live,
             // in case of lets say the user goes back and creates a new campsite before saving
-            controller.dropdownCampsitesData()
+            // controller.dropdownCampsitesData()
+
+            // testing UI, removeME, DONT FORGET TO REMOVE EARLIER LINE
+            if (!isPreview) {
+                controller.dropdownCampsitesData()
+            }
         }
 
         Column(
@@ -384,4 +403,36 @@ class FormLotteriesView(
     } // end of date input function
 
 
+}
+
+
+
+@Preview(
+    showBackground = true,
+    uiMode = Configuration.UI_MODE_NIGHT_YES
+)
+@Composable
+fun FormLotteriesPreview() {
+    val scope = rememberCoroutineScope()
+
+    val model = remember {
+        FormLotteriesModel(
+            repo = LotteryRepository(),
+            campsiteRepo = CampsiteRepository(),
+            scope = scope,
+            ownerId = "preview"
+        )
+    }
+
+    val controller = remember {
+        FormLotteriesController(model)
+    }
+
+    val view = remember {
+        FormLotteriesView(controller)
+    }
+
+    AppTheme {
+        view.Render(rememberNavController())
+    }
 }
