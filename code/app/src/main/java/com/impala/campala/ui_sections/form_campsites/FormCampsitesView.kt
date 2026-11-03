@@ -157,7 +157,11 @@ class FormCampsitesView(
                 item {
                     OutlinedTextField(
                         value = maximumOccupancy,
-                        onValueChange = { controller.onMaximumOccupancyChange(it) },
+                        onValueChange = {
+                            if (it.isEmpty() || it.toIntOrNull() != null) {
+                                controller.onMaximumOccupancyChange(it)
+                            }
+                        },
                         label = { Text("Maximum Occupancy") },
                         placeholder = { Text("Enter the number here") },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
