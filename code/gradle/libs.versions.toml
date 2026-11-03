@@ -12,8 +12,10 @@ kotlin = "2.4.21"
 composeBom = "2026.02.01"
 uiTextGoogleFonts = "1.12.1"
 navigationCompose = "2.10.2"
+compose = "1.13.0-beta02"
 
 [libraries]
+androidx-compose-foundation-layout = { group = "androidx.compose.foundation", name = "foundation-layout", version.ref = "compose" }
 androidx-compose-material-icons-core = { module = "androidx.compose.material:material-icons-core" }
 androidx-compose-ui-text-google-fonts = { module = "androidx.compose.ui:ui-text-google-fonts", version.ref = "uiTextGoogleFonts" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
