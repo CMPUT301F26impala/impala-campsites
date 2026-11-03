@@ -111,7 +111,10 @@ class FormLotteriesView(
     */
     @Composable
     @OptIn(ExperimentalMaterial3Api::class)
-    fun Render(navController: NavController) {
+    fun Render(navController: NavController, lotteryId: String?) {
+        LaunchedEffect(lotteryId) {
+            controller.onOpen(lotteryId)
+        }
 
         LaunchedEffect(wasLotterySavedSuccessfully) {
             if (wasLotterySavedSuccessfully == true) {

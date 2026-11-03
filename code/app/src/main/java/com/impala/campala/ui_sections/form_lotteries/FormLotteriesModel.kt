@@ -12,18 +12,18 @@ import kotlinx.coroutines.launch
 class FormLotteriesModel(
     val repo: LotteryRepository,
     val scope: CoroutineScope,
-    val lottery: LotteryModel? = null,
+    var lottery: LotteryModel? = null,
     val ownerId: String,
-    val campsiteRepo: CampsiteRepository
+    val campsiteRepo: CampsiteRepository,
 ): ObservableModel<FormLotteriesModel>() {
 
-    var campsiteIds = if (lottery == null) mutableListOf<String>() else lottery.campsiteIds.toMutableList()
+    var campsiteIds = if (lottery == null) mutableListOf<String>() else lottery!!.campsiteIds.toMutableList()
 
-    var maximumParticipants = if (lottery == null) "" else lottery.lotteryCapacity.toString()
+    var maximumParticipants = if (lottery == null) "" else lottery!!.lotteryCapacity.toString()
 
-    var waitlistSize = if (lottery == null) "" else lottery.waitlistCapacity.toString()
+    var waitlistSize = if (lottery == null) "" else lottery!!.waitlistCapacity.toString()
 
-    var numberOfWinners = if (lottery == null) "1" else lottery.numberOfWinners.toString()
+    var numberOfWinners = if (lottery == null) "1" else lottery!!.numberOfWinners.toString()
 
     var wasLotterySavedSuccessfully = false
 
@@ -33,6 +33,46 @@ class FormLotteriesModel(
     var bookingPeriodEndDate: Timestamp? = lottery?.registrationEndTime
     var availableDatesStart: Timestamp? = lottery?.reservationStartDate
     var availableDatesEnd: Timestamp? = lottery?.reservationEndDate
+
+    fun initializeCreateMode() {
+        lottery = null
+        campsiteIds = mutableListOf<String>()
+        maximumParticipants = ""
+        waitlistSize = ""
+        numberOfWinners = "1"
+        wasLotterySavedSuccessfully = false
+        registrationPeriodStartDate = lottery?.lotteryStartTime
+        registrationPeriodEndDate = lottery?.lotteryEndTime
+        bookingPeriodStartDate = lottery?.registrationStartTime
+        bookingPeriodEndDate = lottery?.registrationEndTime
+        availableDatesStart = lottery?.reservationStartDate
+        availableDatesEnd = lottery?.reservationEndDate
+        this.notifyObservers(this)
+    }
+    fun initializeEditMode(lotteryId: String) {
+        scope.launch {
+            val currentLottery = repo.getLotteryById(lotteryId)
+            if (currentLottery == null) {
+                initializeCreateMode()
+            } else {
+                lottery = currentLottery
+                campsiteIds = lottery?.campsiteIds!!.toMutableList()
+                maximumParticipants = lottery?.lotteryCapacity.toString()
+                waitlistSize = lottery?.waitlistCapacity.toString()
+                numberOfWinners = lottery?.numberOfWinners.toString()
+                wasLotterySavedSuccessfully = false
+                registrationPeriodStartDate = lottery?.lotteryStartTime
+                registrationPeriodEndDate = lottery?.lotteryEndTime
+                bookingPeriodStartDate = lottery?.registrationStartTime
+                bookingPeriodEndDate = lottery?.registrationEndTime
+                availableDatesStart = lottery?.reservationStartDate
+                availableDatesEnd = lottery?.reservationEndDate
+                notifyObservers(this@FormLotteriesModel)
+
+            }
+        }
+
+    }
 
     // write code for available campsites for dropdown data int he form
     var campsiteDropdownData = listOf<CampsiteModel>()
@@ -129,7 +169,7 @@ class FormLotteriesModel(
                 ownerId = ownerId
             )
         } else {
-            updatedLottery = lottery.copy(
+            updatedLottery = lottery!!.copy(
                 campsiteIds = campsiteIds.toMutableList(),
                 lotteryCapacity = participants,
                 waitlistCapacity = waitlistCapacity,

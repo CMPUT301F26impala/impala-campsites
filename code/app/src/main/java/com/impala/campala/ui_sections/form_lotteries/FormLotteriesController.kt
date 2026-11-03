@@ -18,6 +18,14 @@ class FormLotteriesController(
     for the list of campsites since we have multiple campsites ugh
     */
     // save and flag change
+
+    fun onOpen(lotteryId: String?) {
+        if (lotteryId == null) {
+            model.initializeCreateMode()
+        } else {
+            model.initializeEditMode(lotteryId)
+        }
+    }
     fun onSaveClick() { model.saveLottery() }
     fun onSaveNavigationBecomesFalse() { model.changeSaveFlagFalse() }
 
