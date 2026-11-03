@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -29,6 +30,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.impala.campala.model.CampsiteModel
 
@@ -180,11 +182,64 @@ class FormLotteriesView(
 
                 // maximum participant
 
+                // maximum participants input
+                item {
+                    OutlinedTextField(
+                        value = maximumParticipants,
+                        onValueChange = {
+                            // if the thing is anything but null, even space or empty or letter, dont work otherwise
+                            // make separate isEmpty or user cant delete anything when they edit the lottery
+                            if (it.isEmpty() || it.toIntOrNull() != null) {
+                                controller.onMaximumParticipantsChange(it)
+                            }
+                        },
+                        label = { Text("Maximum Participants") },
+                        placeholder = { Text("Enter participants here") },
+                        // number only keyboard so ideally they cant put anything else there
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+
                 // waitlist size REMEMBER SUPPORT TEXT
+                item {
+                    OutlinedTextField(
+                        value = waitlistSize,
+                        onValueChange = {
+                            // make separate isEmpty or user cant delete anything when they edit the lottery
+                            if (it.isEmpty() || it.toIntOrNull() != null) {
+                                controller.onWaitlistSizeChange(it)
+                            }
+                        },
+                        label = { Text("Waitlist Size") },
+                        placeholder = { Text("Enter the waitlist size here") },
+                        supportingText = { Text("Enter 0 to disable the waitlist for your listing") },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
 
                 // number of winners REMEMBER SUPPORT TEXT
 
-                // registration start and dates available
+                // number of winners input
+                item {
+                    OutlinedTextField(
+                        value = numberOfWinners,
+                        onValueChange = {
+                            // make separate isEmpty or user cant delete anything when they edit the lottery
+                            if (it.isEmpty() || it.toIntOrNull() != null) {
+                                controller.onNumberOfWinnersChange(it)
+                            }
+                        },
+                        label = { Text("Number of Winners") },
+                        placeholder = { Text("Enter the number of winners here") },
+                        supportingText = { Text("Winners will be drawn after the registration period ends") },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+
+                // registration booked available: start end dates input side by side
 
                 // button for cancel create
 
