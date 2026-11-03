@@ -5,13 +5,16 @@ import com.impala.campala.model.LotteryModel
 import com.impala.campala.model.LotteryRepository
 import kotlinx.coroutines.CoroutineScope
 import com.google.firebase.Timestamp
+import com.impala.campala.model.CampsiteModel
+import com.impala.campala.model.CampsiteRepository
 import kotlinx.coroutines.launch
 
 class FormLotteriesModel(
     val repo: LotteryRepository,
     val scope: CoroutineScope,
     val lottery: LotteryModel? = null,
-    val ownerId: String
+    val ownerId: String,
+    val campsiteRepo: CampsiteRepository
 ): ObservableModel<FormLotteriesModel>() {
 
     var campsiteIds = if (lottery == null) mutableListOf<String>() else lottery.campsiteIds.toMutableList()
@@ -33,6 +36,15 @@ class FormLotteriesModel(
     var bookingPeriodEndDate: Timestamp? = lottery?.registrationEndTime
     var availableDatesStart: Timestamp? = lottery?.reservationStartDate
     var availableDatesEnd: Timestamp? = lottery?.reservationEndDate
+
+    // write code for available campsites for dropdown data int he form
+    var campsiteDropdownData = listOf<CampsiteModel>()
+    fun listAllAvailableCampsites() {
+        scope.launch{
+            campsiteDropdownData = campsiteRepo.getFilteredCampsites()
+            notifyObservers(this@FormLotteriesModel)
+        }
+    }
 
     fun addCampsite(campsiteId: String) {
         // check for valid campsite or its problematic error

@@ -37,4 +37,9 @@ class FormLotteriesController(
     fun onNumberOfWinnersChange(newNumberOfWinners: String) { model.updateNumberOfWinners(newNumberOfWinners) }
     fun onAddCampsite(newCampsiteId: String) { model.addCampsite(newCampsiteId) }
     fun onRemoveCampsite(campsiteId: String) { model.removeCampsite(campsiteId) }
+
+    // dropdown for camspites
+    fun dropdownCampsitesData() {
+        model.listAllAvailableCampsites()
+    }
 }

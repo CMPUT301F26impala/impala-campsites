@@ -12,13 +12,23 @@ import com.google.firebase.Timestamp
 import com.impala.campala.ViewObserver
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuAnchorType
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.impala.campala.model.CampsiteModel
 
 class FormLotteriesView(
     val controller: FormLotteriesController
@@ -43,6 +53,10 @@ class FormLotteriesView(
     private var isEditing by mutableStateOf(false)
     private var wasLotterySavedSuccessfully by mutableStateOf(false)
 
+    // dropdown data for the campsites
+    private var dropdownDataCampsites by mutableStateOf(listOf<CampsiteModel>())
+    private var dropdownDroppedFlag by mutableStateOf(false) // checks if the dropdown dropped
+
     override fun update(model: FormLotteriesModel) {
         // variables maxparticipi, waitlist, winners,
         // for the list of campsites since we have multiple campsite
@@ -63,8 +77,10 @@ class FormLotteriesView(
         // if not then go for create lottery versino
         isEditing = (model.lottery != null)
         wasLotterySavedSuccessfully = model.wasLotterySavedSuccessfully
-    }
 
+        // dropdown data for the available campsites
+        dropdownDataCampsites = model.campsiteDropdownData
+    }
     init {
         update(controller.model)
     }
@@ -74,27 +90,24 @@ class FormLotteriesView(
     REMEMBER TO CHANGE THE FLAG TO FALSE OR PAGE WILL BE STUCK ON THE SAME ONE
     have a heading create/edit lottery in the if else block for the is edting flag
     */
-
     @Composable
+    @OptIn(ExperimentalMaterial3Api::class)
     fun Render(navController: NavController) {
         LaunchedEffect(wasLotterySavedSuccessfully) {
             if (wasLotterySavedSuccessfully == true) {
                 controller.onSaveNavigationBecomesFalse()
                 navController.popBackStack()
             }
+            // get data for campsites dropdown every time the screen is open so its updated live,
+            // in case of lets say the user goes back and creates a new campsite before saving
+            controller.dropdownCampsitesData()
         }
 
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background)
+            modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)
         ) {
             LazyColumn(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth()
-                    .background(MaterialTheme.colorScheme.background)
-                    .padding(24.dp),
+                modifier = Modifier.weight(1f).fillMaxWidth().background(MaterialTheme.colorScheme.background).padding(24.dp),
                 verticalArrangement = Arrangement.spacedBy(20.dp)
             ) {
                 // heading
@@ -114,9 +127,51 @@ class FormLotteriesView(
                             color = MaterialTheme.colorScheme.onBackground
                         )
                     }
+                } // end of heading
+
+                // dropdown for selecting campsites
+                item {
+                    Box {
+                        // box on top of the form where you actually pick the campsite you need
+                        OutlinedButton(
+                            onClick = { dropdownDroppedFlag = true },
+                            modifier = Modifier.fillMaxWidth()
+                        ) { Text("Select Campsite") }
+
+                        // actual menu that you see when you click the first box
+                        DropdownMenu(
+                            expanded = dropdownDroppedFlag,
+                            onDismissRequest = { dropdownDroppedFlag = false }
+                        ) {
+                            dropdownDataCampsites.forEach { campsite ->
+                                DropdownMenuItem(
+                                    text = { Text(campsite.name) },
+                                    onClick = {
+                                        controller.onAddCampsite(campsite.id)
+                                        dropdownDroppedFlag = false
+                                    }
+                                )
+                            }
+                        } // end of dropdown
+                    }
                 }
-            }
-        }
+                // tag list for the location so user cn select multiple locations
+
+
+                // maximum participant
+
+                // waitlist size REMEMBER SUPPORT TEXT
+
+                // number of winners REMEMBER SUPPORT TEXT
+
+                // registration start and dates available
+
+                // button for cancel create
+
+
+
+            } // personal refernece, end of lazy column
+        } // end of column
     }
 
 }
