@@ -25,14 +25,14 @@ class FormLotteriesModel(
 
     // lottery model didn't have a variable for this so empty string for now
     // text logan or maybe talk to him next morning
-    var numberOfWinners = ""
+    var numberOfWinners = "1" // if (lottery == null) "1" else lottery?.numberOfWinners?.toString()
 
     var wasLotterySavedSuccessfully = false
 
-    // start dates not present in the lottery model so left alone for now
-    var registrationPeriodStartDate: Timestamp? = null
+    // start dates for registration and lottery will from time of creation
+    var registrationPeriodStartDate: Timestamp? = null // lottery?.lotteryStartTime
     var registrationPeriodEndDate: Timestamp? = lottery?.lotteryEndTime
-    var bookingPeriodStartDate: Timestamp? = null
+    var bookingPeriodStartDate: Timestamp? = null // lottery?.registrationStartTime
     var bookingPeriodEndDate: Timestamp? = lottery?.registrationEndTime
     var availableDatesStart: Timestamp? = lottery?.reservationStartDate
     var availableDatesEnd: Timestamp? = lottery?.reservationEndDate
@@ -106,7 +106,7 @@ class FormLotteriesModel(
     fun saveLottery() {
         val participants = if (maximumParticipants == "") 0 else maximumParticipants.toInt()
         val waitlistCapacity = if (waitlistSize == "") 0 else waitlistSize.toInt()
-        val winnersCount = if (numberOfWinners == "") 0 else numberOfWinners.toInt()
+        val winnersCount = if (numberOfWinners == "") 1 else numberOfWinners.toInt()
         // use later for error messages in part 4 maybe like
         // please choose a registration date or please do blah blah
         if (registrationPeriodEndDate == null) return
@@ -119,7 +119,7 @@ class FormLotteriesModel(
                 campsiteIds = campsiteIds.toMutableList(),
                 lotteryCapacity = participants,
                 waitlistCapacity = waitlistCapacity,
-                // cheecked for being null earlier so this forced ignore CANNOT give an error (i think)
+                // checked for being null earlier so this forced ignore CANNOT give an error (i think)
                 lotteryEndTime = registrationPeriodEndDate!!,
                 registrationEndTime = bookingPeriodEndDate!!,
                 reservationStartDate = availableDatesStart!!,
