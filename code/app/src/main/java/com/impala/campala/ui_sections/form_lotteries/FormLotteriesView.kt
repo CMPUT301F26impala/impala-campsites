@@ -226,7 +226,7 @@ class FormLotteriesView(
                     OutlinedTextField(
                         value = numberOfWinners,
                         onValueChange = {
-                            // make separate isEmpty or user cant delete anything when they edit the lottery
+                            // make separate isEmpty or user cant delete anything
                             if (it.isEmpty() || it.toIntOrNull() != null) {
                                 controller.onNumberOfWinnersChange(it)
                             }
