@@ -24,7 +24,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -39,10 +38,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.impala.campala.model.CampsiteModel
 import com.impala.campala.ui_sections.campsite_details.CampsiteDetailsView
-import com.impala.campala.ui_sections.create_reservation.CreateReservationController
-import com.impala.campala.ui_sections.create_reservation.CreateReservationView
 import com.impala.campala.ui_sections.search_campsites.SearchCampsitesView
 
 @Composable
