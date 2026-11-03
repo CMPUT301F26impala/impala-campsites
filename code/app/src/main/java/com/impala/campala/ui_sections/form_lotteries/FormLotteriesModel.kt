@@ -150,7 +150,7 @@ class FormLotteriesModel(
             wasLotterySavedSuccessfully = true
             notifyObservers(this@FormLotteriesModel)
         }
-    } // personal reference, end of save fucntion
+    } // personal reference, end of save function
 
     // use later to change flag to false since the user can keep
     // using the form after one submission and it needs to be changed for second try

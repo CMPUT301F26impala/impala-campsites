@@ -10,6 +10,7 @@ import androidx.compose.material.icons.filled.MailOutline
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
@@ -35,6 +36,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.impala.campala.ui_sections.campsite_details.CampsiteDetailsView
 import com.impala.campala.ui_sections.form_campsites.FormCampsitesView
+import com.impala.campala.ui_sections.form_lotteries.FormLotteriesView
 import com.impala.campala.ui_sections.search_campsites.SearchCampsitesView
 
 @Composable
@@ -42,6 +44,7 @@ fun CampsiteOwnerNavigationRoot(
     searchCampsitesScreen: SearchCampsitesView,
     campsiteDetailsScreen: CampsiteDetailsView,
     formCampsitesScreen: FormCampsitesView,
+    formLotteriesScreen: FormLotteriesView,
     onSwitchRole: () -> Unit
 ) {
     val navController = rememberNavController()
@@ -66,6 +69,13 @@ fun CampsiteOwnerNavigationRoot(
                 }
             }
         }
+        composable("addLottery") {
+            Scaffold { padding ->
+                Box(Modifier.padding(padding)) {
+                    formLotteriesScreen.Render(navController)
+                }
+            }
+        }
         // Since we only have one FormCampsitesView, the different between add and edit is set here
         // The navigation sees that you've navigated to EDIT, and it tells the view that and passed in the campsite id
         composable("editCampsite/{campsiteId}") { backStackEntry ->
@@ -76,6 +86,7 @@ fun CampsiteOwnerNavigationRoot(
                 }
             }
         }
+
     }
 }
 
@@ -129,7 +140,9 @@ fun CampsiteOwnerHomeScreen(navController: NavController, searchCampsitesScreen:
             tabState.SaveableStateProvider(selected.name) {
                 when (selected) {
                     CampsiteOwnerTab.Campsites -> searchCampsitesScreen.Render(navController)
-                    CampsiteOwnerTab.Lotteries -> LotteriesTab(navController)
+                    // changed from Lotteries Tab to Owner Lotteries tab because
+                    // entrant also has the lotteriesTab function, and they dont have the add lottery function, so owner can have a new function instead
+                    CampsiteOwnerTab.Lotteries -> OwnerLotteriesTab(navController)
                     CampsiteOwnerTab.Reservations -> ReservationsTab(navController)
                     CampsiteOwnerTab.Notifs -> NotifsTab(navController)
                 }
@@ -142,5 +155,13 @@ fun CampsiteOwnerHomeScreen(navController: NavController, searchCampsitesScreen:
 fun NotifsTab(navController: NavController) {
     Column() {
         Text("Notifs Screen!!!!")
+    }
+}
+
+@Composable
+fun OwnerLotteriesTab(navController: NavController) {
+    Column {
+        Text("Lotteries Screen!!!!")
+        Button( onClick = { navController.navigate("addLottery") } ) { Text("Add Lottery") }
     }
 }
