@@ -45,16 +45,9 @@ import java.text.SimpleDateFormat
 import java.util.Locale
 import java.util.TimeZone
 import java.util.Date
-
-// testing ui, removeMe
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.platform.LocalInspectionMode
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.navigation.compose.rememberNavController
-import com.impala.campala.model.LotteryRepository
-import com.impala.campala.model.CampsiteRepository
-import com.impala.campala.ui.theme.AppTheme
-import android.content.res.Configuration
+import androidx.compose.material3.ExposedDropdownMenuAnchorType
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 
 class FormLotteriesView(
     val controller: FormLotteriesController
@@ -120,9 +113,6 @@ class FormLotteriesView(
     @OptIn(ExperimentalMaterial3Api::class)
     fun Render(navController: NavController) {
 
-        // testing ui, removeMe
-        val isPreview = LocalInspectionMode.current
-
         LaunchedEffect(wasLotterySavedSuccessfully) {
             if (wasLotterySavedSuccessfully == true) {
                 controller.onSaveNavigationBecomesFalse()
@@ -130,12 +120,7 @@ class FormLotteriesView(
             }
             // get data for campsites dropdown every time the screen is open so its updated live,
             // in case of lets say the user goes back and creates a new campsite before saving
-            // controller.dropdownCampsitesData()
-
-            // testing UI, removeME, DONT FORGET TO REMOVE EARLIER LINE
-            if (!isPreview) {
-                controller.dropdownCampsitesData()
-            }
+            controller.dropdownCampsitesData()
         }
 
         Column(
@@ -165,16 +150,25 @@ class FormLotteriesView(
                 } // end of heading
 
                 // dropdown for selecting campsites
+                // new dropdown style since outlinedTextFIeld
+                // is not clickable in the normal way wen trying to use it to make a dropdown
                 item {
-                    Box {
-                        // box on top of the form where you actually pick the campsite you need
-                        OutlinedButton(
-                            onClick = { dropdownDroppedFlag = true },
-                            modifier = Modifier.fillMaxWidth()
-                        ) { Text("Select Campsite") }
+                    ExposedDropdownMenuBox(
+                        expanded = dropdownDroppedFlag,
+                        onExpandedChange = { dropdownDroppedFlag = it }
+                    ) {
+                        // need this specific outlinedTextFIeld or the style is weird
+                        OutlinedTextField(
+                            value = "",
+                            onValueChange = {},
+                            readOnly = true,
+                            label = { Text("Select Campsite") },
+                            placeholder = { Text("Choose a location") },
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = dropdownDroppedFlag) },
+                            modifier = Modifier.fillMaxWidth().menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
+                        )
 
-                        // actual menu that you see when you click the first box
-                        DropdownMenu(
+                        ExposedDropdownMenu(
                             expanded = dropdownDroppedFlag,
                             onDismissRequest = { dropdownDroppedFlag = false }
                         ) {
@@ -187,28 +181,32 @@ class FormLotteriesView(
                                     }
                                 )
                             }
-                        } // end of dropdown
+                        }
                     }
                 }
+
+
                 // tag list for the location so user cn select multiple locations
-                item {
-                    FlowRow(
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        // loop on every tag inside the tags list
-                        selectedCampsiteIds.forEach { campsiteId ->
-                            val campsite = dropdownDataCampsites.find { it.id == campsiteId }
-                            // need to check null here or kotlin gives annoying error of not knowing if campsite is null
-                            if (campsite != null) {
-                                InputChip(
-                                    selected = true,
-                                    onClick = { controller.onRemoveCampsite(campsiteId) },
-                                    label = { Text(campsite.name) },
-                                    trailingIcon = { Text("×") }
-                                )
+                if (selectedCampsiteIds.size != 0) {
+                    item {
+                        FlowRow(
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            // loop on every tag inside the tags list
+                            selectedCampsiteIds.forEach { campsiteId ->
+                                val campsite = dropdownDataCampsites.find { it.id == campsiteId }
+                                // need to check null here or kotlin gives annoying error of not knowing if campsite is null
+                                if (campsite != null) {
+                                    InputChip(
+                                        selected = true,
+                                        onClick = { controller.onRemoveCampsite(campsiteId) },
+                                        label = { Text(campsite.name) },
+                                        trailingIcon = { Text("×") }
+                                    )
+                                }
                             }
-                        }
-                    } // end of flowrow
+                        } // end of flowrow
+                    }
                 }
 
                 // maximum participant
@@ -274,16 +272,19 @@ class FormLotteriesView(
                 // registration
                 item {
                     Column {
-                        Text("Registration Period")
-                        Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Text(text = "Registration Period", color = MaterialTheme.colorScheme.onBackground)
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(39.dp, Alignment.CenterHorizontally),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
                             DateInput(
-                                fieldName = "Start Date",
-                                selectedDate = registrationPeriodStartDate,
+                                insideText = "Start Date",
+                                chosenDate = registrationPeriodStartDate,
                                 onDateChange = { controller.onRegistrationPeriodStartDateChange(it) }
                             )
                             DateInput(
-                                fieldName = "End Date",
-                                selectedDate = registrationPeriodEndDate,
+                                insideText = "End Date",
+                                chosenDate = registrationPeriodEndDate,
                                 onDateChange = { controller.onRegistrationPeriodEndDateChange(it) }
                             )
                         }
@@ -293,16 +294,19 @@ class FormLotteriesView(
                 // booking
                 item {
                     Column {
-                        Text("Booking Period")
-                        Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Text(text = "Booking Period", color = MaterialTheme.colorScheme.onBackground)
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(39.dp, Alignment.CenterHorizontally),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
                             DateInput(
-                                fieldName = "Start Date",
-                                selectedDate = bookingPeriodStartDate,
+                                insideText = "Start Date",
+                                chosenDate = bookingPeriodStartDate,
                                 onDateChange = { controller.onBookingPeriodStartDateChange(it) }
                             )
                             DateInput(
-                                fieldName = "End Date",
-                                selectedDate = bookingPeriodEndDate,
+                                insideText = "End Date",
+                                chosenDate = bookingPeriodEndDate,
                                 onDateChange = { controller.onBookingPeriodEndDateChange(it) }
                             )
                         }
@@ -311,16 +315,19 @@ class FormLotteriesView(
                 // available
                 item {
                     Column {
-                        Text("Dates Available")
-                        Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Text(text = "Dates Available", color = MaterialTheme.colorScheme.onBackground)
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(39.dp, Alignment.CenterHorizontally),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
                             DateInput(
-                                fieldName = "Start Date",
-                                selectedDate = availableDatesStart,
+                                insideText = "Start Date",
+                                chosenDate = availableDatesStart,
                                 onDateChange = { controller.onAvailableDatesStartChange(it) }
                             )
                             DateInput(
-                                fieldName = "End Date",
-                                selectedDate = availableDatesEnd,
+                                insideText = "End Date",
+                                chosenDate = availableDatesEnd,
                                 onDateChange = { controller.onAvailableDatesEndChange(it) }
                             )
                         }
@@ -359,12 +366,12 @@ class FormLotteriesView(
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     private fun DateInput(
-        fieldName: String,
-        selectedDate: Timestamp?,
+        insideText: String,
+        chosenDate: Timestamp?,
         onDateChange: (Timestamp) -> Unit
     ) {
         val currentDatePicker = rememberDatePickerState(
-            initialSelectedDateMillis = selectedDate?.toDate()?.time,
+            initialSelectedDateMillis = chosenDate?.toDate()?.time,
             initialDisplayMode = DisplayMode.Input
         )
         var openPopupForDatePick by remember { mutableStateOf(false) }
@@ -372,12 +379,12 @@ class FormLotteriesView(
         val formatOfDate = SimpleDateFormat("MM/dd/yyyy", Locale.US)
         formatOfDate.timeZone = TimeZone.getTimeZone("UTC")
 
-        val stirngOfDate = if (selectedDate == null) "Select Date"
-        else formatOfDate.format(selectedDate.toDate())
+        val stirngOfDate = if (chosenDate == null) insideText
+        else formatOfDate.format(chosenDate.toDate())
 
         OutlinedButton(
             onClick = { openPopupForDatePick = true }
-        ) { Text("$fieldName: $stirngOfDate") }
+        ) { Text(stirngOfDate) }
 
         if (openPopupForDatePick) {
             DatePickerDialog(
@@ -403,36 +410,4 @@ class FormLotteriesView(
     } // end of date input function
 
 
-}
-
-
-
-@Preview(
-    showBackground = true,
-    uiMode = Configuration.UI_MODE_NIGHT_YES
-)
-@Composable
-fun FormLotteriesPreview() {
-    val scope = rememberCoroutineScope()
-
-    val model = remember {
-        FormLotteriesModel(
-            repo = LotteryRepository(),
-            campsiteRepo = CampsiteRepository(),
-            scope = scope,
-            ownerId = "preview"
-        )
-    }
-
-    val controller = remember {
-        FormLotteriesController(model)
-    }
-
-    val view = remember {
-        FormLotteriesView(controller)
-    }
-
-    AppTheme {
-        view.Render(rememberNavController())
-    }
 }
