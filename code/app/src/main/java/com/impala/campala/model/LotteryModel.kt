@@ -14,34 +14,40 @@ import kotlin.uuid.Uuid
  * A lottery for reserving stays at one or more campsites
  *
  * How the dates work is outlined below
- *  1. Entrants join between the time of creation and up until [lotteryEndTime]. At that time winners are drawn
+ *  1. Entrants join form [lotteryStartTime] and up until [lotteryEndTime]. At that time winners are drawn
  *  // TODO: AT THIS POINT THERE IS NO AUTO-DRAW, JUST A MANUAL OPTION FOR THAT
- *  2. Winners have from the time of drawing until [registrationEndTime] to reserve their campsite dates
+ *  2. Winners have from [registrationStartTime] until [registrationEndTime] to reserve their campsite dates
  *  3. The dates they can reserve fall between [reservationStartDate] and [reservationEndDate]
  *
  * If the lottery is full, people go on the waitlist instead. When an entrant leaves,
  * the earliest person on the waitlist gets moved into the lottery.
  *
  * @property campsiteIds IDs of the campsites this lottery is for, must have at least one
+ * @property lotteryStartTime When the lottery opens
  * @property lotteryEndTime When the lottery closes and winners are drawn
+ * @property registrationStartTime When winners can start reserving their dates
  * @property registrationEndTime When winners must have reserved their dates by
  * @property reservationStartDate First day that can be reserved
  * @property reservationEndDate Last day that can be reserved
  * @property lotteryCapacity Max number of entrants in the lottery
  * @property entrantIds IDs of people entered in the lottery
  * @property waitlistCapacity Max number of people on the waitlist
+ * @property numberOfWinners Number of possible winners for the lottery, defaults to at least 1 winner
  * @property waitlistIds IDs of people on the waitlist, in the order they joined (earliest first)
  * @property ownerId ID of the campsite owner who created the lottery
  */
 data class LotteryModel @OptIn(ExperimentalUuidApi::class) constructor(
     var campsiteIds: MutableList<String> = mutableListOf(),
+    var lotteryStartTime: Timestamp = Timestamp.now(),
     var lotteryEndTime: Timestamp = Timestamp.now(),
+    var registrationStartTime: Timestamp = Timestamp.now(),
     var registrationEndTime: Timestamp = Timestamp.now(),
     var reservationStartDate: Timestamp = Timestamp.now(),
     var reservationEndDate: Timestamp = Timestamp.now(),
     var lotteryCapacity: Int = 0,
     var entrantIds: MutableList<String> = mutableListOf(),
     var waitlistCapacity: Int = 0,
+    var numberOfWinners: Int = 1,
     var waitlistIds: MutableList<String> = mutableListOf(),
     var ownerId: String = "",
     var id: String = Uuid.random().toString()
@@ -98,6 +104,7 @@ data class LotteryModel @OptIn(ExperimentalUuidApi::class) constructor(
         require(waitlistCapacity >= 0) { "Waitlist capacity can't be negative" }
         require(entrantIds.size <= lotteryCapacity) { "More entrants than the lottery capacity" }
         require(waitlistIds.size <= waitlistCapacity) { "More people on the waitlist than its capacity" }
+        require(numberOfWinners <= lotteryCapacity) { "More possible winners than the lottery's capacity" }
     }
 
     /**

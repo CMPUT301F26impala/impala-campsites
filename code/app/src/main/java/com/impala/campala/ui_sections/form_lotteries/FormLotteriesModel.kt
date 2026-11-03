@@ -25,14 +25,14 @@ class FormLotteriesModel(
 
     // lottery model didn't have a variable for this so empty string for now
     // text logan or maybe talk to him next morning
-    var numberOfWinners = "1" // if (lottery == null) "1" else lottery?.numberOfWinners?.toString()
+    var numberOfWinners = if (lottery == null) "1" else lottery.numberOfWinners.toString()
 
     var wasLotterySavedSuccessfully = false
 
     // start dates for registration and lottery will from time of creation
-    var registrationPeriodStartDate: Timestamp? = null // lottery?.lotteryStartTime
+    var registrationPeriodStartDate: Timestamp? = lottery?.lotteryStartTime
     var registrationPeriodEndDate: Timestamp? = lottery?.lotteryEndTime
-    var bookingPeriodStartDate: Timestamp? = null // lottery?.registrationStartTime
+    var bookingPeriodStartDate: Timestamp? = lottery?.registrationStartTime
     var bookingPeriodEndDate: Timestamp? = lottery?.registrationEndTime
     var availableDatesStart: Timestamp? = lottery?.reservationStartDate
     var availableDatesEnd: Timestamp? = lottery?.reservationEndDate
@@ -109,7 +109,9 @@ class FormLotteriesModel(
         val winnersCount = if (numberOfWinners == "") 1 else numberOfWinners.toInt()
         // use later for error messages in part 4 maybe like
         // please choose a registration date or please do blah blah
+        if (registrationPeriodStartDate == null) return
         if (registrationPeriodEndDate == null) return
+        if (bookingPeriodStartDate == null) return
         if (bookingPeriodEndDate == null) return
         if (availableDatesStart == null) return
         if (availableDatesEnd == null) return
@@ -119,8 +121,11 @@ class FormLotteriesModel(
                 campsiteIds = campsiteIds.toMutableList(),
                 lotteryCapacity = participants,
                 waitlistCapacity = waitlistCapacity,
+                numberOfWinners = winnersCount,
                 // checked for being null earlier so this forced ignore CANNOT give an error (i think)
+                lotteryStartTime = registrationPeriodStartDate!!,
                 lotteryEndTime = registrationPeriodEndDate!!,
+                registrationStartTime = bookingPeriodStartDate!!,
                 registrationEndTime = bookingPeriodEndDate!!,
                 reservationStartDate = availableDatesStart!!,
                 reservationEndDate = availableDatesEnd!!,
@@ -131,7 +136,10 @@ class FormLotteriesModel(
                 campsiteIds = campsiteIds.toMutableList(),
                 lotteryCapacity = participants,
                 waitlistCapacity = waitlistCapacity,
+                numberOfWinners = winnersCount,
+                lotteryStartTime = registrationPeriodStartDate!!,
                 lotteryEndTime = registrationPeriodEndDate!!,
+                registrationStartTime = bookingPeriodStartDate!!,
                 registrationEndTime = bookingPeriodEndDate!!,
                 reservationStartDate = availableDatesStart!!,
                 reservationEndDate = availableDatesEnd!!,
