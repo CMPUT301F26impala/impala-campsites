@@ -14,6 +14,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -23,6 +24,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.InputChip
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.runtime.LaunchedEffect
@@ -156,7 +158,25 @@ class FormLotteriesView(
                     }
                 }
                 // tag list for the location so user cn select multiple locations
-
+                item {
+                    FlowRow(
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        // loop on every tag inside the tags list
+                        selectedCampsiteIds.forEach { campsiteId ->
+                            val campsite = dropdownDataCampsites.find { it.id == campsiteId }
+                            // need to check null here or kotlin gives annoying error of not knowing if campsite is null
+                            if (campsite != null) {
+                                InputChip(
+                                    selected = true,
+                                    onClick = { controller.onRemoveCampsite(campsiteId) },
+                                    label = { Text(campsite.name) },
+                                    trailingIcon = { Text("×") }
+                                )
+                            }
+                        }
+                    } // end of flowrow
+                }
 
                 // maximum participant
 
