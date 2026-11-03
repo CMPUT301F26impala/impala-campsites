@@ -35,6 +35,7 @@ class FormLotteriesModel(
     var availableDatesEnd: Timestamp? = lottery?.reservationEndDate
 
     fun addCampsite(campsiteId: String) {
+        // check for valid campsite or its problematic error
         if (!campsiteIds.contains(campsiteId)) {
             campsiteIds.add(campsiteId)
             notifyObservers(this)
