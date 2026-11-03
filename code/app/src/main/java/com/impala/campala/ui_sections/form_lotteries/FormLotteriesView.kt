@@ -15,24 +15,32 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.DisplayMode
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuAnchorType
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.InputChip
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.impala.campala.model.CampsiteModel
+import java.text.SimpleDateFormat
+import java.util.Locale
+import java.util.TimeZone
+import java.util.Date
 
 class FormLotteriesView(
     val controller: FormLotteriesController
@@ -240,13 +248,117 @@ class FormLotteriesView(
                 }
 
                 // registration booked available: start end dates input side by side
+                // registration
+                item {
+                    Column {
+                        Text("Registration Period")
+                        Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                            DateInput(
+                                fieldName = "Start Date",
+                                selectedDate = registrationPeriodStartDate,
+                                onDateChange = { controller.onRegistrationPeriodStartDateChange(it) }
+                            )
+                            DateInput(
+                                fieldName = "End Date",
+                                selectedDate = registrationPeriodEndDate,
+                                onDateChange = { controller.onRegistrationPeriodEndDateChange(it) }
+                            )
+                        }
+                    }
+                }
+
+                // booking
+                item {
+                    Column {
+                        Text("Booking Period")
+                        Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                            DateInput(
+                                fieldName = "Start Date",
+                                selectedDate = bookingPeriodStartDate,
+                                onDateChange = { controller.onBookingPeriodStartDateChange(it) }
+                            )
+                            DateInput(
+                                fieldName = "End Date",
+                                selectedDate = bookingPeriodEndDate,
+                                onDateChange = { controller.onBookingPeriodEndDateChange(it) }
+                            )
+                        }
+                    }
+                }
+                // available
+                item {
+                    Column {
+                        Text("Dates Available")
+                        Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                            DateInput(
+                                fieldName = "Start Date",
+                                selectedDate = availableDatesStart,
+                                onDateChange = { controller.onAvailableDatesStartChange(it) }
+                            )
+                            DateInput(
+                                fieldName = "End Date",
+                                selectedDate = availableDatesEnd,
+                                onDateChange = { controller.onAvailableDatesEndChange(it) }
+                            )
+                        }
+                    }
+                }
 
                 // button for cancel create
+                // not here will be outside of lazy column
 
 
 
             } // personal refernece, end of lazy column
         } // end of column
-    }
+    } // end of render function
+
+    // used in render to make the 6 different input boxes
+    @OptIn(ExperimentalMaterial3Api::class)
+    @Composable
+    private fun DateInput(
+        fieldName: String,
+        selectedDate: Timestamp?,
+        onDateChange: (Timestamp) -> Unit
+    ) {
+        val currentDatePicker = rememberDatePickerState(
+            initialSelectedDateMillis = selectedDate?.toDate()?.time,
+            initialDisplayMode = DisplayMode.Input
+        )
+        var openPopupForDatePick by remember { mutableStateOf(false) }
+
+        val formatOfDate = SimpleDateFormat("MM/dd/yyyy", Locale.US)
+        formatOfDate.timeZone = TimeZone.getTimeZone("UTC")
+
+        val stirngOfDate = if (selectedDate == null) "Select Date"
+        else formatOfDate.format(selectedDate.toDate())
+
+        OutlinedButton(
+            onClick = { openPopupForDatePick = true }
+        ) { Text("$fieldName: $stirngOfDate") }
+
+        if (openPopupForDatePick) {
+            DatePickerDialog(
+                onDismissRequest = { openPopupForDatePick = false },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            openPopupForDatePick = false
+                            val selectedMillis = currentDatePicker.selectedDateMillis
+                            if (selectedMillis != null) { onDateChange(Timestamp(Date(selectedMillis))) }
+                        }
+                    ) { Text("OK") }
+                },
+                dismissButton = {
+                    TextButton(
+                        onClick = { openPopupForDatePick = false }
+                    ) { Text("Cancel") }
+                }
+            ) {
+                DatePicker(state = currentDatePicker)
+            }
+        }
+    } // end of date input function
+
 
 }
