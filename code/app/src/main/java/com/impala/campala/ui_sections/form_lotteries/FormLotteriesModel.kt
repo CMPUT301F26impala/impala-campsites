@@ -23,13 +23,10 @@ class FormLotteriesModel(
 
     var waitlistSize = if (lottery == null) "" else lottery.waitlistCapacity.toString()
 
-    // lottery model didn't have a variable for this so empty string for now
-    // text logan or maybe talk to him next morning
     var numberOfWinners = if (lottery == null) "1" else lottery.numberOfWinners.toString()
 
     var wasLotterySavedSuccessfully = false
 
-    // start dates for registration and lottery will from time of creation
     var registrationPeriodStartDate: Timestamp? = lottery?.lotteryStartTime
     var registrationPeriodEndDate: Timestamp? = lottery?.lotteryEndTime
     var bookingPeriodStartDate: Timestamp? = lottery?.registrationStartTime

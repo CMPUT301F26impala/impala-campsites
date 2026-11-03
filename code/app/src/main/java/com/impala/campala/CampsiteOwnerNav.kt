@@ -86,7 +86,16 @@ fun CampsiteOwnerNavigationRoot(
                 }
             }
         }
-
+        /*
+        composable("editLottery/{lotteryId}") { backStackEntry ->
+            val lotteryId = backStackEntry.arguments?.getString("lotteryId") ?: ""
+            Scaffold { padding ->
+                Box(Modifier.padding(padding)) {
+                    formLotteriesScreen.Render(navController, lotteryId)
+                }
+            }
+        }
+        */
     }
 }
 
