@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
@@ -21,10 +22,13 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.Button
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -62,6 +66,12 @@ import androidx.compose.ui.platform.LocalLocale
 import com.impala.campala.ViewObserver
 import com.impala.campala.model.CampsiteModel
 
+enum class MODAL_STATE {
+    CLOSED,
+    CONFIRM_MODAL_OPEN,
+    DECLINE_MODAL_OPEN,
+}
+
 class CreateReservationView(
     val controller: CreateReservationController,
     val reservationRepo: ReservationRepository,
@@ -79,6 +89,7 @@ class CreateReservationView(
     private var canConfirm by mutableStateOf(false)
 
     override fun update(model: CreateReservationModel) {
+        modalState = MODAL_STATE.CLOSED
         currentStage = model.currentStage
         availableCampsites = model.availableCampsites
         selectedCampsite = model.selectedCampsite
@@ -91,6 +102,7 @@ class CreateReservationView(
         canConfirm = model.canConfirm
     }
 
+    private var modalState: MODAL_STATE = MODAL_STATE.CLOSED
 
     @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
     @Composable
@@ -99,7 +111,13 @@ class CreateReservationView(
             controller.onOpen(lotteryId)
         }
 
-        Scaffold() {
+        Scaffold(
+            floatingActionButton = {
+                if (currentStage == CURRENT_RESERVATION_STAGE.PICK_CAMPSITE_AND_DATES) {
+                    DrawFabs()
+                }
+            }
+        ) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -119,6 +137,8 @@ class CreateReservationView(
                     }
                     DrawCalendar(dateRangeStart, dateRangeEnd)
                     DrawDateFields()
+                    // Spacer so the fabs don't cover content
+                    Spacer(modifier = Modifier.height(160.dp))
                 }
             }
         }
@@ -151,6 +171,34 @@ class CreateReservationView(
             }
         }
 
+    }
+
+    /**
+     * Draws the FABs, Decline is always present, while Confirm is only present when the configuration is valid
+     */
+    @Composable
+    private fun DrawFabs() {
+        Column(
+            horizontalAlignment = Alignment.End,
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            ExtendedFloatingActionButton(
+                onClick = { modalState = MODAL_STATE.DECLINE_MODAL_OPEN },
+                icon = { Icon(Icons.Default.Close, contentDescription = null) },
+                text = { Text("Decline Reservation") },
+                containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                contentColor = MaterialTheme.colorScheme.onTertiaryContainer
+            )
+            if (canConfirm) {
+                ExtendedFloatingActionButton(
+                    onClick = { modalState = MODAL_STATE.CONFIRM_MODAL_OPEN },
+                    icon = { Icon(Icons.Default.DateRange, contentDescription = null) },
+                    text = { Text("Confirm Reservation") },
+                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                )
+            }
+        }
     }
 
     /**

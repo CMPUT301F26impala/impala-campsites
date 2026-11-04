@@ -54,20 +54,14 @@ class CreateReservationController(val model: CreateReservationModel) {
     }
 
     /**
-     * Triggered up to two times
-     * Once on the press of the confirm FAB in the bottom right, and a second time (with doublyConfirmed set to true) inside of the "Are you sure" modal
-     *
-     * @param doublyConfirmed true when pressed inside of the "Are you sure" modal
+     * Comes from the confirm modal
      */
-    fun onConfirmPress(doublyConfirmed: Boolean?) {}
+    fun onConfirmPress() {}
 
     /**
-     * Triggered up to two times
-     * Once on the press of the decline FAB in the bottom right, and a second time (with doublyConfirmed set to true) inside of the "Are you sure" modal
-     *
-     * @param doublyConfirmed true when pressed inside of the "Are you sure" modal
+     * Comes from the decline modal
      */
-    fun onDeclinePress(doublyConfirmed: Boolean?) {}
+    fun onDeclinePress() {}
 
     /**
      * Triggered in the final confirmation screen as a way to go home from there
