@@ -66,5 +66,14 @@ class SearchCampsitesController(val model: SearchCampsitesModel): Controller {
     fun onCampsitePress(campsite: CampsiteModel, navController: NavController) {
         navController.navigate("campsite/${campsite.id}")
     }
+
+    /**
+     * Called when a campsite owner taps the Add Campsite button, takes them to the campsite form screen
+     *
+     * @param navController the navController, assumes that a screen called 'addCampsite' is on this nav stack
+     */
+    fun onAddCampsitePress(navController: NavController) {
+        navController.navigate("addCampsite")
+    }
 }
 

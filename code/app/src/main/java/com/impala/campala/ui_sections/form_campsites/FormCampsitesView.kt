@@ -78,8 +78,18 @@ class FormCampsitesView(
         update(controller.model)
     }
 
+    /**
+     * The main render function to output the screen
+     *
+     * @param navController the root NavController, used to go back once the campsite is saved
+     * @param campsiteId the id of the campsite to edit, or null to create a new one
+     * @return Unit, but it does render Composable UI as a side effect
+     */
     @Composable
-    fun Render(navController: NavController) {
+    fun Render(navController: NavController, campsiteId: String? = null) {
+        LaunchedEffect(campsiteId) {
+            controller.onOpen(campsiteId)
+        }
         LaunchedEffect(wasCampsiteSavedSuccessfully) {
             if (wasCampsiteSavedSuccessfully == true) {
                 controller.onSaveNavigationBecomesFalse()
@@ -157,7 +167,11 @@ class FormCampsitesView(
                 item {
                     OutlinedTextField(
                         value = maximumOccupancy,
-                        onValueChange = { controller.onMaximumOccupancyChange(it) },
+                        onValueChange = {
+                            if (it.isEmpty() || it.toIntOrNull() != null) {
+                                controller.onMaximumOccupancyChange(it)
+                            }
+                        },
                         label = { Text("Maximum Occupancy") },
                         placeholder = { Text("Enter the number here") },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),

@@ -20,8 +20,14 @@ class CampsiteDetailsController(val model: CampsiteDetailsModel) : Controller {
         model.loadCampsite(campsiteId)
     }
 
-    fun moveToEdit() {
-        // TODO: Add functionality to move to the edit campsite screen
+    /**
+     * Called when the edit button is pressed, takes the owner to the edit campsite screen
+     *
+     * @param navController the navController object used for navigation
+     * @param campsiteId the id of the campsite to edit
+     */
+    fun moveToEdit(navController: NavController, campsiteId: String) {
+        navController.navigate("editCampsite/$campsiteId")
     }
 
     /**

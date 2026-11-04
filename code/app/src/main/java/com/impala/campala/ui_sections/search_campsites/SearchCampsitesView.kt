@@ -5,14 +5,18 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Person
@@ -24,6 +28,7 @@ import androidx.compose.material3.DisplayMode
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -53,6 +58,7 @@ import java.time.format.DateTimeFormatter
  * The 'Browse Campsites' screen
  *
  * This renders for an entrant and allows them to search through campsites
+ * For a campsite owner it only shows their own campsites, hides the filters, and has an Add Campsite button
  *
  * @param controller the SearchCampsitesController instance that is connected to the model
  */
@@ -63,6 +69,7 @@ class SearchCampsitesView(val controller: SearchCampsitesController): ViewObserv
     private var dateFilter by mutableStateOf<LocalDate?>( null);
 
     private var results by mutableStateOf<List<CampsiteModel>>(mutableListOf())
+    private var viewMode by mutableStateOf(SearchCampsitesViewMode.ENTRANT)
 
     // No KDoc because that's described in the ViewObserver contract
     override fun update(model: SearchCampsitesModel) {
@@ -71,6 +78,7 @@ class SearchCampsitesView(val controller: SearchCampsitesController): ViewObserv
         this.locationFilter = model.locationFilter
         this.dateFilter = model.dateFilter
         this.results = model.results
+        this.viewMode = model.viewMode
     }
 
     /**
@@ -88,7 +96,9 @@ class SearchCampsitesView(val controller: SearchCampsitesController): ViewObserv
         LaunchedEffect(Unit) {
             controller.onFirstRender()
         }
-        LazyColumn(verticalArrangement = Arrangement.spacedBy(24.dp)) {
+        LazyColumn(
+            verticalArrangement = Arrangement.spacedBy(24.dp),
+        ) {
             item {
                 // https://developer.android.com/develop/ui/compose/components/search-bar
                 SearchBar(
@@ -107,15 +117,27 @@ class SearchCampsitesView(val controller: SearchCampsitesController): ViewObserv
                         )
                     }
                 ) {}
-                Row(modifier=Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    DateFilter(modifier=Modifier.weight(1f))
-                    LocationFilter(modifier = Modifier.weight(1f))
-                    CapacityFilter(modifier = Modifier.weight(1f))
+                // Campsite owners only see their own campsites, so they don't need the filters
+                if (viewMode == SearchCampsitesViewMode.ENTRANT) {
+                    Row(modifier=Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        DateFilter(modifier=Modifier.weight(1f))
+                        LocationFilter(modifier = Modifier.weight(1f))
+                        CapacityFilter(modifier = Modifier.weight(1f))
+                    }
                 }
             }
             items(results, key = { it.id }) { campsite ->
                 CampsiteRenderItem(campsite, navController)
             }
+        }
+        if (viewMode == SearchCampsitesViewMode.CAMPSITE_OWNER) {
+            ExtendedFloatingActionButton(
+                onClick = { controller.onAddCampsitePress(navController) },
+                icon = { Icon(Icons.Default.Add, contentDescription = null) },
+                text = { Text("Add Campsite") },
+                // This sits on top of the list, the tab Box in the nav is what lets the two overlap
+                modifier = Modifier.fillMaxSize().wrapContentSize(Alignment.BottomEnd).padding(bottom = 16.dp)
+            )
         }
     }
 

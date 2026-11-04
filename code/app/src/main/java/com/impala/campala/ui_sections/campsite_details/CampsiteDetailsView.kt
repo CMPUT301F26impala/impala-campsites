@@ -41,8 +41,8 @@ import com.impala.campala.model.LotteryModel
  * @param controller the CampsiteDetailsController instance that is connected to the model
  */
 class CampsiteDetailsView(val controller: CampsiteDetailsController): ViewObserver<CampsiteDetailsModel> {
-    private var isOwner: Boolean = false
-    private var lotteryExists: Boolean = false
+    private var isOwner by mutableStateOf(false)
+    private var lotteryExists by mutableStateOf(false)
     private var name by mutableStateOf("")
     private var location by mutableStateOf("")
     private var description by mutableStateOf("")
@@ -91,7 +91,7 @@ class CampsiteDetailsView(val controller: CampsiteDetailsController): ViewObserv
                 Text(name, style = MaterialTheme.typography.headlineMedium)
                 if(isOwner) {
                     IconButton(
-                        onClick = { controller.moveToEdit() }
+                        onClick = { controller.moveToEdit(navController, campsiteId) }
                     ) {
                         Icon(Icons.Default.Edit, contentDescription = "Edit Icon", tint = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
@@ -173,7 +173,7 @@ class CampsiteDetailsView(val controller: CampsiteDetailsController): ViewObserv
                     buttonAction = { controller.joinLottery() }
                 }
                 Button(
-                    onClick = { buttonAction },
+                    onClick = buttonAction,
                     enabled = enabled) {
                     Text(buttonText) }
             }

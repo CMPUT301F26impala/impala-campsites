@@ -55,7 +55,6 @@ fun EntrantNavigationRoot(
         // "home" is the tab navigation, the 4 tabs inside of home are controlled by the EntrantHomeScreen function
         // Any screens that aren't part of the tabs and are 'fullscreen' should be declared here
         composable("home") { EntrantHomeScreen(navController, searchCampsitesScreen, seeReservationsScreen, onSwitchRole) }
-        composable("screen1") { ExampleScreenOne(navController) }
         composable("campsite/{campsiteId}") { backStackEntry ->
             val campsiteId = backStackEntry.arguments?.getString("campsiteId") ?: ""
             // Scaffold is just here so the screen respects the status bar / nav bar insets
