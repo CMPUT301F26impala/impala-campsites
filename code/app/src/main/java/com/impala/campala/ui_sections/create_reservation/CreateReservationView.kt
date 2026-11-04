@@ -14,64 +14,78 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.google.firebase.Timestamp
-import com.impala.campala.model.ReservationModel
 import com.impala.campala.model.ReservationRepository
 import kotlinx.coroutines.CoroutineScope
 import java.time.LocalDate
 import java.time.YearMonth
 import java.time.ZoneId
 import java.time.format.TextStyle
-import java.util.Locale
 import androidx.compose.ui.platform.LocalLocale
+import com.impala.campala.ViewObserver
+import com.impala.campala.model.CampsiteModel
 
 class CreateReservationView(
     val controller: CreateReservationController,
     val reservationRepo: ReservationRepository,
     val scope: CoroutineScope
-) {
-    private var agreedTerms by mutableStateOf(false)
-    private var localCampsiteModel by mutableStateOf(controller.model.campsite)
-//    TODO: THIS SHOULD COME FROM LOTTERY
-    private var startDate by mutableStateOf(LocalDate.now())
-    private var endDate by mutableStateOf(LocalDate.now().plusWeeks(5))
-    private var reserved = mutableStateListOf<ReservationModel>()
+): ViewObserver<CreateReservationModel> {
+    private var currentStage: CURRENT_RESERVATION_STAGE = CURRENT_RESERVATION_STAGE.TERMS_ACCEPT
+    private var availableCampsites: List<CampsiteModel> = emptyList()
+    private var selectedCampsite: CampsiteModel? = null
+    private var dateRangeStart: LocalDate = LocalDate.now()
+    private var dateRangeEnd: LocalDate = LocalDate.now()
+    private var alreadyReservedDatesForSelectedCampsite: List<LocalDate> = emptyList()
+    private var selectedStartDate: LocalDate = LocalDate.now()
+    private var selectedEndDate: LocalDate = LocalDate.now()
+    private var isDateRangeValid: Boolean = false
+    private var canConfirm: Boolean = false
+
+    override fun update(model: CreateReservationModel) {
+        currentStage = model.currentStage
+        availableCampsites = model.availableCampsites
+        selectedCampsite = model.selectedCampsite
+        dateRangeStart = model.dateRangeStart
+        dateRangeEnd = model.dateRangeEnd
+        alreadyReservedDatesForSelectedCampsite = model.alreadyReservedDatesForSelectedCampsite
+        selectedStartDate = model.selectedStartDate
+        selectedEndDate = model.selectedEndDate
+        isDateRangeValid = model.isDateRangeValid
+        canConfirm = model.canConfirm
+    }
+
 
     @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
     @Composable
     fun Render(
     ) {
-        LaunchedEffect(Unit) {
-            for (reservation in reservationRepo.getReservationsByDateRange(
-                Timestamp(
-                    startDate.atStartOfDay(
-                        ZoneId.systemDefault()
-                    ).toInstant()
-                ), Timestamp(
-                    // the end date is inclusive (eg: if the lottery has reservation period from jan 1 to jan 20, you can book jan 20
-                    // So we have to fetch reservations between jan 1 and 00:00 on jan 21
-                    endDate.plusDays(1).atStartOfDay(
-                        ZoneId.systemDefault()
-                    ).toInstant()
-                )
-            )) {
-                reserved.add(reservation)
-            }
-        }
+//        LaunchedEffect(Unit) {
+//            for (reservation in reservationRepo.getReservationsByDateRange(
+//                Timestamp(
+//                    startDate.atStartOfDay(
+//                        ZoneId.systemDefault()
+//                    ).toInstant()
+//                ), Timestamp(
+//                    // the end date is inclusive (eg: if the lottery has reservation period from jan 1 to jan 20, you can book jan 20
+//                    // So we have to fetch reservations between jan 1 and 00:00 on jan 21
+//                    endDate.plusDays(1).atStartOfDay(
+//                        ZoneId.systemDefault()
+//                    ).toInstant()
+//                )
+//            )) {
+//                reserved.add(reservation)
+//            }
+//        }
         Scaffold() {
             Column(
                 modifier = Modifier
@@ -81,35 +95,45 @@ class CreateReservationView(
                     .padding(16.dp)
             ) {
                 Text(
-                    "Reserve ${localCampsiteModel.name}",
+                    "Reserve Campsite",
                     style = MaterialTheme.typography.headlineLarge
                 )
-                if (!agreedTerms) {
-                    // it looks tiny for now but thats not my fault
-                    Text(
-                        "Campsite rules and policies",
-                        style = MaterialTheme.typography.bodyLarge
-                    )
-                    // this could be a markdown renderer at some point if anyone feels fancy
-                    Text(localCampsiteModel.rules, style = MaterialTheme.typography.bodyMedium)
-                    Spacer(modifier = Modifier.weight(1f))
-                    Row(
-                        modifier = Modifier.align(
-                            Alignment.CenterHorizontally
-                        ),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Checkbox(
-                            checked = agreedTerms,
-                            onCheckedChange = { agreedTerms = true },
-                        )
-                        Text("I accept", style = MaterialTheme.typography.titleMedium)
-                    }
-                } else {
-                    DrawCalendar(startDate, endDate)
+                if (currentStage == CURRENT_RESERVATION_STAGE.TERMS_ACCEPT) {
+                    DrawTermsStage()
+                } else if (currentStage == CURRENT_RESERVATION_STAGE.PICK_CAMPSITE_AND_DATES) {
+                    DrawCalendar(dateRangeStart, dateRangeEnd)
                 }
             }
         }
+    }
+
+    @Composable
+    private fun DrawTermsStage() {
+        Column() {
+            Text(
+                "Campsite rules and policies",
+                style = MaterialTheme.typography.bodyLarge
+            )
+            // TODO: Terms is not currently a property on anything.
+            // If we want one global terms text for the whole app, we can hardcode it here (what I think we should do)
+            // If we want a custom terms per campsite, we'd need this accept screen to be AFTER the campsite is already chosen
+            // Probably as part of the confirmation modal
+            Text("Lorem Ipsum Doner Sit Amet", style = MaterialTheme.typography.bodyMedium)
+            Spacer(modifier = Modifier.weight(1f))
+            Row(
+                modifier = Modifier.align(
+                    Alignment.CenterHorizontally
+                ),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Button(onClick = {
+                    controller.onAcceptTerms()
+                }) {
+                    Text("I accept", style = MaterialTheme.typography.titleMedium)
+                }
+            }
+        }
+
     }
 
     /**
@@ -176,17 +200,17 @@ class CreateReservationView(
             for (date in startDate.datesUntil(endDate.plusDays(1))) {
                 var backgroundColor = MaterialTheme.colorScheme.primary
 
-                for (reservation in reserved) {
-                    if (Timestamp(
-                            date.atStartOfDay(
-                                ZoneId.systemDefault()
-                            ).toInstant()
-                        ) in reservation.startDate..reservation.endDate
-                    ) {
-                        backgroundColor = MaterialTheme.colorScheme.tertiary
-                        break
-                    }
-                }
+//                for (reservation in reserved) {
+//                    if (Timestamp(
+//                            date.atStartOfDay(
+//                                ZoneId.systemDefault()
+//                            ).toInstant()
+//                        ) in reservation.startDate..reservation.endDate
+//                    ) {
+//                        backgroundColor = MaterialTheme.colorScheme.tertiary
+//                        break
+//                    }
+//                }
                 Text(
                     "${date.dayOfMonth}",
                     modifier = Modifier
