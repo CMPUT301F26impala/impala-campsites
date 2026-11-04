@@ -348,8 +348,13 @@ class CreateReservationView(
 
             for (date in startDate.datesUntil(endDate.plusDays(1))) {
                 var backgroundColor = MaterialTheme.colorScheme.primary
+                var textColor = MaterialTheme.colorScheme.onPrimary
                 if (date in alreadyReservedDatesForSelectedCampsite) {
+                    // Reserved days stay red
                     backgroundColor = MaterialTheme.colorScheme.tertiary
+                } else if (isDateSelected(date)) {
+                    backgroundColor = MaterialTheme.colorScheme.primaryContainer
+                    textColor = MaterialTheme.colorScheme.onPrimaryContainer
                 }
 
                 Text(
@@ -362,10 +367,28 @@ class CreateReservationView(
                         .fillMaxWidth()
                         .fillMaxHeight(),
                     style = MaterialTheme.typography.displaySmall,
-                    color = MaterialTheme.colorScheme.onPrimary,
+                    color = textColor,
                     textAlign = TextAlign.Center
                 )
             }
         }
+    }
+
+    /**
+     * Whether a day is part of the user's current selection, used to highlight it on the calendar
+     *
+     * With both dates picked, it's every day from the start to the end (in either order, so a backwards range still shows)
+     * With only one picked, it's just that day
+     *
+     * @param date the day to check
+     * @return true if the day should be highlighted
+     */
+    private fun isDateSelected(date: LocalDate): Boolean {
+        val start = selectedStartDate
+        val end = selectedEndDate
+        if (start != null && end != null) {
+            return !date.isBefore(minOf(start, end)) && !date.isAfter(maxOf(start, end))
+        }
+        return date == start || date == end
     }
 }

@@ -79,6 +79,7 @@ class CreateReservationModel(val scope: CoroutineScope, val lotteryRepo: Lottery
                 setSelectedCampsite(availableCampsites[0].id)
             }
 
+            recalculateValidity()
             notifyObservers(this@CreateReservationModel)
         }
     }
@@ -92,6 +93,7 @@ class CreateReservationModel(val scope: CoroutineScope, val lotteryRepo: Lottery
         selectedCampsite = model
         // Clear the old campsite's dates right away so they aren't shown for this one while loading
         alreadyReservedDatesForSelectedCampsite = emptyList()
+        recalculateValidity()
         notifyObservers(this)
 
         scope.launch {
@@ -107,12 +109,14 @@ class CreateReservationModel(val scope: CoroutineScope, val lotteryRepo: Lottery
                 }
             }
             alreadyReservedDatesForSelectedCampsite = reservedDates.sorted()
+            recalculateValidity()
             notifyObservers(this@CreateReservationModel)
         }
     }
 
     fun acceptTerms() {
         currentStage = CURRENT_RESERVATION_STAGE.PICK_CAMPSITE_AND_DATES
+        recalculateValidity()
         this.notifyObservers(this)
     }
 
@@ -123,6 +127,7 @@ class CreateReservationModel(val scope: CoroutineScope, val lotteryRepo: Lottery
      */
     fun updateSelectedStartDate(date: LocalDate?) {
         selectedStartDate = date
+        recalculateValidity()
         notifyObservers(this)
     }
 
@@ -133,7 +138,29 @@ class CreateReservationModel(val scope: CoroutineScope, val lotteryRepo: Lottery
      */
     fun updateSelectedEndDate(date: LocalDate?) {
         selectedEndDate = date
+        recalculateValidity()
         notifyObservers(this)
+    }
+
+    /**
+     * A helper function that recalculates isDateRangeValid and canConfirm whenever anything they depend on changes
+     * It has to be called from anything that changes the dates or the campsite
+     */
+    private fun recalculateValidity() {
+        val start = selectedStartDate
+        val end = selectedEndDate
+        // This block, in order does,
+        // Ensure nothing is null
+        // Ensure the range is positive
+        // Ensure the range is inside the available dates
+        // Ensure none of the dates in the range are taken
+        isDateRangeValid = selectedCampsite != null &&
+            start != null && end != null &&
+            !end.isBefore(start) &&
+            !start.isBefore(dateRangeStart) && !end.isAfter(dateRangeEnd) &&
+            alreadyReservedDatesForSelectedCampsite.none { reserved -> !reserved.isBefore(start) && !reserved.isAfter(end) }
+
+        canConfirm = currentStage != CURRENT_RESERVATION_STAGE.TERMS_ACCEPT && selectedCampsite != null && isDateRangeValid
     }
 
     private fun timestampToLocalDate(timestamp: Timestamp): LocalDate {
