@@ -24,6 +24,9 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
@@ -45,16 +48,16 @@ class CreateReservationView(
     val reservationRepo: ReservationRepository,
     val scope: CoroutineScope
 ): ViewObserver<CreateReservationModel> {
-    private var currentStage: CURRENT_RESERVATION_STAGE = CURRENT_RESERVATION_STAGE.TERMS_ACCEPT
-    private var availableCampsites: List<CampsiteModel> = emptyList()
-    private var selectedCampsite: CampsiteModel? = null
-    private var dateRangeStart: LocalDate = LocalDate.now()
-    private var dateRangeEnd: LocalDate = LocalDate.now()
-    private var alreadyReservedDatesForSelectedCampsite: List<LocalDate> = emptyList()
-    private var selectedStartDate: LocalDate? = null
-    private var selectedEndDate: LocalDate? = null
-    private var isDateRangeValid: Boolean = false
-    private var canConfirm: Boolean = false
+    private var currentStage by mutableStateOf(CURRENT_RESERVATION_STAGE.TERMS_ACCEPT)
+    private var availableCampsites by mutableStateOf<List<CampsiteModel>>(emptyList())
+    private var selectedCampsite by mutableStateOf<CampsiteModel?>(null)
+    private var dateRangeStart by mutableStateOf<LocalDate>(LocalDate.now())
+    private var dateRangeEnd by mutableStateOf<LocalDate>(LocalDate.now())
+    private var alreadyReservedDatesForSelectedCampsite by mutableStateOf<List<LocalDate>>(emptyList())
+    private var selectedStartDate by mutableStateOf<LocalDate?>(null)
+    private var selectedEndDate by mutableStateOf<LocalDate?>(null)
+    private var isDateRangeValid by mutableStateOf(false)
+    private var canConfirm by mutableStateOf(false)
 
     override fun update(model: CreateReservationModel) {
         currentStage = model.currentStage
@@ -93,7 +96,7 @@ class CreateReservationView(
                     DrawTermsStage(Modifier.weight(1f))
                 } else if (currentStage == CURRENT_RESERVATION_STAGE.PICK_CAMPSITE_AND_DATES) {
                     if (availableCampsites.size > 1) {
-                        DrawCampsiteSelector(availableCampsites, selectedCampsite?.id)
+                        DrawCampsiteSelector()
                     }
                     DrawCalendar(dateRangeStart, dateRangeEnd)
                 }
@@ -224,6 +227,9 @@ class CreateReservationView(
 
             for (date in startDate.datesUntil(endDate.plusDays(1))) {
                 var backgroundColor = MaterialTheme.colorScheme.primary
+                if (date in alreadyReservedDatesForSelectedCampsite) {
+                    backgroundColor = MaterialTheme.colorScheme.tertiary
+                }
 
                 Text(
                     "${date.dayOfMonth}",
