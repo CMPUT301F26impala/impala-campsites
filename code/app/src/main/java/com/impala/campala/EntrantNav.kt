@@ -41,14 +41,14 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.impala.campala.model.CampsiteModel
 import com.impala.campala.ui_sections.campsite_details.CampsiteDetailsView
-import com.impala.campala.ui_sections.create_reservation.CreateReservationController
-import com.impala.campala.ui_sections.create_reservation.CreateReservationView
+import com.impala.campala.ui_sections.reservation_related.SeeReservationsView
 import com.impala.campala.ui_sections.search_campsites.SearchCampsitesView
 
 @Composable
 fun EntrantNavigationRoot(
     searchCampsitesScreen: SearchCampsitesView,
     campsiteDetailsScreen: CampsiteDetailsView,
+    seeReservationsScreen: SeeReservationsView,
     onSwitchRole: () -> Unit
 ) {
     val navController = rememberNavController()
@@ -56,7 +56,7 @@ fun EntrantNavigationRoot(
     NavHost(navController = navController, startDestination = "home") {
         // "home" is the tab navigation, the 4 tabs inside of home are controlled by the EntrantHomeScreen function
         // Any screens that aren't part of the tabs and are 'fullscreen' should be declared here
-        composable("home") { EntrantHomeScreen(navController, searchCampsitesScreen, onSwitchRole) }
+        composable("home") { EntrantHomeScreen(navController, searchCampsitesScreen, seeReservationsScreen, onSwitchRole) }
         composable("campsite/{campsiteId}") { backStackEntry ->
             val campsiteId = backStackEntry.arguments?.getString("campsiteId") ?: ""
             // Scaffold is just here so the screen respects the status bar / nav bar insets
@@ -86,7 +86,7 @@ enum class EntrantTab(val label: String, val icon: ImageVector) {
 // This may change in the future into a 100% human-derived solution, but I'm just disclosing this for transaprency
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun EntrantHomeScreen(navController: NavController, searchCampsitesScreen: SearchCampsitesView, onSwitchRole: () -> Unit) {
+fun EntrantHomeScreen(navController: NavController, searchCampsitesScreen: SearchCampsitesView, seeReservationsScreen: SeeReservationsView, onSwitchRole: () -> Unit) {
     var selected by rememberSaveable { mutableStateOf(EntrantTab.Search) }
     val tabState = rememberSaveableStateHolder() // keeps each tab's scroll/state
     Scaffold(
@@ -127,7 +127,7 @@ fun EntrantHomeScreen(navController: NavController, searchCampsitesScreen: Searc
                 when (selected) {
                     EntrantTab.Search -> searchCampsitesScreen.Render(navController)
                     EntrantTab.Lotteries -> LotteriesTab(navController)
-                    EntrantTab.Reservations -> ReservationsTab(navController)
+                    EntrantTab.Reservations -> seeReservationsScreen.Render(navController)
                     EntrantTab.Profile -> ProfileTab(navController)
                 }
             }
@@ -157,7 +157,7 @@ fun LotteriesTab(navController: NavController) {
 @Composable
 fun ReservationsTab(navController: NavController) {
     Column() {
-        Text("Reservations Screen!!!!")
+        Text("Reservations Screen!!!!") // TODO: Wire this up to the SeeReservations View & Controller
     }
 }
 

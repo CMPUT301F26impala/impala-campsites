@@ -79,6 +79,8 @@ class FormCampsitesModel(
 
     fun saveCampsite() {
         // convert maximum occupancy to integer (its a string right now in the input box)
+        // defsult value needed
+        // check for number pad on android
         val occupancy = if (maximumOccupancy == "") 0 else maximumOccupancy.toInt()
 
         // editing an existing campsite, updatedCampsite stores the datatype we will send after create/edit
