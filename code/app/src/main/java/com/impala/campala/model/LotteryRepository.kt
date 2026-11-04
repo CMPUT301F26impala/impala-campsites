@@ -59,6 +59,20 @@ class LotteryRepository {
     }
 
     /**
+     * Gets every lottery an entrant is in, either in the lottery itself or on its waitlist
+     *
+     * @param entrantId ID of the entrant
+     *
+     * @return List of lotteries the entrant has joined, no duplicates
+     */
+    suspend fun getLotteriesByEntrantId(entrantId: String): List<LotteryModel> {
+        val inLottery = db.collection("lotteries").whereArrayContains("entrantIds", entrantId).get().await()
+        val inWaitlist = db.collection("lotteries").whereArrayContains("waitlistIds", entrantId).get().await()
+        return (inLottery.toObjects(LotteryModel::class.java) + inWaitlist.toObjects(LotteryModel::class.java))
+            .distinctBy { it.id }
+    }
+
+    /**
      * Gets a single lottery by its ID
      *
      * @param id the LOTTERY id of the lottery to fetch

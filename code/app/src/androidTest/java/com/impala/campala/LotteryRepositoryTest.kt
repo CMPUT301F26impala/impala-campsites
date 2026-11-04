@@ -27,18 +27,22 @@ import org.junit.runner.RunWith
 class LotteryRepositoryTest {
     // Whole seconds only, Firestore stores timestamps at microsecond precision
     // so Timestamp.now() wouldn't come back exactly equal
+    // Full disclosure: This test was failing after I added getLotteriesByEntrantId, so I used Claude Opus 5.5 with the prompt "Figure out why LotteryRepositoryTest is failing"
+    // It showed that I just needed to put named fields for each of the things here
     val lottery = LotteryModel(
-        mutableListOf("azkaban"),
-        Timestamp(1_000, 0),
-        Timestamp(2_000, 0),
-        Timestamp(3_000, 0),
-        Timestamp(4_000, 0),
-        2,
-        mutableListOf(),
-        1,
-        mutableListOf(),
-        "dumbledore",
-        "test-lottery"
+        campsiteIds = mutableListOf("azkaban"),
+        lotteryStartTime = Timestamp(1_000, 0),
+        lotteryEndTime = Timestamp(2_000, 0),
+        registrationStartTime = Timestamp(2_000, 0),
+        registrationEndTime = Timestamp(3_000, 0),
+        reservationStartDate = Timestamp(3_000, 0),
+        reservationEndDate = Timestamp(4_000, 0),
+        lotteryCapacity = 2,
+        entrantIds = mutableListOf(),
+        waitlistCapacity = 1,
+        waitlistIds = mutableListOf(),
+        ownerId = "dumbledore",
+        id = "test-lottery"
     )
     val repo = LotteryRepository()
 
@@ -101,6 +105,18 @@ class LotteryRepositoryTest {
         assertEquals(2, repo.getLotteriesByOwnerId("dumbledore").size)
         assertEquals(listOf("evil-lottery"), repo.getLotteriesByOwnerId("voldemort").map { it.id })
         assertEquals(0, repo.getLotteriesByOwnerId("no-match").size)
+    }
+
+    @Test
+    fun getLotteriesByEntrantId(): Unit = runBlocking {
+        repo.saveLottery(lottery.copy(entrantIds = mutableListOf("harry"), id = "entered-lottery"))
+        repo.saveLottery(lottery.copy(entrantIds = mutableListOf("ron", "hermione"), waitlistIds = mutableListOf("harry"), id = "waitlisted-lottery"))
+        repo.saveLottery(lottery.copy(entrantIds = mutableListOf("ron"), id = "other-lottery"))
+
+        // Shows up whether they're in the lottery or on its waitlist
+        assertEquals(setOf("entered-lottery", "waitlisted-lottery"), repo.getLotteriesByEntrantId("harry").map { it.id }.toSet())
+        assertEquals(setOf("waitlisted-lottery", "other-lottery"), repo.getLotteriesByEntrantId("ron").map { it.id }.toSet())
+        assertEquals(0, repo.getLotteriesByEntrantId("no-match").size)
     }
 
     @Test

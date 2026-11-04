@@ -15,14 +15,12 @@ import com.google.firebase.firestore.firestore
  * @property name Entrant's name
  * @property email Entrant's email
  * @property phoneNumber Entrant's phone number
- * @property enteredLotteries IDs of the lotteries this entrant has entered: NOTE: Whether you're in the lottery OR the waitlist, the ID goes here, this is because lotteries auto-bump people off the waitlist and it would be really hard to go find that entrant object and change the state there
  */
 data class EntrantProfileModel(
     var userId: String = "",
     var name: String = "",  // TODO: These aren't really being used in the app just yet
     var email: String = "",  // TODO: These aren't really being used in the app just yet
-    var phoneNumber: String = "", // TODO: These aren't really being used in the app just yet
-    var enteredLotteries: MutableList<String> = mutableListOf()
+    var phoneNumber: String = "" // TODO: These aren't really being used in the app just yet
 ) {
     companion object {
         fun load(doc: DocumentSnapshot): EntrantProfileModel {

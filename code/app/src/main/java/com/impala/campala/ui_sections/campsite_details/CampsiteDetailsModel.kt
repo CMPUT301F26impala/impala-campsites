@@ -6,8 +6,6 @@ import com.impala.campala.UserViewMode
 import com.impala.campala.model.CampsiteModel
 import com.impala.campala.model.CampsiteOwnerProfileRepository
 import com.impala.campala.model.CampsiteRepository
-import com.impala.campala.model.EntrantProfileModel
-import com.impala.campala.model.EntrantProfileRepository
 import com.impala.campala.model.LotteryModel
 import com.impala.campala.model.LotteryRepository
 import kotlinx.coroutines.CoroutineScope
@@ -22,7 +20,6 @@ import kotlin.uuid.Uuid
  *
  * @param campsiteRepo the repo to fetch relevant campsite from
  * @param lotteryRepo the repo to fetch the campsite lottery from
- * @param entrantRepo the repo to fetch the user's entrant profile from
  * @param campsiteOwnerProfileRepo the repo to check which campsites the user owns
  * @param user the object which contains the current user's information
  * @param scope the CoroutineScope that the suspend fetches run in
@@ -34,7 +31,6 @@ import kotlin.uuid.Uuid
  * @property tags the set of tags the Campsite has
  * @property campsite the Campsite object whose details are displayed
  * @property lottery the Lottery for the Campsite, if it exists
- * @property entrantProfile the user's entrant profile, used to enter a lottery
  * @property joinStatus indicates whether a user can join a lottery or the reason they cannot
  * @property userIsOwner flag for if the current user owns the campsite
  * @property lotteryExists flag indicating if there is a lottery for the selected campsite
@@ -42,7 +38,6 @@ import kotlin.uuid.Uuid
 class CampsiteDetailsModel(
     val campsiteRepo: CampsiteRepository,
     val lotteryRepo: LotteryRepository,
-    val entrantRepo: EntrantProfileRepository,
     val campsiteOwnerProfileRepo: CampsiteOwnerProfileRepository,
     val user: User,
     val scope: CoroutineScope
@@ -54,7 +49,6 @@ class CampsiteDetailsModel(
     var tags: MutableList<String> = mutableListOf()
     var campsite: CampsiteModel? = null
     var lottery: LotteryModel? = null
-    var entrantProfile: EntrantProfileModel? = null
     var joinStatus: LotteryModel.ProspectiveJoinStatus? = null
     var userIsOwner: Boolean = false
     var lotteryExists: Boolean = false
@@ -82,7 +76,6 @@ class CampsiteDetailsModel(
 
         lottery = lotteryRepo.getLotteryByCampsiteId(campsiteId)
 
-        entrantProfile = entrantRepo.getEntrantProfileById(user.getUID())
         lottery?.let {
             joinStatus = it.evaluateUserAction(user.getUID())
             lotteryExists = true
@@ -97,7 +90,6 @@ class CampsiteDetailsModel(
     fun joinLottery() {
         this.scope.launch {
             lotteryRepo.joinLottery(lottery!!.id, user.getUID())
-            entrantRepo.putEntrantInLottery(entrantProfile!!, lottery!!.id)
         }
     }
 
