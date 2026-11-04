@@ -29,6 +29,7 @@ import com.google.firebase.Timestamp
 import com.impala.campala.model.ReservationModel
 import com.impala.campala.model.ReservationRepository
 import kotlinx.coroutines.CoroutineScope
+import java.time.LocalDate
 import java.time.YearMonth
 import java.time.ZoneId
 
@@ -38,7 +39,7 @@ class CreateReservationView(
     val scope: CoroutineScope
 ) {
     private var agreedTerms by mutableStateOf(false)
-    private var localCampsiteModel by mutableStateOf(controller.campsite)
+    private var localCampsiteModel by mutableStateOf(controller.model.campsite)
     private var startDate by mutableStateOf(YearMonth.now().atDay(1))
     private var endDate by mutableStateOf(YearMonth.now().atEndOfMonth().plusDays(1))
     private var reserved = mutableStateListOf<ReservationModel>()
@@ -95,56 +96,62 @@ class CreateReservationView(
                         Text("I accept", style = MaterialTheme.typography.titleMedium)
                     }
                 } else {
-                    Grid(
-                        config = {
-                            repeat(7) {
-                                column(1 / 7f)
-                            }
-                            gap(8.dp)
-                        }
+                    DrawCalendar(startDate, endDate)
+                }
+            }
+        }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
+    @Composable
+    private fun DrawCalendar(startDate: LocalDate, endDate: LocalDate) {
+        Grid(
+            config = {
+                repeat(7) {
+                    column(1 / 7f)
+                }
+                gap(8.dp)
+            }
+        ) {
+            Text("Mon")
+            Text("Tue")
+            Text("Wed")
+            Text("Thu")
+            Text("Fri")
+            Text("Sat")
+            Text("Sun")
+            // theres probably a better way to insert blanks
+            for (i in 1..(startDate.dayOfWeek.value - 1)) {
+                Text("")
+            }
+
+            for (date in startDate.datesUntil(endDate)) {
+                var backgroundColor = MaterialTheme.colorScheme.primary
+
+                for (reservation in reserved) {
+                    if (Timestamp(
+                            date.atStartOfDay(
+                                ZoneId.systemDefault()
+                            ).toInstant()
+                        ) in reservation.startDate..reservation.endDate
                     ) {
-                        Text("Mon")
-                        Text("Tue")
-                        Text("Wed")
-                        Text("Thu")
-                        Text("Fri")
-                        Text("Sat")
-                        Text("Sun")
-                        // theres probably a better way to insert blanks
-                        for (i in 1..(startDate.dayOfWeek.value - 1)) {
-                            Text("")
-                        }
-
-                        for (date in startDate.datesUntil(endDate)) {
-                            var backgroundColor = MaterialTheme.colorScheme.primary
-
-                            for (reservation in reserved) {
-                                if (Timestamp(
-                                        date.atStartOfDay(
-                                            ZoneId.systemDefault()
-                                        ).toInstant()
-                                    ) in reservation.startDate..reservation.endDate
-                                ) {
-                                    backgroundColor = MaterialTheme.colorScheme.tertiary
-                                    break
-                                }
-                            }
-                            Text(
-                                "${date.dayOfMonth}",
-                                modifier = Modifier
-                                    .background(
-                                        color = backgroundColor,
-                                        shape = RoundedCornerShape(12.dp)
-                                    )
-                                    .fillMaxWidth()
-                                    .fillMaxHeight(),
-                                style = MaterialTheme.typography.displaySmall,
-                                color = MaterialTheme.colorScheme.onPrimary,
-                                textAlign = TextAlign.Center
-                            )
-                        }
+                        backgroundColor = MaterialTheme.colorScheme.tertiary
+                        break
                     }
                 }
+                Text(
+                    "${date.dayOfMonth}",
+                    modifier = Modifier
+                        .background(
+                            color = backgroundColor,
+                            shape = RoundedCornerShape(12.dp)
+                        )
+                        .fillMaxWidth()
+                        .fillMaxHeight(),
+                    style = MaterialTheme.typography.displaySmall,
+                    color = MaterialTheme.colorScheme.onPrimary,
+                    textAlign = TextAlign.Center
+                )
             }
         }
     }
