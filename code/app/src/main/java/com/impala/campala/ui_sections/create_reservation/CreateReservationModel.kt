@@ -5,7 +5,11 @@ import com.impala.campala.ObservableModel
 import com.impala.campala.model.CampsiteModel
 import com.impala.campala.model.CampsiteRepository
 import com.impala.campala.model.LotteryRepository
+import com.impala.campala.model.ReservationRepository
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.ZoneId
@@ -21,7 +25,7 @@ enum class CURRENT_RESERVATION_STAGE {
 /**
  * Model for the Create Reservation screen
  */
-class CreateReservationModel(val scope: CoroutineScope, val lotteryRepo: LotteryRepository, val campsiteRepo: CampsiteRepository): ObservableModel<CreateReservationModel>() {
+class CreateReservationModel(val scope: CoroutineScope, val lotteryRepo: LotteryRepository, val campsiteRepo: CampsiteRepository, val reservationRepo: ReservationRepository): ObservableModel<CreateReservationModel>() {
     var currentStage: CURRENT_RESERVATION_STAGE = CURRENT_RESERVATION_STAGE.TERMS_ACCEPT
 
     var availableCampsites: List<CampsiteModel> = emptyList()
@@ -49,6 +53,7 @@ class CreateReservationModel(val scope: CoroutineScope, val lotteryRepo: Lottery
     fun loadLotteryDetails(lotteryId: String) {
         currentStage = CURRENT_RESERVATION_STAGE.TERMS_ACCEPT
         selectedCampsite = null
+        alreadyReservedDatesForSelectedCampsite = emptyList()
         selectedEndDate = null
         selectedStartDate = null
         isDateRangeValid = false
@@ -62,6 +67,47 @@ class CreateReservationModel(val scope: CoroutineScope, val lotteryRepo: Lottery
             }
             dateRangeStart = timestampToLocalDate(lottery.reservationStartDate)
             dateRangeEnd = timestampToLocalDate(lottery.reservationEndDate)
+
+            // I used Claude Opus 5.5 with the prompt "How can I do promise.all() in Kotlin"
+            // I know how to write this kind of parralel async code in Javascript and so I described what I wanted and it helped me with this Kotlin
+            availableCampsites = lottery.campsiteIds.map { campsiteId ->
+                async { campsiteRepo.getCampsiteById(campsiteId) }
+            }.awaitAll().filterNotNull()
+
+            if (availableCampsites.size == 1) {
+                // If there's only one campsite, we auto-select it and then check it's dates
+                setSelectedCampsite(availableCampsites[0].id)
+            }
+
+            notifyObservers(this@CreateReservationModel)
+        }
+    }
+
+    fun setSelectedCampsite(campsiteId: String) {
+        val model = availableCampsites.find { campsite -> campsite.id == campsiteId }
+        if (model == null) {
+            // SHOULD NEVER HAPPEN
+            return
+        }
+        selectedCampsite = model
+        // Clear the old campsite's dates right away so they aren't shown for this one while loading
+        alreadyReservedDatesForSelectedCampsite = emptyList()
+        notifyObservers(this)
+
+        scope.launch {
+            val reservedDates = mutableSetOf<LocalDate>()
+            for (reservation in reservationRepo.getReservationsByCampsite(campsiteId)) {
+                // Every day of the reservation counts as reserved, including its end date
+                // Only the days inside this lottery's range are kept, the rest are ignored so the array isn't like absurdly long
+                var date = maxOf(timestampToLocalDate(reservation.startDate), dateRangeStart)
+                val lastDate = minOf(timestampToLocalDate(reservation.endDate), dateRangeEnd)
+                while (!date.isAfter(lastDate)) {
+                    reservedDates.add(date)
+                    date = date.plusDays(1)
+                }
+            }
+            alreadyReservedDatesForSelectedCampsite = reservedDates.sorted()
+            notifyObservers(this@CreateReservationModel)
         }
     }
 
