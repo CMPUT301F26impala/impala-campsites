@@ -116,6 +116,26 @@ class CreateReservationModel(val scope: CoroutineScope, val lotteryRepo: Lottery
         this.notifyObservers(this)
     }
 
+    /**
+     * Sets the first day of the user's chosen stay
+     *
+     * @param date the start date, null if it's been cleared or isn't a full date yet
+     */
+    fun updateSelectedStartDate(date: LocalDate?) {
+        selectedStartDate = date
+        notifyObservers(this)
+    }
+
+    /**
+     * Sets the last day of the user's chosen stay, this day is included in the stay
+     *
+     * @param date the end date, null if it's been cleared or isn't a full date yet
+     */
+    fun updateSelectedEndDate(date: LocalDate?) {
+        selectedEndDate = date
+        notifyObservers(this)
+    }
+
     private fun timestampToLocalDate(timestamp: Timestamp): LocalDate {
         return timestamp.toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
     }

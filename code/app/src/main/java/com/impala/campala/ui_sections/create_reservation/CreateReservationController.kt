@@ -38,16 +38,20 @@ class CreateReservationController(val model: CreateReservationModel) {
     /**
      * Sets the start date to user's choice, doesn't validate if it's an available date just yet
      *
-     * @param date the start date the user picked
+     * @param date the start date the user picked, null if the field is empty or isn't a full date yet
      */
-    fun onStartDateChange(date: LocalDate) {}
+    fun onStartDateChange(date: LocalDate?) {
+        model.updateSelectedStartDate(date)
+    }
 
     /**
      * Sets the end date to user's choice, doesn't validate if it's an available date just yet
      *
-     * @param date the end date the user picked
+     * @param date the end date the user picked, null if the field is empty or isn't a full date yet
      */
-    fun onEndDateChange(date: LocalDate) {}
+    fun onEndDateChange(date: LocalDate?) {
+        model.updateSelectedEndDate(date)
+    }
 
     /**
      * Triggered up to two times
