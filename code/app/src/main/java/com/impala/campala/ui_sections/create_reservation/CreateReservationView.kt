@@ -8,9 +8,12 @@ import androidx.compose.foundation.layout.Grid
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -32,6 +35,9 @@ import kotlinx.coroutines.CoroutineScope
 import java.time.LocalDate
 import java.time.YearMonth
 import java.time.ZoneId
+import java.time.format.TextStyle
+import java.util.Locale
+import androidx.compose.ui.platform.LocalLocale
 
 class CreateReservationView(
     val controller: CreateReservationController,
@@ -40,8 +46,9 @@ class CreateReservationView(
 ) {
     private var agreedTerms by mutableStateOf(false)
     private var localCampsiteModel by mutableStateOf(controller.model.campsite)
-    private var startDate by mutableStateOf(YearMonth.now().atDay(1))
-    private var endDate by mutableStateOf(YearMonth.now().atEndOfMonth().plusDays(1))
+//    TODO: THIS SHOULD COME FROM LOTTERY
+    private var startDate by mutableStateOf(LocalDate.now())
+    private var endDate by mutableStateOf(LocalDate.now().plusWeeks(5))
     private var reserved = mutableStateListOf<ReservationModel>()
 
     @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
@@ -55,7 +62,9 @@ class CreateReservationView(
                         ZoneId.systemDefault()
                     ).toInstant()
                 ), Timestamp(
-                    endDate.atStartOfDay(
+                    // the end date is inclusive (eg: if the lottery has reservation period from jan 1 to jan 20, you can book jan 20
+                    // So we have to fetch reservations between jan 1 and 00:00 on jan 21
+                    endDate.plusDays(1).atStartOfDay(
                         ZoneId.systemDefault()
                     ).toInstant()
                 )
@@ -66,8 +75,9 @@ class CreateReservationView(
         Scaffold() {
             Column(
                 modifier = Modifier
-                    .fillMaxWidth()
+                    .fillMaxSize()
                     .padding(it)
+                    .verticalScroll(rememberScrollState())
                     .padding(16.dp)
             ) {
                 Text(
@@ -102,9 +112,47 @@ class CreateReservationView(
         }
     }
 
+    /**
+     * Draws a calendar of every day from [startDate] up to and including [endDate]
+     *
+     * this function splits the range into months, and calls a subfunction to render each month
+     *
+     * @param startDate the first day to show
+     * @param endDate the last day to show
+     */
     @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
     @Composable
     private fun DrawCalendar(startDate: LocalDate, endDate: LocalDate) {
+        Column {
+            var firstMonth = YearMonth.from(startDate)
+            val lastMonth = YearMonth.from(endDate)
+            // Effectively this is "for each month from first to last"
+            while (!firstMonth.isAfter(lastMonth)) {
+                Text(
+                    firstMonth.month.getDisplayName(TextStyle.FULL, LocalLocale.current.platformLocale),
+                    style = MaterialTheme.typography.titleSmall,
+                    modifier = Modifier.padding(top = 16.dp, bottom = 8.dp)
+                )
+                // Only draw the part of this month that's inside the range
+                DrawMonth(
+                    maxOf(startDate, firstMonth.atDay(1)), // Either start of month or if the range starts halfway through the month, use that
+                    minOf(endDate, firstMonth.atEndOfMonth()) // Same as above, for end or before
+                )
+                firstMonth = firstMonth.plusMonths(1)
+            }
+        }
+    }
+
+    /**
+     * Draws one month's grid, from the start date up to the end date INCLUDING the end date
+     * This is Minh's code, I've just extracted it to this function so that multi-month ranges can render multiple of these
+     *
+     * @param startDate the first day of this month to show
+     * @param endDate the last day of this month to show
+     */
+    @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
+    @Composable
+    private fun DrawMonth(startDate: LocalDate, endDate: LocalDate) {
         Grid(
             config = {
                 repeat(7) {
@@ -125,7 +173,7 @@ class CreateReservationView(
                 Text("")
             }
 
-            for (date in startDate.datesUntil(endDate)) {
+            for (date in startDate.datesUntil(endDate.plusDays(1))) {
                 var backgroundColor = MaterialTheme.colorScheme.primary
 
                 for (reservation in reserved) {
