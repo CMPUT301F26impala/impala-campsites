@@ -24,6 +24,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
@@ -102,7 +103,7 @@ class CreateReservationView(
         canConfirm = model.canConfirm
     }
 
-    private var modalState: MODAL_STATE = MODAL_STATE.CLOSED
+    private var modalState by mutableStateOf(MODAL_STATE.CLOSED)
 
     @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
     @Composable
@@ -142,6 +143,49 @@ class CreateReservationView(
                 }
             }
         }
+        DrawModal()
+    }
+
+    /**
+     * Draws the "Are you sure" modal, its one component that handles both the decline and confirmation modal because they can't both be open anyway
+     * Draws nothing when modalState is CLOSED
+     */
+    @Composable
+    private fun DrawModal() {
+        if (modalState == MODAL_STATE.CLOSED) {
+            return
+        }
+        val isDecline = modalState == MODAL_STATE.DECLINE_MODAL_OPEN
+        AlertDialog(
+            onDismissRequest = { modalState = MODAL_STATE.CLOSED },
+            title = { Text(if (isDecline) "Confirm Cancellation" else "Confirm Reservation") },
+            text = {
+                Text(
+                    if (isDecline) {
+                        "Are you sure you want to decline this reservation? You will not be allowed to book in this registration period."
+                    } else {
+                        "Are you sure you want to confirm this reservation? You cannot change your dates or campsite after although you can cancel."
+                    }
+                )
+            },
+            dismissButton = {
+                TextButton(onClick = { modalState = MODAL_STATE.CLOSED }) {
+                    Text("Go Back")
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    modalState = MODAL_STATE.CLOSED
+                    if (isDecline) {
+                        controller.onDeclinePress()
+                    } else {
+                        controller.onConfirmPress()
+                    }
+                }) {
+                    Text(if (isDecline) "Decline" else "Confirm")
+                }
+            }
+        )
     }
 
     @Composable
