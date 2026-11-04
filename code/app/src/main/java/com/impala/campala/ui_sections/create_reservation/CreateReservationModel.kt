@@ -111,6 +111,11 @@ class CreateReservationModel(val scope: CoroutineScope, val lotteryRepo: Lottery
         }
     }
 
+    fun acceptTerms() {
+        currentStage = CURRENT_RESERVATION_STAGE.PICK_CAMPSITE_AND_DATES
+        this.notifyObservers(this)
+    }
+
     private fun timestampToLocalDate(timestamp: Timestamp): LocalDate {
         return timestamp.toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
     }

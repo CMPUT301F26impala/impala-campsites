@@ -15,19 +15,25 @@ class CreateReservationController(val model: CreateReservationModel) {
      *
      * @param lotteryId the id of the lottery being reserved through
      */
-    fun onOpen(lotteryId: String) {}
+    fun onOpen(lotteryId: String) {
+        model.loadLotteryDetails(lotteryId)
+    }
 
     /**
      * Advances the screen from the terms step to the next step
      */
-    fun onAcceptTerms() {}
+    fun onAcceptTerms() {
+        model.acceptTerms()
+    }
 
     /**
      * Only called in multi-campsite lotteries, picks a specific campsite to let you see the available dates for that one
      *
      * @param campsiteId the id of the campsite that was picked
      */
-    fun onCampsiteSelect(campsiteId: String) {}
+    fun onCampsiteSelect(campsiteId: String) {
+        model.setSelectedCampsite(campsiteId)
+    }
 
     /**
      * Sets the start date to user's choice, doesn't validate if it's an available date just yet

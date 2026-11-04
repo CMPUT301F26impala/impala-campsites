@@ -12,16 +12,21 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.google.firebase.Timestamp
@@ -46,8 +51,8 @@ class CreateReservationView(
     private var dateRangeStart: LocalDate = LocalDate.now()
     private var dateRangeEnd: LocalDate = LocalDate.now()
     private var alreadyReservedDatesForSelectedCampsite: List<LocalDate> = emptyList()
-    private var selectedStartDate: LocalDate = LocalDate.now()
-    private var selectedEndDate: LocalDate = LocalDate.now()
+    private var selectedStartDate: LocalDate? = null
+    private var selectedEndDate: LocalDate? = null
     private var isDateRangeValid: Boolean = false
     private var canConfirm: Boolean = false
 
@@ -67,25 +72,11 @@ class CreateReservationView(
 
     @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
     @Composable
-    fun Render(
-    ) {
-//        LaunchedEffect(Unit) {
-//            for (reservation in reservationRepo.getReservationsByDateRange(
-//                Timestamp(
-//                    startDate.atStartOfDay(
-//                        ZoneId.systemDefault()
-//                    ).toInstant()
-//                ), Timestamp(
-//                    // the end date is inclusive (eg: if the lottery has reservation period from jan 1 to jan 20, you can book jan 20
-//                    // So we have to fetch reservations between jan 1 and 00:00 on jan 21
-//                    endDate.plusDays(1).atStartOfDay(
-//                        ZoneId.systemDefault()
-//                    ).toInstant()
-//                )
-//            )) {
-//                reserved.add(reservation)
-//            }
-//        }
+    fun Render(lotteryId: String) {
+        LaunchedEffect(lotteryId) {
+            controller.onOpen(lotteryId)
+        }
+
         Scaffold() {
             Column(
                 modifier = Modifier
@@ -99,8 +90,11 @@ class CreateReservationView(
                     style = MaterialTheme.typography.headlineLarge
                 )
                 if (currentStage == CURRENT_RESERVATION_STAGE.TERMS_ACCEPT) {
-                    DrawTermsStage()
+                    DrawTermsStage(Modifier.weight(1f))
                 } else if (currentStage == CURRENT_RESERVATION_STAGE.PICK_CAMPSITE_AND_DATES) {
+                    if (availableCampsites.size > 1) {
+                        DrawCampsiteSelector(availableCampsites, selectedCampsite?.id)
+                    }
                     DrawCalendar(dateRangeStart, dateRangeEnd)
                 }
             }
@@ -108,8 +102,8 @@ class CreateReservationView(
     }
 
     @Composable
-    private fun DrawTermsStage() {
-        Column() {
+    private fun DrawTermsStage(modifier: Modifier = Modifier) {
+        Column(modifier = modifier.fillMaxWidth()) {
             Text(
                 "Campsite rules and policies",
                 style = MaterialTheme.typography.bodyLarge
@@ -134,6 +128,37 @@ class CreateReservationView(
             }
         }
 
+    }
+
+    /**
+     * Draws a radio button for each campsite so the user can pick which one to reserve
+     */
+    @Composable
+    private fun DrawCampsiteSelector() {
+        // I googled some Radio button implementations for this
+        Column(modifier = Modifier.selectableGroup()) {
+            for (campsite in availableCampsites) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .selectable(
+                            selected = campsite.id == selectedCampsite?.id,
+                            onClick = { controller.onCampsiteSelect(campsite.id) },
+                            role = Role.RadioButton
+                        )
+                        .padding(vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // onClick is null since the Row above already handles the tap
+                    RadioButton(selected = campsite.id == selectedCampsite?.id, onClick = null)
+                    Text(
+                        campsite.name,
+                        style = MaterialTheme.typography.bodyLarge,
+                        modifier = Modifier.padding(start = 16.dp)
+                    )
+                }
+            }
+        }
     }
 
     /**
@@ -200,17 +225,6 @@ class CreateReservationView(
             for (date in startDate.datesUntil(endDate.plusDays(1))) {
                 var backgroundColor = MaterialTheme.colorScheme.primary
 
-//                for (reservation in reserved) {
-//                    if (Timestamp(
-//                            date.atStartOfDay(
-//                                ZoneId.systemDefault()
-//                            ).toInstant()
-//                        ) in reservation.startDate..reservation.endDate
-//                    ) {
-//                        backgroundColor = MaterialTheme.colorScheme.tertiary
-//                        break
-//                    }
-//                }
                 Text(
                     "${date.dayOfMonth}",
                     modifier = Modifier
