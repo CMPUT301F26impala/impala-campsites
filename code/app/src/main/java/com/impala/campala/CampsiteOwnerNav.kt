@@ -4,12 +4,15 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.MailOutline
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
@@ -20,8 +23,10 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.runtime.setValue
@@ -33,15 +38,20 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.impala.campala.model.LotteryModel
+import com.impala.campala.model.LotteryRepository
 import com.impala.campala.ui_sections.campsite_details.CampsiteDetailsView
 import com.impala.campala.ui_sections.form_campsites.FormCampsitesView
+import com.impala.campala.ui_sections.form_lotteries.FormLotteriesView
 import com.impala.campala.ui_sections.search_campsites.SearchCampsitesView
 
 @Composable
 fun CampsiteOwnerNavigationRoot(
+    user: User, lotteryRepository: LotteryRepository,
     searchCampsitesScreen: SearchCampsitesView,
     campsiteDetailsScreen: CampsiteDetailsView,
     formCampsitesScreen: FormCampsitesView,
+    formLotteriesScreen: FormLotteriesView,
     onSwitchRole: () -> Unit
 ) {
     val navController = rememberNavController()
@@ -49,7 +59,7 @@ fun CampsiteOwnerNavigationRoot(
     NavHost(navController = navController, startDestination = "home") {
         // "home" is the tab navigation, the 4 tabs inside of home are controlled by the CampsiteOwnerHomeScreen function
         // Any screens that aren't part of the tabs and are 'fullscreen' should be declared here
-        composable("home") { CampsiteOwnerHomeScreen(navController, searchCampsitesScreen, onSwitchRole) }
+        composable("home") { CampsiteOwnerHomeScreen(user, lotteryRepository, navController, searchCampsitesScreen, onSwitchRole) }
         composable("campsite/{campsiteId}") { backStackEntry ->
             val campsiteId = backStackEntry.arguments?.getString("campsiteId") ?: ""
             // Scaffold is just here so the screen respects the status bar / nav bar insets
@@ -66,6 +76,13 @@ fun CampsiteOwnerNavigationRoot(
                 }
             }
         }
+        composable("addLottery") {
+            Scaffold { padding ->
+                Box(Modifier.padding(padding)) {
+                    formLotteriesScreen.Render(navController, null)
+                }
+            }
+        }
         // Since we only have one FormCampsitesView, the different between add and edit is set here
         // The navigation sees that you've navigated to EDIT, and it tells the view that and passed in the campsite id
         composable("editCampsite/{campsiteId}") { backStackEntry ->
@@ -73,6 +90,14 @@ fun CampsiteOwnerNavigationRoot(
             Scaffold { padding ->
                 Box(Modifier.padding(padding)) {
                     formCampsitesScreen.Render(navController, campsiteId)
+                }
+            }
+        }
+        composable("editLottery/{lotteryId}") { backStackEntry ->
+            val lotteryId = backStackEntry.arguments?.getString("lotteryId") ?: ""
+            Scaffold { padding ->
+                Box(Modifier.padding(padding)) {
+                    formLotteriesScreen.Render(navController, lotteryId)
                 }
             }
         }
@@ -89,7 +114,7 @@ enum class CampsiteOwnerTab(val label: String, val icon: ImageVector) {
 // Same tab approach as EntrantHomeScreen, the tabs are just local state instead of real screens in NavController
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CampsiteOwnerHomeScreen(navController: NavController, searchCampsitesScreen: SearchCampsitesView, onSwitchRole: () -> Unit) {
+fun CampsiteOwnerHomeScreen(user: User, lotteryRepository: LotteryRepository, navController: NavController, searchCampsitesScreen: SearchCampsitesView, onSwitchRole: () -> Unit) {
     var selected by rememberSaveable { mutableStateOf(CampsiteOwnerTab.Campsites) }
     val tabState = rememberSaveableStateHolder() // keeps each tab's scroll/state
     Scaffold(
@@ -129,7 +154,9 @@ fun CampsiteOwnerHomeScreen(navController: NavController, searchCampsitesScreen:
             tabState.SaveableStateProvider(selected.name) {
                 when (selected) {
                     CampsiteOwnerTab.Campsites -> searchCampsitesScreen.Render(navController)
-                    CampsiteOwnerTab.Lotteries -> LotteriesTab(navController)
+                    // changed from Lotteries Tab to Owner Lotteries tab because
+                    // entrant also has the lotteriesTab function, and they dont have the add lottery function, so owner can have a new function instead
+                    CampsiteOwnerTab.Lotteries -> OwnerLotteriesTab(user, lotteryRepository, navController)
                     CampsiteOwnerTab.Reservations -> ReservationsTab(navController)
                     CampsiteOwnerTab.Notifs -> NotifsTab(navController)
                 }
@@ -142,5 +169,27 @@ fun CampsiteOwnerHomeScreen(navController: NavController, searchCampsitesScreen:
 fun NotifsTab(navController: NavController) {
     Column() {
         Text("Notifs Screen!!!!")
+    }
+}
+
+@Composable
+fun OwnerLotteriesTab(user: User, lotteryRepository: LotteryRepository, navController: NavController) {
+    var lotteries by remember { mutableStateOf<List<LotteryModel>>(emptyList())}
+
+    LaunchedEffect(Unit) {
+        lotteries = lotteryRepository.getLotteriesByOwnerId(user.getUID())
+    }
+    Column {
+        Text("Lotteries Screen!!!!")
+        Button( onClick = { navController.navigate("addLottery") } ) { Text("Add Lottery") }
+        LazyColumn() {
+            items(lotteries) { item ->
+                Button(onClick = {
+                    navController.navigate("editLottery/${item.id}")
+                }) {
+                    Text(item.id)
+                }
+            }
+        }
     }
 }

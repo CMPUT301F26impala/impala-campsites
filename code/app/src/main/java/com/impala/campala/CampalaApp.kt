@@ -30,6 +30,9 @@ import com.impala.campala.ui_sections.campsite_details.CampsiteDetailsView
 import com.impala.campala.ui_sections.choose_role.ChooseRoleController
 import com.impala.campala.ui_sections.choose_role.ChooseRoleModel
 import com.impala.campala.ui_sections.choose_role.ChooseRoleView
+import com.impala.campala.ui_sections.form_lotteries.FormLotteriesController
+import com.impala.campala.ui_sections.form_lotteries.FormLotteriesModel
+import com.impala.campala.ui_sections.form_lotteries.FormLotteriesView
 
 
 @Composable
@@ -78,6 +81,11 @@ fun SignedInApp(user: User) {
     val formCampsitesView = remember { FormCampsitesView(formCampsitesController) }
     formCampsitesModel.addObserver((formCampsitesView))
 
+    val formLotteriesModel = remember { FormLotteriesModel(lotteryRepo, coroutineScope, null, user.getUID(), campsiteRepo) }
+    val formLotteriesController = remember { FormLotteriesController(formLotteriesModel) }
+    val formLotteriesView = remember { FormLotteriesView(formLotteriesController) }
+    formLotteriesModel.addObserver(formLotteriesView)
+
     val campsiteDetailsModel = remember { CampsiteDetailsModel(campsiteRepo, lotteryRepo, entrantProfileRepo, campsiteOwnerProfileRepo, user, coroutineScope) }
     val campsiteDetailsController = remember { CampsiteDetailsController(campsiteDetailsModel) }
     val campsiteDetailsView = remember { CampsiteDetailsView(campsiteDetailsController) }
@@ -101,7 +109,7 @@ fun SignedInApp(user: User) {
     } else {
         when (currentRole) {
             UserViewMode.ENTRANT -> EntrantNavigationRoot(searchCampsitesScreen=searchCampsitesView, campsiteDetailsScreen=campsiteDetailsView, onSwitchRole={ needsRoleChoice = true })
-            UserViewMode.CAMPSITE_OWNER -> CampsiteOwnerNavigationRoot(searchCampsitesScreen=ownerSearchCampsitesView, campsiteDetailsScreen=campsiteDetailsView, formCampsitesScreen=formCampsitesView, onSwitchRole={ needsRoleChoice = true })
+            UserViewMode.CAMPSITE_OWNER -> CampsiteOwnerNavigationRoot(user, lotteryRepo, searchCampsitesScreen=ownerSearchCampsitesView, campsiteDetailsScreen=campsiteDetailsView, formCampsitesScreen=formCampsitesView, formLotteriesScreen = formLotteriesView,  onSwitchRole={ needsRoleChoice = true })
 
             UserViewMode.ADMIN -> {
                 Button(onClick = { needsRoleChoice = true}) {
