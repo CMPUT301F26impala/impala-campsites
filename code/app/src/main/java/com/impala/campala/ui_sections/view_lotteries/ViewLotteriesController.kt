@@ -2,6 +2,7 @@ package com.impala.campala.ui_sections.view_lotteries
 
 import androidx.navigation.NavController
 import com.impala.campala.Controller
+import com.impala.campala.UserViewMode
 
 /**
  * Controller for the 'Lotteries' screen
@@ -27,7 +28,7 @@ class ViewLotteriesController(val model: ViewLotteriesModel) : Controller {
      * @param navController the root NavController, assumes 'editLottery/{id}' is on this nav stack
      */
     fun onLotteryPress(item: LotteryListItem, navController: NavController) {
-        if (model.viewMode == ViewLotteriesViewMode.CAMPSITE_OWNER) {
+        if (model.viewMode == UserViewMode.CAMPSITE_OWNER) {
             navController.navigate("editLottery/${item.lottery.id}")
         }
     }

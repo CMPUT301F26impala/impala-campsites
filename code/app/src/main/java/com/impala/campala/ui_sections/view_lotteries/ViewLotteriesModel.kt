@@ -3,6 +3,7 @@ package com.impala.campala.ui_sections.view_lotteries
 import com.google.firebase.Timestamp
 import com.impala.campala.ObservableModel
 import com.impala.campala.User
+import com.impala.campala.UserViewMode
 import com.impala.campala.model.CampsiteModel
 import com.impala.campala.model.CampsiteRepository
 import com.impala.campala.model.LotteryModel
@@ -13,11 +14,6 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.launch
-
-/**
- * Which user type the 'Lotteries' screen is being shown to, to control the UI shown
- */
-enum class ViewLotteriesViewMode { ENTRANT, CAMPSITE_OWNER }
 
 /**
  * Where an entrant stands in a lottery, used to pick what text/buttons to show on their row
@@ -55,19 +51,21 @@ data class LotteryListItem(
  * @param reservationRepo the ReservationRepository, used in entrant mode to hide lotteries the user already reserved through
  * @param user the signed in User, used to find their lotteries
  * @param scope the CoroutineScope that the suspend fetches run in
- * @param viewMode whether this screen is for an entrant or a campsite owner
  *
  * @property lotteries every lottery for this user (minus ones an entrant lost or already reserved through)
+ * @property viewMode the user's role when the lotteries were last loaded, CAMPSITE_OWNER shows the owner UI, anything else shows the entrant UI
  */
 class ViewLotteriesModel(
     val lotteryRepo: LotteryRepository,
     val campsiteRepo: CampsiteRepository,
     val reservationRepo: ReservationRepository,
     val user: User,
-    val scope: CoroutineScope,
-    val viewMode: ViewLotteriesViewMode
+    val scope: CoroutineScope
 ) : ObservableModel<ViewLotteriesModel>() {
     var lotteries: List<LotteryListItem> = emptyList()
+        private set
+
+    var viewMode: UserViewMode = UserViewMode.ENTRANT
         private set
 
     /**
@@ -75,7 +73,7 @@ class ViewLotteriesModel(
      */
     val visibleLotteries: List<LotteryListItem>
         get() {
-            if (viewMode == ViewLotteriesViewMode.ENTRANT) return lotteries
+            if (viewMode != UserViewMode.CAMPSITE_OWNER) return lotteries
             val now = Timestamp.now()
             return lotteries.filter { it.lottery.lotteryEndTime >= now }
         }
@@ -87,11 +85,19 @@ class ViewLotteriesModel(
      * For entrants, it fetches all of the lotteries they have entered (or waitlisted or won or lost), and it filters to only the ones that 
      */
     fun loadLotteries() {
+        // Checked on every load since the user can switch roles while the app is open
+        val role = if (user.getCurrentRole() == UserViewMode.CAMPSITE_OWNER) UserViewMode.CAMPSITE_OWNER else UserViewMode.ENTRANT
+        // Since the below code is async and could take a while, we should clear the previous data first to make sure we're only showing up to date stuff
+        viewMode = role
+        lotteries = emptyList()
+        notifyObservers(this)
+
         loadJob?.cancel()
         loadJob = scope.launch {
             val uid = user.getUID()
-            val fetched = when (viewMode) { // Switch block
-                ViewLotteriesViewMode.ENTRANT -> {
+            val fetched = when (role) { // Switch block
+                UserViewMode.CAMPSITE_OWNER -> lotteryRepo.getLotteriesByOwnerId(uid)
+                else -> {
                     // Get all the lotteries and all the reservations
                     // The reason the .await() calls are after is so that these two fetches can run in parralel instead of one after the other
                     val entered = async { lotteryRepo.getLotteriesByEntrantId(uid) }
@@ -103,14 +109,13 @@ class ViewLotteriesModel(
                     val reserved = reservedLotteryIds.await()
                     entered.await().filter { it.id !in reserved && !checkIfEntrantLost(it, uid) }
                 }
-                ViewLotteriesViewMode.CAMPSITE_OWNER -> lotteryRepo.getLotteriesByOwnerId(uid)
             }.sortedBy { it.lotteryEndTime }
 
             // Fetch every campsite at the same time instead of one after the other
             lotteries = fetched.map { lottery ->
                 async {
                     val campsite = lottery.campsiteIds.firstOrNull()?.let { campsiteRepo.getCampsiteById(it) }
-                    val status = if (viewMode == ViewLotteriesViewMode.ENTRANT) getEntrantStatus(lottery, uid) else null
+                    val status = if (role != UserViewMode.CAMPSITE_OWNER) getEntrantStatus(lottery, uid) else null
                     LotteryListItem(lottery, campsite, status)
                 }
             }.awaitAll()

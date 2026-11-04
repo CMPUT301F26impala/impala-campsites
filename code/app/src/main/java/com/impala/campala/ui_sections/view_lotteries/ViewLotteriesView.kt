@@ -35,6 +35,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.google.firebase.Timestamp
+import com.impala.campala.UserViewMode
 import com.impala.campala.ViewObserver
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -49,7 +50,7 @@ import java.time.format.DateTimeFormatter
  */
 class ViewLotteriesView(val controller: ViewLotteriesController) : ViewObserver<ViewLotteriesModel> {
     private var lotteries by mutableStateOf<List<LotteryListItem>>(emptyList())
-    private var viewMode by mutableStateOf(ViewLotteriesViewMode.ENTRANT)
+    private var viewMode by mutableStateOf(UserViewMode.ENTRANT)
 
     // No KDoc because that's described in the ViewObserver contract
     override fun update(model: ViewLotteriesModel) {
@@ -86,13 +87,14 @@ class ViewLotteriesView(val controller: ViewLotteriesController) : ViewObserver<
                 }
             }
             items(lotteries, key = { it.lottery.id }) { item ->
-                when (viewMode) {
-                    ViewLotteriesViewMode.CAMPSITE_OWNER -> OwnerLotteryRenderItem(item, navController)
-                    ViewLotteriesViewMode.ENTRANT -> EntrantLotteryRenderItem(item, navController)
+                if (viewMode == UserViewMode.CAMPSITE_OWNER) {
+                    OwnerLotteryRenderItem(item, navController)
+                } else {
+                    EntrantLotteryRenderItem(item, navController)
                 }
             }
         }
-        if (viewMode == ViewLotteriesViewMode.CAMPSITE_OWNER) {
+        if (viewMode == UserViewMode.CAMPSITE_OWNER) {
             ExtendedFloatingActionButton(
                 onClick = { controller.onAddLotteryPress(navController) },
                 icon = { Icon(Icons.Default.Add, contentDescription = null) },
