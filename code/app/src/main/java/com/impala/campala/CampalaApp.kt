@@ -32,6 +32,7 @@ import com.impala.campala.ui_sections.choose_role.ChooseRoleController
 import com.impala.campala.ui_sections.choose_role.ChooseRoleModel
 import com.impala.campala.ui_sections.choose_role.ChooseRoleView
 import com.impala.campala.ui_sections.reservation_related.SeeReservationsController
+import com.impala.campala.ui_sections.reservation_related.SeeReservationsModel
 import com.impala.campala.ui_sections.reservation_related.SeeReservationsView
 import com.impala.campala.ui_sections.form_lotteries.FormLotteriesController
 import com.impala.campala.ui_sections.form_lotteries.FormLotteriesModel
@@ -117,8 +118,10 @@ fun SignedInApp(user: User) {
     val createReservationView = remember { CreateReservationView(createReservationController, reservationRepo, coroutineScope) }
     createReservationModel.addObserver(createReservationView)
 
-    val seeReservationsController = remember { SeeReservationsController(user, coroutineScope) }
+    val seeReservationsModel = remember { SeeReservationsModel(reservationRepo, campsiteRepo, user, coroutineScope) }
+    val seeReservationsController = remember { SeeReservationsController(seeReservationsModel) }
     val seeReservationsView = remember { SeeReservationsView(seeReservationsController) }
+    seeReservationsModel.addObserver(seeReservationsView)
     
     if (needsRoleChoice) {
         // Scaffold is just here so the screen respects the status bar / nav bar insets

@@ -44,6 +44,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.impala.campala.ViewObserver
+import com.impala.campala.model.CampsiteModel
 import com.impala.campala.model.ReservationModel
 import com.impala.campala.model.ReservationRepository
 import com.google.firebase.Timestamp
@@ -58,14 +59,18 @@ import java.time.format.DateTimeFormatter
  * The view for the 'reservations' tab on the entrant screen
  * It displays a users current and past reservations, with handling for the cancel action and the rate action
  *
- * TODO: Technically this isn't the same MVC paradigm as what we have in the rest of the app because it doesn't have a separate model,
- * the model details are in the controller
- * This is likely something we need to come back and address but for the halfway checkpoint it is okay.
- * I am just continuing to do it in this style because I don't really want to completely rewrite this without Liam's approval or having him included in on the process
- *
  * @param controller the SeeReservationsController that this view uses
  */
-class SeeReservationsView(val controller: SeeReservationsController) {
+class SeeReservationsView(val controller: SeeReservationsController) : ViewObserver<SeeReservationsModel> {
+    private var campsites by mutableStateOf<List<CampsiteModel>>(emptyList())
+    private var oldReservations by mutableStateOf<List<ReservationModel>>(emptyList())
+    private var newReservations by mutableStateOf<List<ReservationModel>>(emptyList())
+
+    override fun update(model: SeeReservationsModel) {
+        this.campsites = model.campsites
+        this.oldReservations = model.oldReservations
+        this.newReservations = model.newReservations
+    }
 
     // SCREEN_A = Scheduled/Upcoming Reservations, SCREEN_B = Past, SCREEN_C = Past with the rate modal on top of it, as per how Liam designed this
     private enum class UiTarget { SCREEN_A, SCREEN_B, SCREEN_C }
@@ -74,7 +79,7 @@ class SeeReservationsView(val controller: SeeReservationsController) {
     fun Render(navController: NavController) {
         // Load the user's reservations every time this tab is shown, so new bookings show up
         LaunchedEffect(Unit) {
-            controller.initialize(controller.user.getUID())
+            controller.initialize()
         }
 
         var selectedTabIndex by remember { mutableIntStateOf(0) }
@@ -142,11 +147,11 @@ class SeeReservationsView(val controller: SeeReservationsController) {
     @Composable
     private fun CurrentRes() {
         LazyColumn(modifier = Modifier.fillMaxWidth()) {
-            items(controller.newReservations) { res ->
+            items(newReservations) { res ->
                 Spacer(modifier = Modifier.height(12.dp))
 
                 Text(
-                    text = controller.campsites.find { it.id == res.campsiteId }?.name ?: "Unknown Campsite",
+                    text = campsites.find { it.id == res.campsiteId }?.name ?: "Unknown Campsite",
                     fontSize = 24.sp
                 )
                 DrawDateRange(res)
@@ -191,7 +196,7 @@ class SeeReservationsView(val controller: SeeReservationsController) {
     @Composable
     private fun PrevRes(onRate: (ReservationModel) -> Unit) {
         LazyColumn(modifier = Modifier.fillMaxWidth()) {
-            items(controller.oldReservations) { res ->
+            items(oldReservations) { res ->
                 Spacer(modifier = Modifier.height(12.dp))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -199,7 +204,7 @@ class SeeReservationsView(val controller: SeeReservationsController) {
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = controller.campsites.find { it.id == res.campsiteId }?.name ?: "Unknown Campsite",
+                            text = campsites.find { it.id == res.campsiteId }?.name ?: "Unknown Campsite",
                             fontSize = 24.sp
                         )
                         DrawDateRange(res)
@@ -257,7 +262,7 @@ class SeeReservationsView(val controller: SeeReservationsController) {
         var rating by remember { mutableFloatStateOf(3f) }
         AlertDialog(
             onDismissRequest = onClose,
-            title = { Text("Rate ${controller.campsites.find { it.id == res.campsiteId }?.name ?: ""}") },
+            title = { Text("Rate ${campsites.find { it.id == res.campsiteId }?.name ?: ""}") },
             text = {
                 Column {
                     Slider(
