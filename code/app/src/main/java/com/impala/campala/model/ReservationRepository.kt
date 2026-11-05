@@ -133,4 +133,26 @@ class ReservationRepository {
     suspend fun deleteReservation(reservation: ReservationModel): Unit {
         collection.document(reservation.id).delete().await()
     }
+
+    /**
+     * Marks a past reservation as rated
+     *
+     * The rating itself is saved on the campsite, so this just sets hasRating to true
+     *
+     * @param reservationId ID of the reservation being rated
+     */
+    suspend fun flagAsRated(reservationId: String): Unit {
+        collection.document(reservationId).update("hasRating", true).await()
+    }
+
+    /**
+     * Marks a reservation as cancelled, used when a campsite owner rejects one
+     *
+     * The reservation isn't deleted so it can still be shown in the cancelled list, this just sets hasBeenCancelled to true
+     *
+     * @param reservationId ID of the reservation being cancelled
+     */
+    suspend fun flagAsCancelled(reservationId: String): Unit {
+        collection.document(reservationId).update("hasBeenCancelled", true).await()
+    }
 }
