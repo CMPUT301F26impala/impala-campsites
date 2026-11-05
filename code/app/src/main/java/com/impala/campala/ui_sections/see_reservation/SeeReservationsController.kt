@@ -1,4 +1,4 @@
-package com.impala.campala.ui_sections.reservation_related;
+package com.impala.campala.ui_sections.see_reservation;
 
 import com.impala.campala.Controller
 import com.impala.campala.model.ReservationModel

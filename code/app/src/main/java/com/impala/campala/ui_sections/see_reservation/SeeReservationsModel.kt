@@ -1,4 +1,4 @@
-package com.impala.campala.ui_sections.reservation_related
+package com.impala.campala.ui_sections.see_reservation
 
 import com.google.firebase.Timestamp
 import com.impala.campala.ObservableModel

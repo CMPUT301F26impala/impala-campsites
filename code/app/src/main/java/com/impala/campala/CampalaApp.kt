@@ -31,9 +31,9 @@ import com.impala.campala.ui_sections.campsite_details.CampsiteDetailsView
 import com.impala.campala.ui_sections.choose_role.ChooseRoleController
 import com.impala.campala.ui_sections.choose_role.ChooseRoleModel
 import com.impala.campala.ui_sections.choose_role.ChooseRoleView
-import com.impala.campala.ui_sections.reservation_related.SeeReservationsController
-import com.impala.campala.ui_sections.reservation_related.SeeReservationsModel
-import com.impala.campala.ui_sections.reservation_related.SeeReservationsView
+import com.impala.campala.ui_sections.see_reservation.SeeReservationsController
+import com.impala.campala.ui_sections.see_reservation.SeeReservationsModel
+import com.impala.campala.ui_sections.see_reservation.SeeReservationsView
 import com.impala.campala.ui_sections.form_lotteries.FormLotteriesController
 import com.impala.campala.ui_sections.form_lotteries.FormLotteriesModel
 import com.impala.campala.ui_sections.form_lotteries.FormLotteriesView

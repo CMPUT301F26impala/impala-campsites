@@ -37,7 +37,7 @@ import com.impala.campala.ui_sections.campsite_details.CampsiteDetailsView
 import com.impala.campala.ui_sections.form_campsites.FormCampsitesView
 import com.impala.campala.ui_sections.form_lotteries.FormLotteriesView
 import com.impala.campala.ui_sections.search_campsites.SearchCampsitesView
-import com.impala.campala.ui_sections.reservation_related.SeeReservationsView
+import com.impala.campala.ui_sections.see_reservation.SeeReservationsView
 import com.impala.campala.ui_sections.view_lotteries.ViewLotteriesView
 
 @Composable

@@ -1,4 +1,4 @@
-package com.impala.campala.ui_sections.reservation_related
+package com.impala.campala.ui_sections.see_reservation
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
