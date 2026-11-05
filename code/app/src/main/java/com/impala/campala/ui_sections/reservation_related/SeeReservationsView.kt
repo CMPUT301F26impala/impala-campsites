@@ -49,6 +49,16 @@ import com.impala.campala.ui.theme.tertiaryDark
 import com.impala.campala.ui.theme.tertiaryLight
 import java.time.format.DateTimeFormatter
 
+/**
+ * The view for the 'reservations' tab on the entrant screen
+ * It displays a users current and past reservations, with handling for the cancel action and the rate action
+ *
+ * TODO: Technically this isn't the same MVC paradigm as what we have in the rest of the app because it doesn't have a separate model,
+ * the model details are in the controller
+ * This is likely something we need to come back and address but for the halfway checkpoint it is okay.
+ *
+ * @param controller the SeeReservationsController that this view uses
+ */
 class SeeReservationsView(val controller: SeeReservationsController) {
 
     private enum class UiTarget { SCREEN_A, SCREEN_B }
