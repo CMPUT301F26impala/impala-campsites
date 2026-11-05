@@ -117,7 +117,7 @@ fun SignedInApp(user: User) {
     val createReservationView = remember { CreateReservationView(createReservationController, reservationRepo, coroutineScope) }
     createReservationModel.addObserver(createReservationView)
 
-    val seeReservationsController = remember { SeeReservationsController() }
+    val seeReservationsController = remember { SeeReservationsController(user) }
     val seeReservationsView = remember { SeeReservationsView(seeReservationsController) }
     
     if (needsRoleChoice) {

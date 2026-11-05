@@ -27,17 +27,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.google.firebase.Timestamp
+import com.impala.campala.User
 import com.impala.campala.ViewObserver
 import com.impala.campala.model.ReservationModel
 import com.impala.campala.model.ReservationRepository
 import java.time.format.DateTimeFormatter
 import kotlin.collections.List
 
-public class SeeReservationsController() {
+public class SeeReservationsController(val user: User) {
     var resDB = ReservationRepository()
-    var reservations: List<ReservationModel> = emptyList()
-    var oldReservations: List<ReservationModel> = emptyList()
-    var newReservations: List<ReservationModel> = emptyList()
+    var reservations by mutableStateOf<List<ReservationModel>>(emptyList())
+    var oldReservations by mutableStateOf<List<ReservationModel>>(emptyList())
+    var newReservations by mutableStateOf<List<ReservationModel>>(emptyList())
 
     public suspend fun initialize(uid: String) {
         val currentDate: com.google.firebase.Timestamp = Timestamp.now()
