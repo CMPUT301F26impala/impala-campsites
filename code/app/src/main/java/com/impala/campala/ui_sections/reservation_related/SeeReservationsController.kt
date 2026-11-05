@@ -29,20 +29,35 @@ import androidx.compose.ui.unit.sp
 import com.google.firebase.Timestamp
 import com.impala.campala.User
 import com.impala.campala.ViewObserver
+import com.impala.campala.model.CampsiteModel
+import com.impala.campala.model.CampsiteRepository
 import com.impala.campala.model.ReservationModel
 import com.impala.campala.model.ReservationRepository
 import java.time.format.DateTimeFormatter
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlin.collections.List
 
 public class SeeReservationsController(val user: User) {
     var resDB = ReservationRepository()
+    var campsiteDB = CampsiteRepository()
+    var campsites by mutableStateOf<List<CampsiteModel>>(emptyList())
     var reservations by mutableStateOf<List<ReservationModel>>(emptyList())
     var oldReservations by mutableStateOf<List<ReservationModel>>(emptyList())
     var newReservations by mutableStateOf<List<ReservationModel>>(emptyList())
 
     public suspend fun initialize(uid: String) {
         val currentDate: com.google.firebase.Timestamp = Timestamp.now()
-        reservations = resDB.getReservationsByUser(uid).sortedBy { it.startDate }
+        val loaded = resDB.getReservationsByUser(uid).sortedBy { it.startDate }
+        // Load each campsite once, all at the same time, before showing the list so it never shows ids
+        // Any that can't be found (eg: deleted) are just left out
+        campsites = coroutineScope {
+            loaded.map { it.campsiteId }.distinct().map { campsiteId ->
+                async { campsiteDB.getCampsiteById(campsiteId) }
+            }.awaitAll().filterNotNull()
+        }
+        reservations = loaded
         oldReservations = reservations.filter {it.endDate < currentDate}
         newReservations = reservations.filter {it.endDate >= currentDate}
     }
