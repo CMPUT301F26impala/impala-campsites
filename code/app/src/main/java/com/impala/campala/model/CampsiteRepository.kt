@@ -1,6 +1,7 @@
 package com.impala.campala.model
 
 import com.google.firebase.Firebase
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.firestore
@@ -134,5 +135,21 @@ class CampsiteRepository {
      */
     suspend fun deleteCampsite(campsite: CampsiteModel): Unit {
         db.collection("campsites").document(campsite.id).delete().await()
+    }
+
+    /**
+     * Adds a rating to the campsite's total and incremements the count of ratings
+     *
+     * @param campsiteId ID of the campsite being rated
+     * @param rating the rating out of 5, can be a half (eg: 3.5)
+     */
+    suspend fun addRating(campsiteId: String, rating: Double): Unit {
+        // Since I'm not as familiar with Firebase, I did some googling and found this .increment function
+        db.collection("campsites").document(campsiteId)
+            .update(
+                "ratingTotal", FieldValue.increment(rating),
+                "ratingCount", FieldValue.increment(1)
+            )
+            .await()
     }
 }
