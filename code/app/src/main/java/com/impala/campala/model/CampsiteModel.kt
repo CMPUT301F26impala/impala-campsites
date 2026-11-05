@@ -17,6 +17,7 @@ data class CampsiteModel @OptIn(ExperimentalUuidApi::class) constructor(
     var mapLocation: String = "", // probably pair of float for lat and longitude
     var imageUrl: String = "",
     var tags: MutableList<String> = mutableListOf(),
+    var rules: String="",
     var id: String = Uuid.random().toString()
 ) {
     companion object {

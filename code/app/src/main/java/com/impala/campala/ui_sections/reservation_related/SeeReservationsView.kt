@@ -18,6 +18,7 @@ import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -43,6 +44,10 @@ class SeeReservationsView(val controller: SeeReservationsController) {
 
     @Composable
     fun Render(navController: NavController) {
+        // Load the user's reservations every time this tab is shown, so new bookings show up
+        LaunchedEffect(Unit) {
+            controller.initialize(controller.user.getUID())
+        }
 
         var selectedTabIndex by remember { mutableIntStateOf(0) }
         var currentScreen by remember {mutableStateOf(UiTarget.SCREEN_A)}

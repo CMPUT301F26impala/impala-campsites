@@ -66,6 +66,20 @@ class ReservationRepository {
             .map { ReservationModel.load(it) }
     }
 
+    /**
+     * Gets all Reservations (past and future) for one campsite
+     *
+     * Used for the booking screen to find which dates a campsite is already reserved on
+     *
+     * @param campsiteId ID for campsite
+     *
+     * @return list of the campsite's reservations
+     */
+    suspend fun getReservationsByCampsite(campsiteId: String): List<ReservationModel> {
+        return collection.whereEqualTo("campsiteId", campsiteId).get().await()
+            .map { ReservationModel.load(it) }
+    }
+
     suspend fun getReservationsByDateRange(start: Timestamp, end: Timestamp): List<ReservationModel> {
         // someone should use their 272 knowledge and clean this up
         return collection.where(

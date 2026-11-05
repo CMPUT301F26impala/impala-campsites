@@ -43,7 +43,7 @@ data class LotteryListItem(
 
 /**
  * In entrant mode this is the list of lotteries the user has joined, with status on if they've won it or not
- * Lotteries the entrant lost, or already made a reservation through, are left out, since there's nothing left for them to do there
+ * Lotteries the entrant lost, declined, or already made a reservation through, are left out, since there's nothing left for them to do there
  * In campsite owner mode this is the list of active lotteries owned by that campsite owner
  *
  * @param lotteryRepo the LotteryRepository to fetch lotteries from
@@ -105,9 +105,9 @@ class ViewLotteriesModel(
                         reservationRepo.getReservationsByUser(uid).mapNotNull { it.lotteryId }.toSet()
                     }
 
-                    // Filter out lotteries that have been lost or that were won and already reserved
+                    // Filter out lotteries that have been lost, or that were won and then already reserved or declined
                     val reserved = reservedLotteryIds.await()
-                    entered.await().filter { it.id !in reserved && !checkIfEntrantLost(it, uid) }
+                    entered.await().filter { it.id !in reserved && uid !in it.declinedIds && !checkIfEntrantLost(it, uid) }
                 }
             }.sortedBy { it.lotteryEndTime }
 
