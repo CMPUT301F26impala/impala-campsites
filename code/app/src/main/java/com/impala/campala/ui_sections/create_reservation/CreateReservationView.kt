@@ -52,6 +52,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextAlign
@@ -240,11 +241,20 @@ class CreateReservationView(
                 "Campsite rules and policies",
                 style = MaterialTheme.typography.bodyLarge
             )
-            // TODO: Terms is not currently a property on anything.
-            // If we want one global terms text for the whole app, we can hardcode it here (what I think we should do)
-            // If we want a custom terms per campsite, we'd need this accept screen to be AFTER the campsite is already chosen
-            // Probably as part of the confirmation modal
-            Text("Lorem Ipsum Doner Sit Amet", style = MaterialTheme.typography.bodyMedium)
+            for (campsite in availableCampsites) {
+                // If there's more than one campsite, each one needs a title for it's terms
+                if (availableCampsites.size > 1) {
+                    Text(
+                        campsite.name,
+                        style = MaterialTheme.typography.titleMedium,
+                        modifier = Modifier.padding(top = 12.dp)
+                    )
+                }
+                Text(
+                    campsite.rules.ifBlank { "No terms provided" },
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
             Spacer(modifier = Modifier.weight(1f))
             Row(
                 modifier = Modifier.align(
@@ -442,10 +452,11 @@ class CreateReservationView(
                     style = MaterialTheme.typography.titleSmall,
                     modifier = Modifier.padding(top = 16.dp, bottom = 8.dp)
                 )
-                // Only draw the part of this month that's inside the range
                 DrawMonth(
-                    maxOf(startDate, firstMonth.atDay(1)), // Either start of month or if the range starts halfway through the month, use that
-                    minOf(endDate, firstMonth.atEndOfMonth()) // Same as above, for end or before
+                    firstMonth.atDay(1),
+                    firstMonth.atEndOfMonth(),
+                    startDate,
+                    endDate
                 )
                 firstMonth = firstMonth.plusMonths(1)
             }
@@ -458,9 +469,11 @@ class CreateReservationView(
      *
      * @param startDate the first day of this month to show
      * @param endDate the last day of this month to show
+     * @param availableStart the first day that can be booked, days before it are greyed out
+     * @param availableEnd the last day that can be booked, days after it are greyed out
      */
     @Composable
-    private fun DrawMonth(startDate: LocalDate, endDate: LocalDate) {
+    private fun DrawMonth(startDate: LocalDate, endDate: LocalDate, availableStart: LocalDate, availableEnd: LocalDate) {
         Grid(
             config = {
                 repeat(7) {
@@ -484,7 +497,10 @@ class CreateReservationView(
             for (date in startDate.datesUntil(endDate.plusDays(1))) {
                 var backgroundColor = MaterialTheme.colorScheme.primary
                 var textColor = MaterialTheme.colorScheme.onPrimary
-                if (date in alreadyReservedDatesForSelectedCampsite) {
+                if (date.isBefore(availableStart) || date.isAfter(availableEnd)) {
+                    backgroundColor = Color.Transparent
+                    textColor = MaterialTheme.colorScheme.onSurface
+                } else if (date in alreadyReservedDatesForSelectedCampsite) {
                     // Reserved days stay red
                     backgroundColor = MaterialTheme.colorScheme.tertiary
                 } else if (isDateSelected(date)) {
