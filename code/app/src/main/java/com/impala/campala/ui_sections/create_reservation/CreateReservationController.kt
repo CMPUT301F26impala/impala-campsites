@@ -56,7 +56,9 @@ class CreateReservationController(val model: CreateReservationModel) {
     /**
      * Comes from the confirm modal
      */
-    fun onConfirmPress() {}
+    fun onConfirmPress() {
+        model.completeReservation()
+    }
 
     /**
      * Comes from the decline modal, it declines the reservation and then goes back to the previous screen
@@ -73,5 +75,8 @@ class CreateReservationController(val model: CreateReservationModel) {
      *
      * @param navController the NavController used to go home
      */
-    fun goHome(navController: NavController) {}
+    fun goHome(navController: NavController) {
+        // Pops everything off the stack until it's back at the home tabs
+        navController.popBackStack("home", false)
+    }
 }

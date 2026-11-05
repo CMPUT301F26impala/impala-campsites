@@ -6,6 +6,7 @@ import com.impala.campala.User
 import com.impala.campala.model.CampsiteModel
 import com.impala.campala.model.CampsiteRepository
 import com.impala.campala.model.LotteryRepository
+import com.impala.campala.model.ReservationModel
 import com.impala.campala.model.ReservationRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -53,6 +54,7 @@ class CreateReservationModel(val scope: CoroutineScope, val lotteryRepo: Lottery
 
     // used internally to update the lottery
     private var lotteryId: String = ""
+    private var lotteryOwnerId: String = ""
 
     fun loadLotteryDetails(lotteryId: String) {
         this.lotteryId = lotteryId
@@ -72,6 +74,7 @@ class CreateReservationModel(val scope: CoroutineScope, val lotteryRepo: Lottery
             }
             dateRangeStart = timestampToLocalDate(lottery.reservationStartDate)
             dateRangeEnd = timestampToLocalDate(lottery.reservationEndDate)
+            lotteryOwnerId = lottery.ownerId
 
             // I used Claude Opus 5.5 with the prompt "How can I do promise.all() in Kotlin"
             // I know how to write this kind of parralel async code in Javascript and so I described what I wanted and it helped me with this Kotlin
@@ -152,13 +155,26 @@ class CreateReservationModel(val scope: CoroutineScope, val lotteryRepo: Lottery
      */
     fun completeReservation() {
         if (!canConfirm || isSaving) return;
+        // canConfirm already means these are all set, this just gets non-null versions of them
+        val campsite = selectedCampsite ?: return
+        val start = selectedStartDate ?: return
+        val end = selectedEndDate ?: return
         isSaving = true
-        // TODO:
-        // This needs to create a reservation object (or call some sort of create on reservationRepository)
-        // Pass in all of the information
-        // And then I think that's all
-        isSaving = false;
-        currentStage = CURRENT_RESERVATION_STAGE.CONFIRMATION
+        scope.launch {
+            reservationRepo.saveReservation(
+                ReservationModel(
+                    campsiteId = campsite.id,
+                    ownerId = lotteryOwnerId,
+                    entrantId = user.getUID(),
+                    startDate = localDateToTimestamp(start),
+                    endDate = localDateToTimestamp(end),
+                    lotteryId = lotteryId
+                )
+            )
+            isSaving = false
+            currentStage = CURRENT_RESERVATION_STAGE.CONFIRMATION
+            notifyObservers(this@CreateReservationModel)
+        }
     }
 
     /**
@@ -192,6 +208,10 @@ class CreateReservationModel(val scope: CoroutineScope, val lotteryRepo: Lottery
             alreadyReservedDatesForSelectedCampsite.none { reserved -> !reserved.isBefore(start) && !reserved.isAfter(end) }
 
         canConfirm = currentStage != CURRENT_RESERVATION_STAGE.TERMS_ACCEPT && selectedCampsite != null && isDateRangeValid
+    }
+
+    private fun localDateToTimestamp(date: LocalDate): Timestamp {
+        return Timestamp(date.atStartOfDay(ZoneId.systemDefault()).toInstant())
     }
 
     private fun timestampToLocalDate(timestamp: Timestamp): LocalDate {
