@@ -2,6 +2,7 @@ package com.impala.campala.ui_sections.create_reservation
 
 import com.google.firebase.Timestamp
 import com.impala.campala.ObservableModel
+import com.impala.campala.User
 import com.impala.campala.model.CampsiteModel
 import com.impala.campala.model.CampsiteRepository
 import com.impala.campala.model.LotteryRepository
@@ -17,15 +18,13 @@ import java.time.ZoneId
 enum class CURRENT_RESERVATION_STAGE {
     TERMS_ACCEPT,
     PICK_CAMPSITE_AND_DATES,
-    CONFIRM_MODAL,
-    DECLINE_MODAL,
     CONFIRMATION
 }
 
 /**
  * Model for the Create Reservation screen
  */
-class CreateReservationModel(val scope: CoroutineScope, val lotteryRepo: LotteryRepository, val campsiteRepo: CampsiteRepository, val reservationRepo: ReservationRepository): ObservableModel<CreateReservationModel>() {
+class CreateReservationModel(val scope: CoroutineScope, val lotteryRepo: LotteryRepository, val campsiteRepo: CampsiteRepository, val reservationRepo: ReservationRepository, val user: User): ObservableModel<CreateReservationModel>() {
     var currentStage: CURRENT_RESERVATION_STAGE = CURRENT_RESERVATION_STAGE.TERMS_ACCEPT
 
     var availableCampsites: List<CampsiteModel> = emptyList()
@@ -49,6 +48,8 @@ class CreateReservationModel(val scope: CoroutineScope, val lotteryRepo: Lottery
 
     // This should always be equal to (currentStage != TERMS_ACCEPT && selectedCampsite != null && isDateRangeValid)
     var canConfirm: Boolean = false
+
+    private var isSaving: Boolean = false;
 
     fun loadLotteryDetails(lotteryId: String) {
         currentStage = CURRENT_RESERVATION_STAGE.TERMS_ACCEPT
@@ -140,6 +141,27 @@ class CreateReservationModel(val scope: CoroutineScope, val lotteryRepo: Lottery
         selectedEndDate = date
         recalculateValidity()
         notifyObservers(this)
+    }
+
+    /**
+     * Called AFTER campsites and dates have been selected, and does the work of actually creating the reservation entry
+     */
+    fun completeReservation() {
+        if (!canConfirm || isSaving) return;
+        isSaving = true
+        // DO THINGS
+        isSaving = false;
+        currentStage = CURRENT_RESERVATION_STAGE.CONFIRMATION
+    }
+
+    /**
+     * Can be called anytime, and will irreversibly decline the reservation such that this user can't reserve from this lottery any more
+     */
+    fun declineReservation() {
+        if (isSaving) return;
+        isSaving = true
+        // DO THINGS
+        isSaving = false;
     }
 
     /**

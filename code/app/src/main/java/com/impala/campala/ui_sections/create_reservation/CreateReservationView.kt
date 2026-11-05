@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
@@ -24,6 +25,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.DatePicker
@@ -50,6 +54,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -64,6 +69,7 @@ import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
 import androidx.compose.ui.platform.LocalLocale
+import androidx.navigation.NavController
 import com.impala.campala.ViewObserver
 import com.impala.campala.model.CampsiteModel
 
@@ -107,7 +113,7 @@ class CreateReservationView(
 
     @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
     @Composable
-    fun Render(lotteryId: String) {
+    fun Render(navController: NavController, lotteryId: String) {
         LaunchedEffect(lotteryId) {
             controller.onOpen(lotteryId)
         }
@@ -116,6 +122,14 @@ class CreateReservationView(
             floatingActionButton = {
                 if (currentStage == CURRENT_RESERVATION_STAGE.PICK_CAMPSITE_AND_DATES) {
                     DrawFabs()
+                } else if (currentStage == CURRENT_RESERVATION_STAGE.CONFIRMATION) {
+                    ExtendedFloatingActionButton(
+                        onClick = { controller.goHome(navController) },
+                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    ) {
+                        Text("Back To Home")
+                    }
                 }
             }
         ) {
@@ -127,7 +141,7 @@ class CreateReservationView(
                     .padding(16.dp)
             ) {
                 Text(
-                    "Reserve Campsite",
+                    if (currentStage == CURRENT_RESERVATION_STAGE.CONFIRMATION) "You're All Set!" else "Reserve Campsite",
                     style = MaterialTheme.typography.headlineLarge
                 )
                 if (currentStage == CURRENT_RESERVATION_STAGE.TERMS_ACCEPT) {
@@ -140,10 +154,42 @@ class CreateReservationView(
                     DrawDateFields()
                     // Spacer so the fabs don't cover content
                     Spacer(modifier = Modifier.height(160.dp))
+                } else if (currentStage == CURRENT_RESERVATION_STAGE.CONFIRMATION) {
+                    DrawConfirmationStage()
                 }
             }
         }
         DrawModal()
+    }
+
+    /**
+     * The final screen after a reservation is confirmed, it just restates what was booked
+     */
+    @Composable
+    private fun DrawConfirmationStage() {
+        val start = selectedStartDate
+        val end = selectedEndDate
+        val dateFormat = DateTimeFormatter.ofPattern("MMMM d, uuuu")
+        Column(
+            modifier = Modifier.padding(top = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            ConfirmationDetail(Icons.Default.LocationOn, "${selectedCampsite?.name ?: ""}, ${selectedCampsite?.location ?: ""}")
+            // TODO: campsites don't have ratings yet, also do we need to put ratings here?
+            ConfirmationDetail(Icons.Default.Star, "5 Stars")
+            if (start != null && end != null) {
+                ConfirmationDetail(Icons.Default.DateRange, "${start.format(dateFormat)} - ${end.format(dateFormat)}")
+            }
+            ConfirmationDetail(Icons.Outlined.Person, "Up to ${selectedCampsite?.maxOccupancy ?: 0} Occupants")
+        }
+    }
+
+    @Composable
+    private fun ConfirmationDetail(icon: ImageVector, text: String) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+            Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(18.dp))
+            Text(text, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
     }
 
     /**
