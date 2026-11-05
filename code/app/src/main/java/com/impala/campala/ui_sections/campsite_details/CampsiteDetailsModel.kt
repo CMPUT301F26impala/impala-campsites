@@ -29,6 +29,7 @@ import kotlin.uuid.Uuid
  * @property description the Campsite description
  * @property maxOccupancy the Campsite occupancy limit
  * @property tags the set of tags the Campsite has
+ * @property averageRating the Campsite's average rating out of 5, null if nobody has rated it yet
  * @property campsite the Campsite object whose details are displayed
  * @property lottery the Lottery for the Campsite, if it exists
  * @property joinStatus indicates whether a user can join a lottery or the reason they cannot
@@ -47,6 +48,7 @@ class CampsiteDetailsModel(
     var description: String = ""
     var maxOccupancy: Int = 0
     var tags: MutableList<String> = mutableListOf()
+    var averageRating: Double? = null
     var campsite: CampsiteModel? = null
     var lottery: LotteryModel? = null
     var joinStatus: LotteryModel.ProspectiveJoinStatus? = null
@@ -70,6 +72,7 @@ class CampsiteDetailsModel(
         this.description = campsite?.description ?: ""
         this.maxOccupancy = campsite?.maxOccupancy ?: 0
         this.tags = campsite?.tags ?: mutableListOf()
+        this.averageRating = campsite?.averageRating
 
         userIsOwner = user.getCurrentRole() == UserViewMode.CAMPSITE_OWNER &&
             campsiteOwnerProfileRepo.getCampsiteOwnerProfileById(user.getUID())?.ownedCampsites?.contains(campsiteId) == true

@@ -131,6 +131,8 @@ class SeeReservationsView(val controller: SeeReservationsController) {
                             },
                             onConfirm = { rating ->
                                 controller.rateReservation(res, rating)
+                            }
+                        )
                     }
                 }
             }

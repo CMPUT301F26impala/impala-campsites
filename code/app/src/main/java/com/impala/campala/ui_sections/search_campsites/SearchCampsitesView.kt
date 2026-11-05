@@ -288,7 +288,11 @@ class SearchCampsitesView(val controller: SearchCampsitesController): ViewObserv
                     }
                     Row(modifier = Modifier.weight(1f),verticalAlignment = Alignment.CenterVertically) {
                         Icon(Icons.Default.Star, contentDescription = "Star Icon", tint = MaterialTheme.colorScheme.onSurfaceVariant)
-                        Text("5 Stars", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(
+                            campsite.averageRating?.let { "%.1f Stars".format(it) } ?: "No ratings yet",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
                     Row(modifier = Modifier.weight(1f),verticalAlignment = Alignment.CenterVertically) {
                         Icon(Icons.Default.Person, contentDescription = "Person Icon", tint = MaterialTheme.colorScheme.onSurfaceVariant)
