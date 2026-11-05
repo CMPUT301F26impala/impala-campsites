@@ -39,7 +39,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.impala.campala.ViewObserver
+import com.impala.campala.model.ReservationModel
 import com.impala.campala.model.ReservationRepository
+import com.google.firebase.Timestamp
+import java.time.ZoneId
 import com.impala.campala.ui.theme.tertiaryContainerDark
 import com.impala.campala.ui.theme.tertiaryContainerLight
 import com.impala.campala.ui.theme.tertiaryDark
@@ -113,6 +116,7 @@ class SeeReservationsView(val controller: SeeReservationsController) {
                     text = controller.campsites.find { it.id == res.campsiteId }?.name ?: "Unknown Campsite",
                     fontSize = 24.sp
                 )
+                ReservationDates(res)
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -162,6 +166,7 @@ class SeeReservationsView(val controller: SeeReservationsController) {
                     text = controller.campsites.find { it.id == res.campsiteId }?.name ?: "Unknown Campsite",
                     fontSize = 24.sp
                 )
+                DrawDateRange(res)
 
                 Button(modifier = Modifier,
                     onClick = {
@@ -174,5 +179,31 @@ class SeeReservationsView(val controller: SeeReservationsController) {
                 }
             }
         }
+    }
+
+    /**
+     * Draws a date icon and the date range of the stay, extracted here for readability
+     *
+     * @param res the reservation
+     */
+    @Composable
+    private fun DrawDateRange(res: ReservationModel) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+            Icon(
+                Icons.Default.DateRange,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(18.dp)
+            )
+            Text(
+                text = "${formatDate(res.startDate)} - ${formatDate(res.endDate)}",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+
+    private fun formatDate(timestamp: Timestamp): String {
+        return timestamp.toInstant().atZone(ZoneId.systemDefault()).format(DateTimeFormatter.ofPattern("MMM d, uuuu"))
     }
 }
