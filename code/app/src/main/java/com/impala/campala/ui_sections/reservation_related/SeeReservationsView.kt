@@ -103,7 +103,7 @@ class SeeReservationsView(val controller: SeeReservationsController) {
                 Spacer(modifier = Modifier.height(12.dp))
 
                 Text(
-                    text = res.campsiteId, //TODO: Please verify this is the campsite's name and not a code!
+                    text = controller.campsites.find { it.id == res.campsiteId }?.name ?: "Unknown Campsite",
                     fontSize = 24.sp
                 )
 
@@ -140,7 +140,7 @@ class SeeReservationsView(val controller: SeeReservationsController) {
                 Spacer(modifier = Modifier.height(12.dp))
 
                 Text(
-                    text = res.campsiteId, //TODO: ditto
+                    text = controller.campsites.find { it.id == res.campsiteId }?.name ?: "Unknown Campsite",
                     fontSize = 24.sp
                 )
 
