@@ -18,6 +18,7 @@ data class ReservationModel @OptIn(ExperimentalUuidApi::class) constructor(
     var endDate: com.google.firebase.Timestamp = Timestamp.now(), // end of stay
     var hasRating: Boolean = false, // true once the entrant has rated this stay, so it can't be rated again (the rating itself is only kept on the campsite)
     val lotteryId: String? = null, // The id of the lottery that the user got this reservation from, used so that the UI knows which lottery wins were already acted on
+    var hasBeenCancelled: Boolean = false, // true once the reservation has been cancelled or rejected
     val id: String = Uuid.random().toString()
 ) {
     @get:Exclude

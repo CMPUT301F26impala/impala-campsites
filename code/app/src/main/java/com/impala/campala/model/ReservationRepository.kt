@@ -144,4 +144,15 @@ class ReservationRepository {
     suspend fun flagAsRated(reservationId: String): Unit {
         collection.document(reservationId).update("hasRating", true).await()
     }
+
+    /**
+     * Marks a reservation as cancelled, used when a campsite owner rejects one
+     *
+     * The reservation isn't deleted so it can still be shown in the cancelled list, this just sets hasBeenCancelled to true
+     *
+     * @param reservationId ID of the reservation being cancelled
+     */
+    suspend fun flagAsCancelled(reservationId: String): Unit {
+        collection.document(reservationId).update("hasBeenCancelled", true).await()
+    }
 }

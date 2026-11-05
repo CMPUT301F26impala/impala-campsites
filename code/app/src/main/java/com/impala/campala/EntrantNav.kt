@@ -157,13 +157,6 @@ fun SearchTab(navController: NavController) {
 }
 
 @Composable
-fun ReservationsTab(navController: NavController) {
-    Column() {
-        Text("Reservations Screen!!!!") // TODO: Wire this up to the SeeReservations View & Controller
-    }
-}
-
-@Composable
 fun ProfileTab(navController: NavController) {
     Column() {
         Text("Profile Screen!!!!")

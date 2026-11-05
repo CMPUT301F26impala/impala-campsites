@@ -118,7 +118,7 @@ fun SignedInApp(user: User) {
     val createReservationView = remember { CreateReservationView(createReservationController, reservationRepo, coroutineScope) }
     createReservationModel.addObserver(createReservationView)
 
-    val seeReservationsModel = remember { SeeReservationsModel(reservationRepo, campsiteRepo, user, coroutineScope) }
+    val seeReservationsModel = remember { SeeReservationsModel(reservationRepo, campsiteRepo, entrantProfileRepo, user, coroutineScope) }
     val seeReservationsController = remember { SeeReservationsController(seeReservationsModel) }
     val seeReservationsView = remember { SeeReservationsView(seeReservationsController) }
     seeReservationsModel.addObserver(seeReservationsView)
@@ -136,7 +136,7 @@ fun SignedInApp(user: User) {
     } else {
         when (currentRole) {
             UserViewMode.ENTRANT -> EntrantNavigationRoot(searchCampsitesScreen=searchCampsitesView, campsiteDetailsScreen=campsiteDetailsView, seeReservationsScreen=seeReservationsView, viewLotteriesScreen=viewLotteriesView, createReservationScreen=createReservationView, onSwitchRole={ needsRoleChoice = true })
-            UserViewMode.CAMPSITE_OWNER -> CampsiteOwnerNavigationRoot(searchCampsitesScreen=ownerSearchCampsitesView, campsiteDetailsScreen=campsiteDetailsView, formCampsitesScreen=formCampsitesView, formLotteriesScreen = formLotteriesView, viewLotteriesScreen = viewLotteriesView, onSwitchRole={ needsRoleChoice = true })
+            UserViewMode.CAMPSITE_OWNER -> CampsiteOwnerNavigationRoot(searchCampsitesScreen=ownerSearchCampsitesView, campsiteDetailsScreen=campsiteDetailsView, formCampsitesScreen=formCampsitesView, formLotteriesScreen = formLotteriesView, viewLotteriesScreen = viewLotteriesView, seeReservationsScreen = seeReservationsView, onSwitchRole={ needsRoleChoice = true })
 
             UserViewMode.ADMIN -> {
                 Button(onClick = { needsRoleChoice = true}) {

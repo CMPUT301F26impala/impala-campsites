@@ -22,4 +22,13 @@ public class SeeReservationsController(val model: SeeReservationsModel) : Contro
     public fun rateReservation(res: ReservationModel, rating: Double) {
         model.rateReservation(res, rating)
     }
+
+    /**
+     * Called when a campsite owner confirms rejecting an active reservation
+     *
+     * @param res the active reservation being rejected
+     */
+    public fun rejectReservation(res: ReservationModel) {
+        model.rejectReservation(res)
+    }
 }

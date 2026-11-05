@@ -107,6 +107,8 @@ class CreateReservationModel(val scope: CoroutineScope, val lotteryRepo: Lottery
         scope.launch {
             val reservedDates = mutableSetOf<LocalDate>()
             for (reservation in reservationRepo.getReservationsByCampsite(campsiteId)) {
+                // Cancelled reservations don't block dates
+                if (reservation.hasBeenCancelled) continue
                 // Every day of the reservation counts as reserved, including its end date
                 // Only the days inside this lottery's range are kept, the rest are ignored so the array isn't like absurdly long
                 var date = maxOf(timestampToLocalDate(reservation.startDate), dateRangeStart)
