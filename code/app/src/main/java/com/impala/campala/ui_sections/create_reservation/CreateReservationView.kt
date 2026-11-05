@@ -1,7 +1,5 @@
 package com.impala.campala.ui_sections.create_reservation
 
-import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.PressInteraction
@@ -111,7 +109,6 @@ class CreateReservationView(
 
     private var modalState by mutableStateOf(MODAL_STATE.CLOSED)
 
-    @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
     @Composable
     fun Render(navController: NavController, lotteryId: String) {
         LaunchedEffect(lotteryId) {
@@ -431,7 +428,6 @@ class CreateReservationView(
      * @param startDate the first day to show
      * @param endDate the last day to show
      */
-    @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
     @Composable
     private fun DrawCalendar(startDate: LocalDate, endDate: LocalDate) {
         Column {
@@ -461,7 +457,6 @@ class CreateReservationView(
      * @param startDate the first day of this month to show
      * @param endDate the last day of this month to show
      */
-    @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
     @Composable
     private fun DrawMonth(startDate: LocalDate, endDate: LocalDate) {
         Grid(

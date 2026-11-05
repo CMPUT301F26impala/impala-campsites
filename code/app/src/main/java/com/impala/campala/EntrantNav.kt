@@ -41,6 +41,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.impala.campala.model.CampsiteModel
 import com.impala.campala.ui_sections.campsite_details.CampsiteDetailsView
+import com.impala.campala.ui_sections.create_reservation.CreateReservationView
 import com.impala.campala.ui_sections.reservation_related.SeeReservationsView
 import com.impala.campala.ui_sections.search_campsites.SearchCampsitesView
 import com.impala.campala.ui_sections.view_lotteries.ViewLotteriesView
@@ -51,6 +52,7 @@ fun EntrantNavigationRoot(
     campsiteDetailsScreen: CampsiteDetailsView,
     seeReservationsScreen: SeeReservationsView,
     viewLotteriesScreen: ViewLotteriesView,
+    createReservationScreen: CreateReservationView,
     onSwitchRole: () -> Unit
 ) {
     val navController = rememberNavController()
@@ -67,6 +69,11 @@ fun EntrantNavigationRoot(
                     campsiteDetailsScreen.Render(navController, campsiteId)
                 }
             }
+        }
+        // Opened from the Reserve button on the Lotteries tab, for a lottery the entrant won
+        composable("createReservation/{lotteryId}") { backStackEntry ->
+            val lotteryId = backStackEntry.arguments?.getString("lotteryId") ?: ""
+            createReservationScreen.Render(navController, lotteryId)
         }
     }
 }

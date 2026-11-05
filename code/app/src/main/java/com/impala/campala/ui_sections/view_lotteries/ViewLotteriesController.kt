@@ -37,10 +37,10 @@ class ViewLotteriesController(val model: ViewLotteriesModel) : Controller {
      * Called when an entrant who won a lottery taps Reserve
      *
      * @param item the lottery row the Reserve button belongs to
-     * @param navController the root NavController, assumes 'campsite/{id}' is on this nav stack
+     * @param navController the root NavController, assumes 'createReservation/{lotteryId}' is on this nav stack
      */
     fun onReservePress(item: LotteryListItem, navController: NavController) {
-        // TODO!!! NAVIGATE TO RESERVE SCREEN
+        navController.navigate("createReservation/${item.lottery.id}")
     }
 
     /**
