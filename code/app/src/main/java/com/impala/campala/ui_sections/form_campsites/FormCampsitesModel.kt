@@ -150,7 +150,7 @@ class FormCampsitesModel(
         if (existingCampsite != null) {
             updatedCampsite = existingCampsite.copy(
                 name = title,
-                location = location,
+                location = location.trim(),
                 description = description,
                 maxOccupancy = occupancy,
                 tags = tags.toMutableList()
@@ -159,7 +159,7 @@ class FormCampsitesModel(
             // creating a new campsite
             updatedCampsite = CampsiteModel(
                 name = title,
-                location = location,
+                location = location.trim(),
                 description = description,
                 maxOccupancy = occupancy,
                 tags = tags.toMutableList()

@@ -27,6 +27,20 @@ class CampsiteRepository {
     // If you want to use it inside a model class, you just have to pass in the coroutine scope as a parameter. So we could create the scope inside the root of our app and pass it to our classes
 
     /**
+     * Gets every unique location that at least one campsite has set.
+     *
+     * @return A list of strings, which are all the locations the campsites have
+     */
+    suspend fun getLocations(): List<String> {
+        val snapshot = db.collection("campsites").get().await()
+        return snapshot.toObjects(CampsiteModel::class.java)
+            .map { it.location.trim() }
+            .filter { it.isNotBlank() }
+            .distinct()
+            .sorted()
+    }
+
+    /**
      * Gets a list of campsites based on optional filters
      *
      * Used some code help from Gemini for querying

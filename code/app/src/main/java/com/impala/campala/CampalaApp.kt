@@ -72,13 +72,13 @@ fun SignedInApp(user: User) {
     val lotteryRepo = remember { LotteryRepository() }
     val reservationRepo = remember { ReservationRepository() }
 
-    val searchCampsitesModel = remember { SearchCampsitesModel(campsiteRepo, campsiteOwnerProfileRepo, user, coroutineScope, SearchCampsitesViewMode.ENTRANT) }
+    val searchCampsitesModel = remember { SearchCampsitesModel(campsiteRepo, campsiteOwnerProfileRepo, lotteryRepo, user, coroutineScope, SearchCampsitesViewMode.ENTRANT) }
     val searchCampsitesController = remember { SearchCampsitesController(searchCampsitesModel) }
     val searchCampsitesView = remember { SearchCampsitesView(searchCampsitesController) }
     searchCampsitesModel.addObserver(searchCampsitesView)
 
     // Same screen as above, but in campsite owner mode it only shows the user's own campsites and has the Add Campsite button
-    val ownerSearchCampsitesModel = remember { SearchCampsitesModel(campsiteRepo, campsiteOwnerProfileRepo, user, coroutineScope, SearchCampsitesViewMode.CAMPSITE_OWNER) }
+    val ownerSearchCampsitesModel = remember { SearchCampsitesModel(campsiteRepo, campsiteOwnerProfileRepo, lotteryRepo, user, coroutineScope, SearchCampsitesViewMode.CAMPSITE_OWNER) }
     val ownerSearchCampsitesController = remember { SearchCampsitesController(ownerSearchCampsitesModel) }
     val ownerSearchCampsitesView = remember { SearchCampsitesView(ownerSearchCampsitesController) }
     ownerSearchCampsitesModel.addObserver(ownerSearchCampsitesView)
