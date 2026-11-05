@@ -9,6 +9,20 @@ import com.impala.campala.model.CampsiteModel
 import com.impala.campala.model.CampsiteRepository
 import kotlinx.coroutines.launch
 
+
+/**
+ * Model for the create and edit version of Lottery form.
+ *
+ * Stores the information entered into the form, and notifies view about the changes.
+ * Saves lotteries after creation and editing, as well as loading them to display values to the user.
+ * Also gets the list of campsites to be displayed in the dropdown.
+ *
+ * @param repo LotteryRepository consisting of the lotteries
+ * @param scope the CoroutineScope used for Firebase operations
+ * @param lottery lottery whose data will be edited, passed as null in creation mode
+ * @param ownerId the id of the campsite owner creating the lottery
+ * @param campsiteRepo Repository used to get the campsites for the dropdown
+ */
 class FormLotteriesModel(
     val repo: LotteryRepository,
     val scope: CoroutineScope,
@@ -34,6 +48,10 @@ class FormLotteriesModel(
     var availableDatesStart: Timestamp? = lottery?.reservationStartDate
     var availableDatesEnd: Timestamp? = lottery?.reservationEndDate
 
+    /**
+     * Prepares the model for creating a new lottery by clearing the form's fields.
+     * Sets number of winners back to default value (1) and resets the save flag.
+     */
     fun initializeCreateMode() {
         lottery = null
         campsiteIds = mutableListOf<String>()
@@ -49,6 +67,14 @@ class FormLotteriesModel(
         availableDatesEnd = lottery?.reservationEndDate
         this.notifyObservers(this)
     }
+
+    /**
+     * Prepares the model for editing an existing lottery by getting its information from the repo.
+     * Updates the form's fields with the lottery data, or switches to creation mode if it was not found.
+     * Notifies the view after updating the fields.
+     *
+     * @param lotteryId ID of the lottery being edited
+     */
     fun initializeEditMode(lotteryId: String) {
         scope.launch {
             val currentLottery = repo.getLotteryById(lotteryId)
@@ -74,8 +100,11 @@ class FormLotteriesModel(
 
     }
 
-    // write code for available campsites for dropdown data int he form
     var campsiteDropdownData = listOf<CampsiteModel>()
+    /**
+     * Gets the list of campsites from the repo to display in the dropdown.
+     * Notifies the view after getting the list.
+     */
     fun listAllAvailableCampsites() {
         scope.launch{
             campsiteDropdownData = campsiteRepo.getFilteredCampsites()
@@ -83,6 +112,12 @@ class FormLotteriesModel(
         }
     }
 
+    /**
+     * Adds a campsite to the list of selected campsites if it isn't already there.
+     * Notifies the view so the selected campsite can be displayed as a tag.
+     *
+     * @param campsiteId the id of the campsite being added
+     */
     fun addCampsite(campsiteId: String) {
         // check for valid campsite or its problematic error
         if (!campsiteIds.contains(campsiteId)) {
@@ -91,55 +126,113 @@ class FormLotteriesModel(
         }
     }
 
+    /**
+     * Removes a campsite from the list of selected campsites.
+     * Notifies the view to update the tags.
+     *
+     * @param campsiteId the id of the campsite to remove
+     */
     fun removeCampsite(campsiteId: String) {
         campsiteIds.remove(campsiteId)
         notifyObservers(this)
     }
 
+    /**
+     * Updates the start date for when the campsite is available
+     *
+     * @param newStartDate the new starting date selected
+     */
     fun updateAvailableDatesStart(newStartDate: Timestamp) {
         availableDatesStart = newStartDate
         notifyObservers(this)
     }
 
+    /**
+     * Updates the end date for when the campsite is available
+     *
+     * @param newEndDate the new ending date selected
+     */
     fun updateAvailableDatesEnd(newEndDate: Timestamp) {
         availableDatesEnd = newEndDate
         notifyObservers(this)
     }
 
+    /**
+     * Updates the starting date of the lottery registration period
+     *
+     * @param newStartDate the new date when users can start joining the lottery
+     */
     fun updateRegistrationPeriodStartDate(newStartDate: Timestamp) {
         registrationPeriodStartDate = newStartDate
         notifyObservers(this)
     }
 
+    /**
+     * Updates the ending date of the lottery registration period
+     *
+     * @param newEndDate the new date when the lottery registration ends
+     */
     fun updateRegistrationPeriodEndDate(newEndDate: Timestamp) {
         registrationPeriodEndDate = newEndDate
         notifyObservers(this)
     }
 
+    /**
+     * Updates the starting date of the booking period
+     *
+     * @param newStartDate the new date when winners can start booking
+     */
     fun updateBookingPeriodStartDate(newStartDate: Timestamp) {
         bookingPeriodStartDate = newStartDate
         notifyObservers(this)
     }
 
+    /**
+     * Updates the ending date of the booking period
+     *
+     * @param newEndDate the new date when winners can no longer book
+     */
     fun updateBookingPeriodEndDate(newEndDate: Timestamp) {
         bookingPeriodEndDate = newEndDate
         notifyObservers(this)
     }
 
+    /**
+     * Updates the maximum number of participants allowed in the lottery
+     *
+     * @param newParticipants string data for maximum participants in the form
+     */
     fun updateMaximumParticipants(newParticipants: String) {
         maximumParticipants = newParticipants
         notifyObservers(this)
     }
 
+    /**
+     * Updates the maximum number of people allowed on the waitlist
+     *
+     * @param newWaitlistSize string data for the waitlist size
+     */
     fun updateWaitlistSize(newWaitlistSize: String) {
         waitlistSize = newWaitlistSize
         notifyObservers(this)
     }
 
+    /**
+     * Updates the number of winners to be drawn from the lottery
+     *
+     * @param newNumberOfWinners string data for the number of winners
+     */
     fun updateNumberOfWinners(newNumberOfWinners: String) {
         numberOfWinners = newNumberOfWinners
         notifyObservers(this)
     }
+
+    /**
+     * Creates or updates a lottery using the form's values.
+     * Converts the string inputs to integers, and checks if all the dates have been selected.
+     * If a date is missing, the function returns without saving anything.
+     * Saves the lottery to Firebase and notifies the view after it has been saved.
+     */
     fun saveLottery() {
         val participants = if (maximumParticipants == "") 0 else maximumParticipants.toInt()
         val waitlistCapacity = if (waitlistSize == "") 0 else waitlistSize.toInt()
@@ -189,9 +282,14 @@ class FormLotteriesModel(
         }
     } // personal reference, end of save function
 
-    // use later to change flag to false since the user can keep
-    // using the form after one submission and it needs to be changed for second try
+    /**
+     * When a lottery has been saved, wasLotterySavedSuccessfully becomes true for navigation.
+     * This function changes that flag back to false after it has been used once,
+     * so the form can be opened again without navigating back automatically.
+     */
     fun changeSaveFlagFalse() {
+        // use later to change flag to false since the user can keep
+        // using the form after one submission and it needs to be changed for second try
         wasLotterySavedSuccessfully = false
         notifyObservers(this)
     }
