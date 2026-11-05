@@ -149,7 +149,10 @@ class CreateReservationModel(val scope: CoroutineScope, val lotteryRepo: Lottery
     fun completeReservation() {
         if (!canConfirm || isSaving) return;
         isSaving = true
-        // DO THINGS
+        // TODO:
+        // This needs to create a reservation object (or call some sort of create on reservationRepository)
+        // Pass in all of the information
+        // And then I think that's all
         isSaving = false;
         currentStage = CURRENT_RESERVATION_STAGE.CONFIRMATION
     }
@@ -159,8 +162,11 @@ class CreateReservationModel(val scope: CoroutineScope, val lotteryRepo: Lottery
      */
     fun declineReservation() {
         if (isSaving) return;
-        isSaving = true
-        // DO THINGS
+        isSaving = true;
+        // TODO:
+        // we need to add a declinedIds piece to the lottery
+        // the entrant lottery view screen needs to be updated to not show you lotteries you have declined
+        // And then all this has to do is use lotteryRepo to add the entrant id to the declinedId
         isSaving = false;
     }
 
