@@ -180,12 +180,15 @@ class SeeReservationsView(val controller: SeeReservationsController) {
                         DrawDateRange(res)
                     }
 
-                    Button(onClick = {
-                        //currentScreen = UiTarget.SCREEN_C // TODO: SCREEN_C should be the rating screen
-                    }) {
-                        Icon(Icons.Default.Star, contentDescription = null, modifier = Modifier.size(18.dp))
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("Rate")
+                    // If the res has already been rated, we don't need the rate button
+                    if (!res.hasRating) {
+                        Button(onClick = {
+                            //currentScreen = UiTarget.SCREEN_C // TODO: SCREEN_C should be the rating screen
+                        }) {
+                            Icon(Icons.Default.Star, contentDescription = null, modifier = Modifier.size(18.dp))
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Rate")
+                        }
                     }
                 }
             }
