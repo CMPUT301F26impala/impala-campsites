@@ -17,6 +17,7 @@ data class ReservationModel @OptIn(ExperimentalUuidApi::class) constructor(
     var startDate: com.google.firebase.Timestamp = Timestamp.now(), // start of stay
     var endDate: com.google.firebase.Timestamp = Timestamp.now(), // end of stay
     var rating: Int? = null, // rating from 1 to 5, null if hasRating == false
+    val lotteryId: String? = null, // The id of the lottery that the user got this reservation from, used so that the UI knows which lottery wins were already acted on
     val id: String = Uuid.random().toString()
 ) {
     @get:Exclude
