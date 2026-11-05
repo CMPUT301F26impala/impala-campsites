@@ -19,17 +19,21 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.Button
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextFieldDefaults.contentPadding
 import androidx.compose.material3.PrimaryTabRow
+import androidx.compose.material3.Slider
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -57,12 +61,14 @@ import java.time.format.DateTimeFormatter
  * TODO: Technically this isn't the same MVC paradigm as what we have in the rest of the app because it doesn't have a separate model,
  * the model details are in the controller
  * This is likely something we need to come back and address but for the halfway checkpoint it is okay.
+ * I am just continuing to do it in this style because I don't really want to completely rewrite this without Liam's approval or having him included in on the process
  *
  * @param controller the SeeReservationsController that this view uses
  */
 class SeeReservationsView(val controller: SeeReservationsController) {
 
-    private enum class UiTarget { SCREEN_A, SCREEN_B }
+    // SCREEN_A = Scheduled/Upcoming Reservations, SCREEN_B = Past, SCREEN_C = Past with the rate modal on top of it, as per how Liam designed this
+    private enum class UiTarget { SCREEN_A, SCREEN_B, SCREEN_C }
 
     @Composable
     fun Render(navController: NavController) {
@@ -73,6 +79,8 @@ class SeeReservationsView(val controller: SeeReservationsController) {
 
         var selectedTabIndex by remember { mutableIntStateOf(0) }
         var currentScreen by remember {mutableStateOf(UiTarget.SCREEN_A)}
+        // This is so that the modal knows WHICH reservation is being rated
+        var reservationBeingRated by remember { mutableStateOf<ReservationModel?>(null) }
 
         Column() {
             PrimaryTabRow(selectedTabIndex = selectedTabIndex, modifier = Modifier) {
@@ -109,7 +117,19 @@ class SeeReservationsView(val controller: SeeReservationsController) {
             // This would take zero (0) lines and zero (0) google searches to accomplish in C. Just saying. But OOP is super useful or something trust me
             when (currentScreen) {
                 UiTarget.SCREEN_A -> CurrentRes()
-                UiTarget.SCREEN_B -> PrevRes()
+                UiTarget.SCREEN_B -> PrevRes(onRate = { res ->
+                    reservationBeingRated = res
+                    currentScreen = UiTarget.SCREEN_C
+                })
+                UiTarget.SCREEN_C -> {
+                    PrevRes(onRate = {})
+                    reservationBeingRated?.let { res ->
+                        DrawRateModal(res, onClose = {
+                            reservationBeingRated = null
+                            currentScreen = UiTarget.SCREEN_B
+                        })
+                    }
+                }
             }
         }
     }
@@ -164,7 +184,7 @@ class SeeReservationsView(val controller: SeeReservationsController) {
     }
 
     @Composable
-    private fun PrevRes() {
+    private fun PrevRes(onRate: (ReservationModel) -> Unit) {
         LazyColumn(modifier = Modifier.fillMaxWidth()) {
             items(controller.oldReservations) { res ->
                 Spacer(modifier = Modifier.height(12.dp))
@@ -182,9 +202,7 @@ class SeeReservationsView(val controller: SeeReservationsController) {
 
                     // If the res has already been rated, we don't need the rate button
                     if (!res.hasRating) {
-                        Button(onClick = {
-                            //currentScreen = UiTarget.SCREEN_C // TODO: SCREEN_C should be the rating screen
-                        }) {
+                        Button(onClick = { onRate(res) }) {
                             Icon(Icons.Default.Star, contentDescription = null, modifier = Modifier.size(18.dp))
                             Spacer(modifier = Modifier.width(8.dp))
                             Text("Rate")
@@ -219,5 +237,50 @@ class SeeReservationsView(val controller: SeeReservationsController) {
 
     private fun formatDate(timestamp: Timestamp): String {
         return timestamp.toInstant().atZone(ZoneId.systemDefault()).format(DateTimeFormatter.ofPattern("MMM d, uuuu"))
+    }
+
+    /**
+     * The rate campsite modal, otherwise known as SCREEN_C
+     *
+     * @param res the past reservation being rated
+     * @param onClose called when the modal is closed, whether by Cancel, Confirm, or tapping outside it
+     */
+    @Composable
+    private fun DrawRateModal(res: ReservationModel, onClose: () -> Unit) {
+        // Starts in the middle each time the modal opens
+        var rating by remember { mutableFloatStateOf(3f) }
+        AlertDialog(
+            onDismissRequest = onClose,
+            title = { Text("Rate ${controller.campsites.find { it.id == res.campsiteId }?.name ?: ""}") },
+            text = {
+                Column {
+                    Slider(
+                        value = rating,
+                        onValueChange = { rating = it },
+                        valueRange = 1f..5f,
+                        // 7 steps is 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 1 and 5 are already included as the start and end
+                        steps = 7
+                    )
+                    Row(modifier = Modifier.fillMaxWidth()) {
+                        Text("1", style = MaterialTheme.typography.titleLarge)
+                        Spacer(modifier = Modifier.weight(1f))
+                        Text("5", style = MaterialTheme.typography.titleLarge)
+                    }
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = onClose) {
+                    Text("Cancel")
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    // TODO: actually save the rating
+                    onClose()
+                }) {
+                    Text("Confirm")
+                }
+            }
+        )
     }
 }
