@@ -191,4 +191,29 @@ class LotteryRepositoryTest {
         assertEquals(listOf("harry", "ron"), stored.entrantIds)
         assertEquals(listOf<String>(), stored.waitlistIds)
     }
+
+    @Test
+    fun declineWinRecordsWinnerOnce(): Unit = runBlocking {
+        val drawn = lottery.copy(
+            entrantIds = mutableListOf("harry", "ron"),
+            winnerIds = mutableListOf("harry")
+        )
+        repo.saveLottery(drawn)
+
+        // Declining twice should still only record them once
+        repo.declineWin(drawn.id, "harry")
+        repo.declineWin(drawn.id, "harry")
+
+        val stored = repo.getLotteryById(drawn.id)!!
+        assertEquals(listOf("harry"), stored.declinedIds)
+        // They're still kept as a winner so there's a record of who won
+        assertEquals(listOf("harry"), stored.winnerIds)
+    }
+
+    @Test
+    fun declineWinMissingLotteryThrows() {
+        assertThrows(IllegalArgumentException::class.java) {
+            runBlocking { repo.declineWin("does-not-exist", "harry") }
+        }
+    }
 }

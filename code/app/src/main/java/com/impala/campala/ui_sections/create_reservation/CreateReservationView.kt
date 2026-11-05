@@ -156,7 +156,7 @@ class CreateReservationView(
                 }
             }
         }
-        DrawModal()
+        DrawModal(navController)
     }
 
     /**
@@ -192,9 +192,11 @@ class CreateReservationView(
     /**
      * Draws the "Are you sure" modal, its one component that handles both the decline and confirmation modal because they can't both be open anyway
      * Draws nothing when modalState is CLOSED
+     *
+     * @param navController the NavController, so declining can go back to the previous screen
      */
     @Composable
-    private fun DrawModal() {
+    private fun DrawModal(navController: NavController) {
         if (modalState == MODAL_STATE.CLOSED) {
             return
         }
@@ -220,7 +222,7 @@ class CreateReservationView(
                 TextButton(onClick = {
                     modalState = MODAL_STATE.CLOSED
                     if (isDecline) {
-                        controller.onDeclinePress()
+                        controller.onDeclinePress(navController)
                     } else {
                         controller.onConfirmPress()
                     }

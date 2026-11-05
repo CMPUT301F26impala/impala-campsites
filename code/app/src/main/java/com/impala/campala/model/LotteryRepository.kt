@@ -147,4 +147,24 @@ class LotteryRepository {
         saveLottery(lottery)
         return removed
     }
+
+    /**
+     * Adds an ID (who had already won) into the declinedIds so that the system knows they've already declined
+     *
+     * They aren't removed from winnerIds, that way there's still a record of who won
+     *
+     * @param lotteryId ID of the lottery being declined
+     * @param entrantId ID of the winner declining
+     *
+     * @throws IllegalArgumentException if the lottery doesn't exist or isn't valid
+     */
+    suspend fun declineWin(lotteryId: String, entrantId: String) {
+        val lottery = getLotteryById(lotteryId)
+            ?: throw IllegalArgumentException("Lottery $lotteryId doesn't exist")
+
+        if (entrantId !in lottery.declinedIds) {
+            lottery.declinedIds.add(entrantId)
+        }
+        saveLottery(lottery)
+    }
 }

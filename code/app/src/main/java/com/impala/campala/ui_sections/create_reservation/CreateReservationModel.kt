@@ -51,7 +51,11 @@ class CreateReservationModel(val scope: CoroutineScope, val lotteryRepo: Lottery
 
     private var isSaving: Boolean = false;
 
+    // used internally to update the lottery
+    private var lotteryId: String = ""
+
     fun loadLotteryDetails(lotteryId: String) {
+        this.lotteryId = lotteryId
         currentStage = CURRENT_RESERVATION_STAGE.TERMS_ACCEPT
         selectedCampsite = null
         alreadyReservedDatesForSelectedCampsite = emptyList()
@@ -163,11 +167,10 @@ class CreateReservationModel(val scope: CoroutineScope, val lotteryRepo: Lottery
     fun declineReservation() {
         if (isSaving) return;
         isSaving = true;
-        // TODO:
-        // we need to add a declinedIds piece to the lottery
-        // the entrant lottery view screen needs to be updated to not show you lotteries you have declined
-        // And then all this has to do is use lotteryRepo to add the entrant id to the declinedId
-        isSaving = false;
+        scope.launch {
+            lotteryRepo.declineWin(lotteryId, user.getUID())
+            isSaving = false
+        }
     }
 
     /**
