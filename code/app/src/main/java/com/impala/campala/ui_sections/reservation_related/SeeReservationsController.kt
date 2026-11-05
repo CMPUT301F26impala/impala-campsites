@@ -34,12 +34,14 @@ import com.impala.campala.model.CampsiteRepository
 import com.impala.campala.model.ReservationModel
 import com.impala.campala.model.ReservationRepository
 import java.time.format.DateTimeFormatter
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 import kotlin.collections.List
 
-public class SeeReservationsController(val user: User) {
+public class SeeReservationsController(val user: User, val scope: CoroutineScope) {
     var resDB = ReservationRepository()
     var campsiteDB = CampsiteRepository()
     var campsites by mutableStateOf<List<CampsiteModel>>(emptyList())
@@ -60,5 +62,18 @@ public class SeeReservationsController(val user: User) {
         reservations = loaded
         oldReservations = reservations.filter {it.endDate < currentDate}
         newReservations = reservations.filter {it.endDate >= currentDate}
+    }
+
+    /**
+     * Marks a reservation as rated and also adjusts the rating values in the campsite itself
+     *
+     * @param res the past reservation being rated
+     * @param rating the rating out of 5
+     */
+    public fun rateReservation(res: ReservationModel, rating: Double) {
+        scope.launch {
+            resDB.flagAsRated(res.id)
+            campsiteDB.addRating(res.campsiteId, rating)
+        }
     }
 }

@@ -16,7 +16,7 @@ data class ReservationModel @OptIn(ExperimentalUuidApi::class) constructor(
     val entrantId: String = "", // Entrant that reserved
     var startDate: com.google.firebase.Timestamp = Timestamp.now(), // start of stay
     var endDate: com.google.firebase.Timestamp = Timestamp.now(), // end of stay
-    var rating: Int? = null, // rating from 1 to 5, null if hasRating == false
+    var hasRating: Boolean = false, // true once the entrant has rated this stay, so it can't be rated again (the rating itself is only kept on the campsite)
     val lotteryId: String? = null, // The id of the lottery that the user got this reservation from, used so that the UI knows which lottery wins were already acted on
     val id: String = Uuid.random().toString()
 ) {
@@ -25,10 +25,6 @@ data class ReservationModel @OptIn(ExperimentalUuidApi::class) constructor(
         // TODO: use server time instead of this, since clients can change
         //  their system time. from brief research this might need server functions
         get() = Timestamp.now() > endDate
-
-    @get:Exclude
-    val hasRating: Boolean
-        get() = rating != null
 
     companion object {
         fun load(doc: DocumentSnapshot): ReservationModel {

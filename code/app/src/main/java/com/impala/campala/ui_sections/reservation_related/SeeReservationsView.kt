@@ -124,10 +124,13 @@ class SeeReservationsView(val controller: SeeReservationsController) {
                 UiTarget.SCREEN_C -> {
                     PrevRes(onRate = {})
                     reservationBeingRated?.let { res ->
-                        DrawRateModal(res, onClose = {
-                            reservationBeingRated = null
-                            currentScreen = UiTarget.SCREEN_B
-                        })
+                        DrawRateModal(res,
+                            onClose = {
+                                reservationBeingRated = null
+                                currentScreen = UiTarget.SCREEN_B
+                            },
+                            onConfirm = { rating ->
+                                controller.rateReservation(res, rating)
                     }
                 }
             }
@@ -244,9 +247,10 @@ class SeeReservationsView(val controller: SeeReservationsController) {
      *
      * @param res the past reservation being rated
      * @param onClose called when the modal is closed, whether by Cancel, Confirm, or tapping outside it
+     * @param onConfirm called when a confirmation has happened, and given the chosen rating
      */
     @Composable
-    private fun DrawRateModal(res: ReservationModel, onClose: () -> Unit) {
+    private fun DrawRateModal(res: ReservationModel, onClose: () -> Unit, onConfirm: (Double) -> Unit) {
         // Starts in the middle each time the modal opens
         var rating by remember { mutableFloatStateOf(3f) }
         AlertDialog(
@@ -275,7 +279,7 @@ class SeeReservationsView(val controller: SeeReservationsController) {
             },
             confirmButton = {
                 TextButton(onClick = {
-                    // TODO: actually save the rating
+                    onConfirm(rating.toDouble())
                     onClose()
                 }) {
                     Text("Confirm")
