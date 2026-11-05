@@ -16,6 +16,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -74,14 +75,12 @@ class SeeReservationsView(val controller: SeeReservationsController) {
         var currentScreen by remember {mutableStateOf(UiTarget.SCREEN_A)}
 
         Column() {
-
             PrimaryTabRow(selectedTabIndex = selectedTabIndex, modifier = Modifier) {
                 Tab(
                     selected = selectedTabIndex == 0,
                     onClick = {
                         selectedTabIndex = 0
                         currentScreen = UiTarget.SCREEN_A
-                        //TODO The first shit
                     },
                     text = {
                         Text(
@@ -95,7 +94,6 @@ class SeeReservationsView(val controller: SeeReservationsController) {
                     onClick = {
                         selectedTabIndex = 1
                         currentScreen = UiTarget.SCREEN_B
-                        //TODO the second shit
                     },
                     text = {
                         Text(
@@ -126,7 +124,7 @@ class SeeReservationsView(val controller: SeeReservationsController) {
                     text = controller.campsites.find { it.id == res.campsiteId }?.name ?: "Unknown Campsite",
                     fontSize = 24.sp
                 )
-                ReservationDates(res)
+                DrawDateRange(res)
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -167,25 +165,28 @@ class SeeReservationsView(val controller: SeeReservationsController) {
 
     @Composable
     private fun PrevRes() {
-        LazyColumn(modifier = Modifier.fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally) {
+        LazyColumn(modifier = Modifier.fillMaxWidth()) {
             items(controller.oldReservations) { res ->
                 Spacer(modifier = Modifier.height(12.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = controller.campsites.find { it.id == res.campsiteId }?.name ?: "Unknown Campsite",
+                            fontSize = 24.sp
+                        )
+                        DrawDateRange(res)
+                    }
 
-                Text(
-                    text = controller.campsites.find { it.id == res.campsiteId }?.name ?: "Unknown Campsite",
-                    fontSize = 24.sp
-                )
-                DrawDateRange(res)
-
-                Button(modifier = Modifier,
-                    onClick = {
+                    Button(onClick = {
                         //currentScreen = UiTarget.SCREEN_C // TODO: SCREEN_C should be the rating screen
                     }) {
-                    Text(
-                        text = "Rate this campsite",
-                        fontSize = 24.sp
-                    )
+                        Icon(Icons.Default.Star, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Rate")
+                    }
                 }
             }
         }
