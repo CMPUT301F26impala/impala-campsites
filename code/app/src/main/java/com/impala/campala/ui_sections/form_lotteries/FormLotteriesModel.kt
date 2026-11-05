@@ -100,7 +100,6 @@ class FormLotteriesModel(
 
     }
 
-    // write code for available campsites for dropdown data int he form
     var campsiteDropdownData = listOf<CampsiteModel>()
     /**
      * Gets the list of campsites from the repo to display in the dropdown.
