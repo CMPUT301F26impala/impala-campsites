@@ -24,6 +24,7 @@ import com.impala.campala.model.CampsiteRepository
 import com.impala.campala.model.CampsiteOwnerProfileRepository
 import com.impala.campala.model.EntrantProfileRepository
 import com.impala.campala.model.LotteryRepository
+import com.impala.campala.model.ReservationRepository
 import com.impala.campala.ui_sections.campsite_details.CampsiteDetailsController
 import com.impala.campala.ui_sections.campsite_details.CampsiteDetailsModel
 import com.impala.campala.ui_sections.campsite_details.CampsiteDetailsView
@@ -35,6 +36,9 @@ import com.impala.campala.ui_sections.reservation_related.SeeReservationsView
 import com.impala.campala.ui_sections.form_lotteries.FormLotteriesController
 import com.impala.campala.ui_sections.form_lotteries.FormLotteriesModel
 import com.impala.campala.ui_sections.form_lotteries.FormLotteriesView
+import com.impala.campala.ui_sections.view_lotteries.ViewLotteriesController
+import com.impala.campala.ui_sections.view_lotteries.ViewLotteriesModel
+import com.impala.campala.ui_sections.view_lotteries.ViewLotteriesView
 
 
 @Composable
@@ -66,6 +70,7 @@ fun SignedInApp(user: User) {
     val entrantProfileRepo = remember { EntrantProfileRepository() }
     val campsiteOwnerProfileRepo = remember { CampsiteOwnerProfileRepository() }
     val lotteryRepo = remember { LotteryRepository() }
+    val reservationRepo = remember { ReservationRepository() }
 
     val searchCampsitesModel = remember { SearchCampsitesModel(campsiteRepo, campsiteOwnerProfileRepo, user, coroutineScope, SearchCampsitesViewMode.ENTRANT) }
     val searchCampsitesController = remember { SearchCampsitesController(searchCampsitesModel) }
@@ -88,7 +93,7 @@ fun SignedInApp(user: User) {
     val formLotteriesView = remember { FormLotteriesView(formLotteriesController) }
     formLotteriesModel.addObserver(formLotteriesView)
 
-    val campsiteDetailsModel = remember { CampsiteDetailsModel(campsiteRepo, lotteryRepo, entrantProfileRepo, campsiteOwnerProfileRepo, user, coroutineScope) }
+    val campsiteDetailsModel = remember { CampsiteDetailsModel(campsiteRepo, lotteryRepo, campsiteOwnerProfileRepo, user, coroutineScope) }
     val campsiteDetailsController = remember { CampsiteDetailsController(campsiteDetailsModel) }
     val campsiteDetailsView = remember { CampsiteDetailsView(campsiteDetailsController) }
     campsiteDetailsModel.addObserver(campsiteDetailsView)
@@ -97,6 +102,12 @@ fun SignedInApp(user: User) {
     val chooseRoleController = remember { ChooseRoleController(chooseRoleModel) }
     val chooseRoleView = remember { ChooseRoleView(chooseRoleController) }
     chooseRoleModel.addObserver(chooseRoleView)
+
+    // Shared by both navs, it checks user.getCurrentRole() to decide between the entrant and campsite owner UI
+    val viewLotteriesModel = remember { ViewLotteriesModel(lotteryRepo, campsiteRepo, reservationRepo, user, coroutineScope) }
+    val viewLotteriesController = remember { ViewLotteriesController(viewLotteriesModel) }
+    val viewLotteriesView = remember { ViewLotteriesView(viewLotteriesController) }
+    viewLotteriesModel.addObserver(viewLotteriesView)
 
     val seeReservationsController = remember { SeeReservationsController() }
     val seeReservationsView = remember { SeeReservationsView(seeReservationsController) }
@@ -113,8 +124,8 @@ fun SignedInApp(user: User) {
         }
     } else {
         when (currentRole) {
-            UserViewMode.ENTRANT -> EntrantNavigationRoot(searchCampsitesScreen=searchCampsitesView, campsiteDetailsScreen=campsiteDetailsView, seeReservationsScreen=seeReservationsView, onSwitchRole={ needsRoleChoice = true })
-            UserViewMode.CAMPSITE_OWNER -> CampsiteOwnerNavigationRoot(user, lotteryRepo, searchCampsitesScreen=ownerSearchCampsitesView, campsiteDetailsScreen=campsiteDetailsView, formCampsitesScreen=formCampsitesView, formLotteriesScreen = formLotteriesView,  onSwitchRole={ needsRoleChoice = true })
+            UserViewMode.ENTRANT -> EntrantNavigationRoot(searchCampsitesScreen=searchCampsitesView, campsiteDetailsScreen=campsiteDetailsView, seeReservationsScreen=seeReservationsView, viewLotteriesScreen=viewLotteriesView, onSwitchRole={ needsRoleChoice = true })
+            UserViewMode.CAMPSITE_OWNER -> CampsiteOwnerNavigationRoot(searchCampsitesScreen=ownerSearchCampsitesView, campsiteDetailsScreen=campsiteDetailsView, formCampsitesScreen=formCampsitesView, formLotteriesScreen = formLotteriesView, viewLotteriesScreen = viewLotteriesView, onSwitchRole={ needsRoleChoice = true })
 
             UserViewMode.ADMIN -> {
                 Button(onClick = { needsRoleChoice = true}) {
@@ -125,7 +136,7 @@ fun SignedInApp(user: User) {
 
             null -> {
                 // They have a profile but no role saved, so just send them to the entrant UI so the app is still usable
-                EntrantNavigationRoot(searchCampsitesScreen=searchCampsitesView, campsiteDetailsScreen=campsiteDetailsView, seeReservationsScreen=seeReservationsView, onSwitchRole={ needsRoleChoice = true })
+                EntrantNavigationRoot(searchCampsitesScreen=searchCampsitesView, campsiteDetailsScreen=campsiteDetailsView, seeReservationsScreen=seeReservationsView, viewLotteriesScreen=viewLotteriesView, onSwitchRole={ needsRoleChoice = true })
             }
         }
     }
