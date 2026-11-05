@@ -39,6 +39,7 @@ enum class SearchCampsitesViewMode { ENTRANT, CAMPSITE_OWNER }
  * @property locationFilter only show campsites at this location, null for any
  * @property dateFilter the date the entrant wants to camp on, null for any. Only campsites in a lottery whose available dates include it are shown
  * @property results campsites matching the current filters
+ * @property locations every location that has a campsite, these are the options for the location filter
  */
 class SearchCampsitesModel(
     val repo: CampsiteRepository,
@@ -54,6 +55,9 @@ class SearchCampsitesModel(
     var dateFilter: LocalDate? = null;
 
     var results: List<CampsiteModel> = emptyList()
+        private set
+
+    var locations: List<String> = emptyList()
         private set
 
     private var resultsJob: Job? = null
@@ -86,10 +90,14 @@ class SearchCampsitesModel(
         }
     }
     /**
-     * Seeds results with just the unfiltered list of campsites
+     * Seeds results with just the unfiltered list of campsites, and loads the location filter options
      */
     fun getInitialData() {
         this.updateResults()
+        this.scope.launch {
+            locations = repo.getLocations()
+            notifyObservers(this@SearchCampsitesModel)
+        }
     }
 
     /**
