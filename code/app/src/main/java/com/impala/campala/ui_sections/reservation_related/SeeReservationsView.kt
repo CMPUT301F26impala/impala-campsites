@@ -1,13 +1,21 @@
 package com.impala.campala.ui_sections.reservation_related
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -97,8 +105,7 @@ class SeeReservationsView(val controller: SeeReservationsController) {
 
     @Composable
     private fun CurrentRes() {
-        LazyColumn(modifier = Modifier.fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally) {
+        LazyColumn(modifier = Modifier.fillMaxWidth()) {
             items(controller.newReservations) { res ->
                 Spacer(modifier = Modifier.height(12.dp))
 
@@ -107,26 +114,38 @@ class SeeReservationsView(val controller: SeeReservationsController) {
                     fontSize = 24.sp
                 )
 
-                Button(modifier = Modifier,
-                    onClick = {
-                        //go to messages
-                    }) {
-                    Text(
-                        text = "View Messages",
-                        fontSize = 24.sp
-                    )
-                }
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    // Messaging is a final checkpoint thing
+                    Button(modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(8.dp),
+                        enabled = false,
+                        onClick = {
+                            //go to messages
+                        }) {
+                        Icon(Icons.AutoMirrored.Filled.Send, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "View Messages",
+                        )
+                    }
 
-                Button(modifier = Modifier,
-                    colors = ButtonDefaults.buttonColors(containerColor = tertiaryContainerDark, contentColor = tertiaryDark), //TODO make sure this doesn't look dumb and wrong
-                    onClick = {
-                        //cancel reservation
-                    }) {
-                    Text(
-                        text = "Cancel Reservation",
-                        fontSize = 24.sp,
-                        color = tertiaryDark // This may be redundant
-                    )
+                    Button(modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(8.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = tertiaryContainerDark, contentColor = tertiaryDark),
+                        onClick = {
+                            //cancel reservation
+                        }) {
+                        Icon(Icons.Default.Close, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "Cancel Reservation",
+                            fontSize = 12.sp,
+                            color = tertiaryDark
+                        )
+                    }
                 }
             }
         }
