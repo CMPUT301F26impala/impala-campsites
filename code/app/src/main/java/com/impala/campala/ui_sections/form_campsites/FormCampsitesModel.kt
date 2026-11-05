@@ -8,7 +8,18 @@ import com.impala.campala.model.CampsiteRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
-// TODO: Needs KDOC!!!!
+/**
+ * Model for the create and edit version of Campsite form.
+ *
+ * Stores information entered into the form, and notifies view about the changes.
+ * Saves campsites after creation and editing, as well as loading them to display values to the user.
+ *
+ * @param repo CampsiteRepository consisting of all campsites
+ * @param campsiteOwnerProfileRepo Repository of campsite owner profiles. Used for saving new campsites to a user's profile
+ * @param user the authorized user editing the form
+ * @param scope the CoroutineScope used for Firebase operations
+ * @param campsite campsite whose data will be edited, passed as null in creation mode
+ */
 class FormCampsitesModel(
     val repo: CampsiteRepository,
     val campsiteOwnerProfileRepo: CampsiteOwnerProfileRepository,
@@ -26,25 +37,51 @@ class FormCampsitesModel(
     // if campsite was saved successfully
     var wasCampsiteSavedSuccessfully = false
 
+    /**
+     * Updates title of the campsite
+     *
+     * @param newTitle string to be used as the title of the campsite
+     */
     fun updateTitle(newTitle: String) {
         title = newTitle
         notifyObservers(this)
     }
+
+    /**
+     * Updates location of the campsite
+     *
+     * @param newLocation Location of the campsite
+     */
     fun updateLocation(newLocation: String) {
         location = newLocation
         notifyObservers(this)
     }
 
+    /**
+     * Updates the description of a campsite
+     *
+     * @param newDescription Description to be added for the campsite
+     */
     fun updateDescription(newDescription: String) {
         description = newDescription
         notifyObservers(this)
     }
 
+    /**
+     * Updates maximum occupancy of the tags
+     *
+     * @param newOccupancy string data for the maximum occupancy of the campsite
+     */
     fun updateMaximumOccupancy(newOccupancy: String) {
         maximumOccupancy = newOccupancy
         notifyObservers(this)
     }
 
+    /**
+     * Adds a tag for the campsite to its list of tags
+     *
+     * @param newTag value of the new tag
+     */
     fun addTag(newTag: String) {
         val trimmedTag = newTag.trim()
 
@@ -54,19 +91,38 @@ class FormCampsitesModel(
         }
     }
 
+    /**
+     * Removes a tag for the campsite from its list of tags
+     *
+     * @param tag the tag to remove from the list
+     */
     fun removeTag(tag: String) {
         tags.remove(tag)
         notifyObservers(this)
     }
 
+    /**
+     * Prepares the model for creating a new campsite by clearing the form's fields
+     */
     fun startNewCampsite() {
         setFields(null)
     }
 
+    /**
+     * Prepares the model for editing an existing campsite by updating the form's fields
+     *
+     * @param campsiteId ID of the campsite being edited
+     */
     suspend fun loadCampsite(campsiteId: String) {
         setFields(repo.getCampsiteById(campsiteId))
     }
 
+    /**
+     * Updated the fields in the form with the data that was passed, and set to null for clearing them
+     * Notifies the views that the fields have been updated.
+     *
+     * @param newCampsite The campsite data that should be added to the form, clear data when it's set to null
+     */
     private fun setFields(newCampsite: CampsiteModel?) {
         campsite = newCampsite
         title = newCampsite?.name ?: ""
@@ -77,9 +133,13 @@ class FormCampsitesModel(
         notifyObservers(this)
     }
 
+    /**
+     * Create or update a campsite using the form's values.
+     * Adds the campsite Id to the user's campsite owner profile, then notifies the view
+     */
     fun saveCampsite() {
         // convert maximum occupancy to integer (its a string right now in the input box)
-        // defsult value needed
+        // default value needed
         // check for number pad on android
         val occupancy = if (maximumOccupancy == "") 0 else maximumOccupancy.toInt()
 
@@ -120,10 +180,14 @@ class FormCampsitesModel(
         }
     }
 
-    // set the "saved succesful flag" to false
-    // after user is popped back in the stack (the popbackstack thing in nav)
-    // to prevent the flag from staying true across multiple form usage
+    /**
+     * When a Save operation after creating or editing a form is triggered, wasCampsiteSavedSuccessfully is changed to false which is used for navigation.
+     * This function changes that flag back to false after it's been used once for reuse.
+     */
     fun changeSaveFLagFalse() {
+        // set the "saved succesful flag" to false
+        // after user is popped back in the stack (the popbackstack thing in nav)
+        // to prevent the flag from staying true across multiple form usage
         wasCampsiteSavedSuccessfully = false
         notifyObservers(this)
     }

@@ -49,6 +49,14 @@ import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 
+/**
+ * View for the create and edit version of the lottery form
+ * The fields displayed will depend on whether a lottery was passed to the form.
+ * The view stores the information needed to display the input boxes, campsite dropdown and tags.
+ * It receives changes from the model and sends user inputs to the controller.
+ *
+ * @param controller the FormLotteriesController used to send user actions to the model
+ */
 class FormLotteriesView(
     val controller: FormLotteriesController
 ): ViewObserver<FormLotteriesModel> {
@@ -76,6 +84,11 @@ class FormLotteriesView(
     private var dropdownDataCampsites by mutableStateOf(listOf<CampsiteModel>())
     private var dropdownDroppedFlag by mutableStateOf(false) // checks if the dropdown dropped
 
+    /**
+     * Used to copy the updated lottery information into the form's fields.
+     *
+     * @param model the FormLotteriesModel containing the updated information
+     */
     override fun update(model: FormLotteriesModel) {
         // variables max participants, waitlist, winners,
         // for the list of campsites since we have multiple campsite
@@ -104,11 +117,14 @@ class FormLotteriesView(
         update(controller.model)
     }
 
-    /*
-    composable function components should include
-    REMEMBER TO CHANGE THE FLAG TO FALSE OR PAGE WILL BE STUCK ON THE SAME ONE
-    have a heading create/edit lottery in the if else block for the is edting flag
-    */
+
+    /**
+     * The main render function to output the lottery form screen.
+     *
+     * @param navController the root NavController, used to go back once the lottery is saved
+     * @param lotteryId the id of the lottery to edit, or null to create a new one
+     * @return Unit, but it does render Composable UI as a side effect
+     */
     @Composable
     @OptIn(ExperimentalMaterial3Api::class)
     fun Render(navController: NavController, lotteryId: String?) {
@@ -337,11 +353,6 @@ class FormLotteriesView(
                     }
                 }
 
-                // button for cancel create
-                // not here will be outside of lazy column
-
-
-
             } // personal refernece, end of lazy column
 
             // button for cancel and create/save
@@ -365,7 +376,18 @@ class FormLotteriesView(
         } // end of column
     } // end of render function
 
-    // used in render to make the 6 different input boxes
+
+    /**
+     * Used in render to create the 6 date input boxes.
+     * Displays the selected date on a button, or the field name if no date was selected.
+     * When pressed, opens a date picker where the user can enter a date.
+     * The selected date is then passed back using onDateChange after pressing OK.
+     *
+     * @param insideText the text to display if no date has been selected
+     * @param chosenDate the current date selected, or null if no date was selected
+     * @param onDateChange the function called to update the date after the user selects one
+     * @return Unit, but renders a date input button as a side effect
+     */
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     private fun DateInput(
@@ -411,6 +433,4 @@ class FormLotteriesView(
             }
         }
     } // end of date input function
-
-
 }

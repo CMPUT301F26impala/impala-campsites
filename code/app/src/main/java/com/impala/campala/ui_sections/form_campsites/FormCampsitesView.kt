@@ -36,21 +36,18 @@ import androidx.navigation.NavController
 import com.impala.campala.ViewObserver
 
 
-/*
-TODO:
- 1. maxOccupancy conversion logic before saving,
-    current function will crash when given anything not a number or empty
+
+/**
+ * View for the create and edit version of the campsite form
+ *
+ * New campsites are added using an onSave function passed into the formScreen by whoever calls the function.
+ * It accepts a parameter for the type Campsite declared in CampsiteModel
+ *
+ * The view stores the information needed to display the input boxes and tags.
+ * It receives changes from the model and sends user inputs to the controller.
+ *
+ * @param controller the FormCampsitesController used to send user actions to the Model
  */
-
-/*
-new campsites are added using an onSave function passed
-into the formScreen by whoever calls the function.
-It accepts a parameter fo the type Campsite declared in CampsiteModel
- */
-
-// same screen component for both create and edit forms
-// if campsite was not provided (its null) then create for, or else edit form
-
 class FormCampsitesView(
     val controller: FormCampsitesController
 ): ViewObserver<FormCampsitesModel> {
@@ -64,6 +61,11 @@ class FormCampsitesView(
     private var isEditing by mutableStateOf(false)
     private var wasCampsiteSavedSuccessfully by mutableStateOf(false)
 
+    /**
+     * Used whenever model notifies the view about changes, to copy the updated campsite information into the form's fields
+     *
+     * @param model the FormCampsitesModel containing the updated information
+     */
     override fun update(model: FormCampsitesModel) {
         title = model.title
         location = model.location
@@ -272,18 +274,3 @@ class FormCampsitesView(
         } // bracket for Column of overall screen
     }
 }
-
-/*
-for testing as a preview without building the app
-
-@Preview(
-    showBackground = true,
-    uiMode = Configuration.UI_MODE_NIGHT_YES
-)
-@Composable
-fun FormPreview() {
-    AppTheme {
-        FormScreen(navController = rememberNavController())
-    }
-}
- */

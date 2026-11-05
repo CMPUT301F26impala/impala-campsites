@@ -3,22 +3,25 @@ package com.impala.campala.ui_sections.form_lotteries
 import com.google.firebase.Timestamp
 import com.impala.campala.Controller
 
+
+/**
+ * Controller for the create and edit version lottery forms
+ *
+ * Receives actions from the view and calls the corresponding functions in the model.
+ * Also decides whether the form should create a new lottery or load an existing one.
+ *
+ * @param model the FormLotteriesModel whose functions are called
+ */
 class FormLotteriesController(
     val model: FormLotteriesModel
 ) : Controller {
 
-    /*
-    to do:
-    have a function for saving lottery and changing the flag to false after saved to confirm something was saved
-    have some basic functions that 1:1 reflect the model functions
-    registration start end
-    avaibale dates start end
-    booking start end
-    change for variables maxparticipi, waitlist, winners,
-    for the list of campsites since we have multiple campsites ugh
-    */
-    // save and flag change
-
+    /**
+     * Used in a LaunchedEffect in the view, handles data initialization when the lottery form is opened.
+     * Creates a new form if no lottery id was passed, or loads the existing lottery for editing.
+     *
+     * @param lotteryId the id of the lottery to edit, or null if it's 'add lottery' mode
+     */
     fun onOpen(lotteryId: String?) {
         if (lotteryId == null) {
             model.initializeCreateMode()
@@ -26,7 +29,14 @@ class FormLotteriesController(
             model.initializeEditMode(lotteryId)
         }
     }
+    /**
+     * Called when the user presses create or save
+     */
     fun onSaveClick() { model.saveLottery() }
+
+    /**
+     * Called after the lottery has been saved and tells the model to reset the flag for navigation.
+     */
     fun onSaveNavigationBecomesFalse() { model.changeSaveFlagFalse() }
 
     //registration and available and booking
@@ -46,7 +56,9 @@ class FormLotteriesController(
     fun onAddCampsite(newCampsiteId: String) { model.addCampsite(newCampsiteId) }
     fun onRemoveCampsite(campsiteId: String) { model.removeCampsite(campsiteId) }
 
-    // dropdown for camspites
+    /**
+     * Tells the model to fetch the available campsites for the dropdown in the form.
+     */
     fun dropdownCampsitesData() {
         model.listAllAvailableCampsites()
     }
