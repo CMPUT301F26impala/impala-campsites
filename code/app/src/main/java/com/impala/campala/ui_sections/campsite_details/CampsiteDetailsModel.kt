@@ -93,6 +93,11 @@ class CampsiteDetailsModel(
 
         lottery = lotteryRepo.getLotteryByCampsiteId(campsiteId)
 
+        // This model is shared between campsites, so clear the last campsite's lottery state
+        // Otherwise a campsite with no lottery would still show the previous campsite's join button
+        lotteryExists = false
+        joinStatus = null
+
         lottery?.let {
             joinStatus = it.evaluateUserAction(user.getUID())
             lotteryExists = true
