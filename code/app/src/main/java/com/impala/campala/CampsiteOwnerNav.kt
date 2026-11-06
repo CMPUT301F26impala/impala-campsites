@@ -39,6 +39,16 @@ import com.impala.campala.ui_sections.form_lotteries.FormLotteriesView
 import com.impala.campala.ui_sections.search_campsites.SearchCampsitesView
 import com.impala.campala.ui_sections.view_lotteries.ViewLotteriesView
 
+/**
+ * Composable class that sets up the navigation for a user signed in as a Campsite Owner
+ *
+ * @param searchCampsitesScreen The View where the user can search for campsites
+ * @param campsiteDetailsScreen The View where the user can see details of a campsite
+ * @param formCampsitesScreen The View where the user can create or edit campsites
+ * @param formLotteriesScreen The View where the user can create lotteries
+ * @param viewLotteriesScreen The View where the user can see details of a lottery
+ * @param onSwitchRole a function to be executed when the user clicks the button to switch roles
+ */
 @Composable
 fun CampsiteOwnerNavigationRoot(
     searchCampsitesScreen: SearchCampsitesView,
@@ -105,7 +115,14 @@ enum class CampsiteOwnerTab(val label: String, val icon: ImageVector) {
     Notifs("Notifs", Icons.Default.Notifications)
 }
 
-// Same tab approach as EntrantHomeScreen, the tabs are just local state instead of real screens in NavController
+/**
+ * A composable function that generates tabs the user can use to move through the base screens
+ *
+ * @param navController The navigation controller for the campsite owners section of the app
+ * @param searchCampsitesScreen The View where the user can search for campsites
+ * @param viewLotteriesScreen The View where the user can see details of a lottery
+ * @param onSwitchRole a function to be executed when the user clicks the button to switch roles
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CampsiteOwnerHomeScreen(navController: NavController, searchCampsitesScreen: SearchCampsitesView, viewLotteriesScreen: ViewLotteriesView, onSwitchRole: () -> Unit) {
@@ -157,6 +174,11 @@ fun CampsiteOwnerHomeScreen(navController: NavController, searchCampsitesScreen:
     }
 }
 
+/**
+ * A temporary class while the actual View is being made
+ *
+ * @param navController The navigation controller for the campsite owner section
+ */
 @Composable
 fun NotifsTab(navController: NavController) {
     Column() {

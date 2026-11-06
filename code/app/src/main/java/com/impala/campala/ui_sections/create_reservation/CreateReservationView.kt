@@ -78,6 +78,13 @@ enum class MODAL_STATE {
     DECLINE_MODAL_OPEN,
 }
 
+/**
+ * The screen from which entrants will create reservations
+ *
+ * @param controller The controller for this View which updates the related model
+ * @param reservationRepo The repository to pull relevant reservation data from
+ * @param scope The coroutine scope suspend functions run in
+ */
 class CreateReservationView(
     val controller: CreateReservationController,
     val reservationRepo: ReservationRepository,
@@ -110,6 +117,12 @@ class CreateReservationView(
 
     private var modalState by mutableStateOf(MODAL_STATE.CLOSED)
 
+    /**
+     * The main render function for the CreateReservationView
+     *
+     * @param navController The navigation controller for the current user
+     * @param lotteryId The ID of the lottery this reservation is being created from
+     */
     @Composable
     fun Render(navController: NavController, lotteryId: String) {
         LaunchedEffect(lotteryId) {
@@ -160,9 +173,6 @@ class CreateReservationView(
         DrawModal(navController)
     }
 
-    /**
-     * The final screen after a reservation is confirmed, it just restates what was booked
-     */
     @Composable
     private fun DrawConfirmationStage() {
         val start = selectedStartDate

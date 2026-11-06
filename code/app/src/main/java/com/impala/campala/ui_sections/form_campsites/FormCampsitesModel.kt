@@ -19,6 +19,13 @@ import kotlinx.coroutines.launch
  * @param user the authorized user editing the form
  * @param scope the CoroutineScope used for Firebase operations
  * @param campsite campsite whose data will be edited, passed as null in creation mode
+ *
+ * @property title The name of the campsite
+ * @property location The location to go on the campsite
+ * @property description The description to go on the campsite
+ * @property maximumOccupancy The maximum occupancy to go on the campsite
+ * @property tags The list of tags to go on the campsite
+ * @property wasCampsiteSavedSuccessfully True if the new campsite was saved to the database successfully
  */
 class FormCampsitesModel(
     val repo: CampsiteRepository,

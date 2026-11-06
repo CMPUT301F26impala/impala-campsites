@@ -12,8 +12,6 @@ import kotlinx.coroutines.tasks.await
  *
  * Model for anything in the app that wants to access any
  * reservation info, with filtering by owner or entrant
- *
- * @property collection Reference to the Firestore reservations collection
  */
 class ReservationRepository {
     private val collection by lazy { Firebase.firestore.collection("reservations") }
@@ -80,6 +78,14 @@ class ReservationRepository {
             .map { ReservationModel.load(it) }
     }
 
+    /**
+     * Gets all reservations within the specified date range
+     *
+     * @param start The lower date limit in the range
+     * @param end The upper date limit in the range
+     *
+     * @return A list of reservations in the date range
+     */
     suspend fun getReservationsByDateRange(start: Timestamp, end: Timestamp): List<ReservationModel> {
         // someone should use their 272 knowledge and clean this up
         return collection.where(

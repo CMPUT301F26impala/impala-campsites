@@ -24,9 +24,11 @@ enum class EntrantLotteryStatus { WAITING_FOR_DRAW, ON_WAITLIST, WON }
  * Since a lottery only stored CampsiteIDs, this wrapper class allows for us to associate the Campsites in a lottery with that lottery
  * That makes rendering easier because a given row in the list can just use one of these objects
  *
- * @property lottery the lottery this row is for
- * @property campsite the first campsite in the lottery, null if it couldn't be found
- * @property entrantStatus where the current user stands in this lottery, only set in entrant mode
+ * @param lottery the lottery this row is for
+ * @param campsite the first campsite in the lottery, null if it couldn't be found
+ * @param entrantStatus where the current user stands in this lottery, only set in entrant mode
+ *
+ * @property spotsRemaining how many spots remain in the lottery, not counting waitlist
  */
 data class LotteryListItem(
     val lottery: LotteryModel,
@@ -54,6 +56,7 @@ data class LotteryListItem(
  *
  * @property lotteries every lottery for this user (minus ones an entrant lost or already reserved through)
  * @property viewMode the user's role when the lotteries were last loaded, CAMPSITE_OWNER shows the owner UI, anything else shows the entrant UI
+ * @property visibleLotteries the list of rows that should be visible to the users
  */
 class ViewLotteriesModel(
     val lotteryRepo: LotteryRepository,

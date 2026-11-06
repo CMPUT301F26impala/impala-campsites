@@ -24,6 +24,23 @@ enum class CURRENT_RESERVATION_STAGE {
 
 /**
  * Model for the Create Reservation screen
+ *
+ * @param scope The coroutine scope the suspend functions run inside
+ * @param lotteryRepo The repository to pull relevant lottery data from
+ * @param campsiteRepo The repository to pull relevant campsite data from
+ * @param reservationRepo The repository to pull relevant reservation data from
+ * @param user The user making the reservation
+ *
+ * @property currentStage The current stage of the reservation process
+ * @property availableCampsites A list of campsites that can be reserved
+ * @property selectedCampsite The campsite the user has selected
+ * @property dateRangeStart The start of the reservation (inclusive)
+ * @property dateRangeEnd The end of the reservation (inclusive)
+ * @property alreadyReservedDatesForSelectedCampsite A list of dates already reserved for the selected campsite
+ * @property selectedStartDate The start date selected by the user
+ * @property selectedEndDate The end date selected by the user
+ * @property isDateRangeValid A flag indicating if the selected date range can be reserved
+ * @property canConfirm A flag to indicate if the current selection would constitute a valid reservation
  */
 class CreateReservationModel(val scope: CoroutineScope, val lotteryRepo: LotteryRepository, val campsiteRepo: CampsiteRepository, val reservationRepo: ReservationRepository, val user: User): ObservableModel<CreateReservationModel>() {
     var currentStage: CURRENT_RESERVATION_STAGE = CURRENT_RESERVATION_STAGE.TERMS_ACCEPT
@@ -56,6 +73,12 @@ class CreateReservationModel(val scope: CoroutineScope, val lotteryRepo: Lottery
     private var lotteryId: String = ""
     private var lotteryOwnerId: String = ""
 
+    /**
+     * Get a lottery object based on an ID and load the details into this class
+     * This also notifies all observer Views so they can update
+     *
+     * @param lotteryId The ID of the lottery object to get
+     */
     fun loadLotteryDetails(lotteryId: String) {
         this.lotteryId = lotteryId
         currentStage = CURRENT_RESERVATION_STAGE.TERMS_ACCEPT
@@ -92,6 +115,11 @@ class CreateReservationModel(val scope: CoroutineScope, val lotteryRepo: Lottery
         }
     }
 
+    /**
+     * Get the reserved dates for a campsite with a specific ID and set the already reserved dates property
+     *
+     * @param campsiteId The campsite to get the reserved dates from
+     */
     fun setSelectedCampsite(campsiteId: String) {
         val model = availableCampsites.find { campsite -> campsite.id == campsiteId }
         if (model == null) {
@@ -122,6 +150,9 @@ class CreateReservationModel(val scope: CoroutineScope, val lotteryRepo: Lottery
         }
     }
 
+    /**
+     * Allow the user to proceed pick campsites and reservation dates after accepting the terms and conditions
+     */
     fun acceptTerms() {
         currentStage = CURRENT_RESERVATION_STAGE.PICK_CAMPSITE_AND_DATES
         recalculateValidity()

@@ -22,21 +22,23 @@ import kotlin.uuid.Uuid
  * If the lottery is full, people go on the waitlist instead. When an entrant leaves,
  * the earliest person on the waitlist gets moved into the lottery.
  *
- * @property campsiteIds IDs of the campsites this lottery is for, must have at least one
- * @property lotteryStartTime When the lottery opens
- * @property lotteryEndTime When the lottery closes and winners are drawn
- * @property registrationStartTime When winners can start reserving their dates
- * @property registrationEndTime When winners must have reserved their dates by
- * @property reservationStartDate First day that can be reserved
- * @property reservationEndDate Last day that can be reserved
- * @property lotteryCapacity Max number of entrants in the lottery
- * @property entrantIds IDs of people entered in the lottery
- * @property waitlistCapacity Max number of people on the waitlist
- * @property numberOfWinners Number of possible winners for the lottery, defaults to at least 1 winner
- * @property waitlistIds IDs of people on the waitlist, in the order they joined (earliest first)
- * @property winnerIds IDs of entrants who were drawn as winners, empty until the lottery is drawn
- * @property declinedIds IDs of winners who declined to reserve, they stay in winnerIds so there's still a record of who won
- * @property ownerId ID of the campsite owner who created the lottery
+ * @param campsiteIds IDs of the campsites this lottery is for, must have at least one
+ * @param lotteryStartTime When the lottery opens
+ * @param lotteryEndTime When the lottery closes and winners are drawn
+ * @param registrationStartTime When winners can start reserving their dates
+ * @param registrationEndTime When winners must have reserved their dates by
+ * @param reservationStartDate First day that can be reserved
+ * @param reservationEndDate Last day that can be reserved
+ * @param lotteryCapacity Max number of entrants in the lottery
+ * @param entrantIds IDs of people entered in the lottery
+ * @param waitlistCapacity Max number of people on the waitlist
+ * @param numberOfWinners Number of possible winners for the lottery, defaults to at least 1 winner
+ * @param waitlistIds IDs of people on the waitlist, in the order they joined (earliest first)
+ * @param winnerIds IDs of entrants who were drawn as winners, empty until the lottery is drawn
+ * @param declinedIds IDs of winners who declined to reserve, they stay in winnerIds so there's still a record of who won
+ * @param ownerId ID of the campsite owner who created the lottery
+ *
+ * @property doc The reference to the Firebase document containing this object
  */
 data class LotteryModel @OptIn(ExperimentalUuidApi::class) constructor(
     var campsiteIds: MutableList<String> = mutableListOf(),
@@ -82,6 +84,11 @@ data class LotteryModel @OptIn(ExperimentalUuidApi::class) constructor(
         }
     }
 
+    /**
+     * Saves the lottery object in the Firebase lotteries collection
+     *
+     * @return A reference to the Firebase document of this lottery model
+     */
     @get:Exclude
     var doc: DocumentReference? = null
     fun save(): Task<Void> {

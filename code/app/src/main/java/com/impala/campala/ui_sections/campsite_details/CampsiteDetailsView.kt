@@ -69,6 +69,7 @@ class CampsiteDetailsView(val controller: CampsiteDetailsController): ViewObserv
      *
      * @param navController the root NavController, used to go back to the previous screen
      * @param campsiteId the id of the campsite to show
+     *
      * @return Unit, but it does render Composable UI as a side effect
      */
     @Composable
@@ -105,10 +106,6 @@ class CampsiteDetailsView(val controller: CampsiteDetailsController): ViewObserv
         }
     }
 
-    /**
-     * The function to render details as short lines of text beside icons
-     * @return Unit, but it does render Composable UI as a side effect
-     */
     @Composable
     private fun RenderIconText() {
         Row(modifier = Modifier.padding(horizontal = 10.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -121,10 +118,6 @@ class CampsiteDetailsView(val controller: CampsiteDetailsController): ViewObserv
         }
     }
 
-    /**
-     * A function to render a section of text with a larger title and a block of text underneath
-     * @return Unit, but it does render Composable UI as a side effect
-     */
     @Composable
     private fun RenderTextSection(title: String, content: String) {
         Spacer(modifier = Modifier.height(16.dp))
@@ -132,10 +125,6 @@ class CampsiteDetailsView(val controller: CampsiteDetailsController): ViewObserv
         Text(content, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(horizontal = 10.dp))
     }
 
-    /**
-     * A function to render the relevant buttons in the bottom right of the screen based on flags
-     * @return Unit, but it does render Composable UI as a side effect
-     */
     @Composable
     private fun RenderBottomButtons(modifier: Modifier = Modifier, navController: NavController) {
         Column(modifier = modifier.padding(all = 10.dp).fillMaxWidth(),
