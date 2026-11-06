@@ -5,6 +5,8 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.firestore
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.tasks.await
+import java.time.LocalDate
+import java.time.ZoneOffset
 
 /**
  * Repository for querying lotteries by useful parameters (eg: by ID, or by campsiteId)
@@ -29,7 +31,10 @@ class LotteryRepository {
     /**
      * Gets the lottery for a campsite if there is one
      *
-     * There should only ever be one lottery on a campsite at a time, so this doesn't really handle the case of there being multiple, it's assumed there is logic to prevent that from happening
+     * There should only ever be one unfinished lottery on a campsite at a time, the lottery form only lets you pick campsites that aren't in one
+     * But a campsite can also have old lotteries that have finished, so the unfinished one is returned first
+     * A lottery counts as finished once its booking period end date has passed (same as in the lottery form)
+     * If they've all finished, the most recent one is returned
      *
      * @param campsiteId ID of the campsite
      *
@@ -37,8 +42,11 @@ class LotteryRepository {
      */
     suspend fun getLotteryByCampsiteId(campsiteId: String): LotteryModel? {
         return try {
-            val snapshot = db.collection("lotteries").whereArrayContains("campsiteIds", campsiteId).limit(1).get().await()
-            snapshot.toObjects(LotteryModel::class.java).firstOrNull()
+            val snapshot = db.collection("lotteries").whereArrayContains("campsiteIds", campsiteId).get().await()
+            val lotteries = snapshot.toObjects(LotteryModel::class.java)
+            val today = LocalDate.now()
+            val unfinished = lotteries.filter { !today.isAfter(it.registrationEndTime.toInstant().atZone(ZoneOffset.UTC).toLocalDate()) }
+            unfinished.minByOrNull { it.lotteryStartTime } ?: lotteries.maxByOrNull { it.registrationEndTime }
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {

@@ -14,7 +14,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.launch
 import java.time.LocalDate
-import java.time.ZoneId
+import java.time.ZoneOffset
 
 enum class CURRENT_RESERVATION_STAGE {
     TERMS_ACCEPT,
@@ -242,10 +242,10 @@ class CreateReservationModel(val scope: CoroutineScope, val lotteryRepo: Lottery
     }
 
     private fun localDateToTimestamp(date: LocalDate): Timestamp {
-        return Timestamp(date.atStartOfDay(ZoneId.systemDefault()).toInstant())
+        return Timestamp(date.atStartOfDay(ZoneOffset.UTC).toInstant())
     }
 
     private fun timestampToLocalDate(timestamp: Timestamp): LocalDate {
-        return timestamp.toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
+        return timestamp.toInstant().atZone(ZoneOffset.UTC).toLocalDate()
     }
 }

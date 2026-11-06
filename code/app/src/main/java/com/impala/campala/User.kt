@@ -101,7 +101,12 @@ class User() {
         }
         else { // If they are already logged in, then who cares? Just grab their info from the server for local use.
             intermediateUID = currentUser.uid
-            updateLocalDetails(intermediateUID)
+            if (checkServerForUser(intermediateUID)) {
+                updateLocalDetails(intermediateUID)
+            }
+            else {
+                updateUserProfile(intermediateUID)
+            }
         }
 
         uid = intermediateUID

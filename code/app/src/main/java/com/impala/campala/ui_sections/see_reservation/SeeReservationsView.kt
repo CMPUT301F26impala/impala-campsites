@@ -55,7 +55,7 @@ import com.impala.campala.model.EntrantProfileModel
 import com.impala.campala.model.ReservationModel
 import com.impala.campala.model.ReservationRepository
 import com.google.firebase.Timestamp
-import java.time.ZoneId
+import java.time.ZoneOffset
 import com.impala.campala.ui.theme.tertiaryContainerDark
 import com.impala.campala.ui.theme.tertiaryContainerLight
 import com.impala.campala.ui.theme.tertiaryDark
@@ -421,7 +421,7 @@ class SeeReservationsView(val controller: SeeReservationsController) : ViewObser
     }
 
     private fun formatDate(timestamp: Timestamp): String {
-        return timestamp.toInstant().atZone(ZoneId.systemDefault()).format(DateTimeFormatter.ofPattern("MMM d"))
+        return timestamp.toInstant().atZone(ZoneOffset.UTC).format(DateTimeFormatter.ofPattern("MMM d"))
     }
 
     // The rate campsite modal, otherwise known as SCREEN_C

@@ -1,4 +1,4 @@
-package com.impala.campala
+package com.impala.campala.integration
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.android.gms.tasks.Tasks
@@ -97,6 +97,18 @@ class LotteryRepositoryTest {
     }
 
     @Test
+    fun getLotteryByCampsiteIdPrefersUnfinishedLottery(): Unit = runBlocking {
+        // The shared lottery's booking period ended in 1970, so this one is finished
+        // The new one's booking period ends far in the future, so it's the campsite's current lottery
+        val farFuture = Timestamp(250_000_000_000, 0)
+        val current = lottery.copy(lotteryEndTime = farFuture, registrationStartTime = farFuture, registrationEndTime = farFuture, id = "current-lottery")
+        repo.saveLottery(lottery)
+        repo.saveLottery(current)
+
+        assertEquals(current, repo.getLotteryByCampsiteId("azkaban"))
+    }
+
+    @Test
     fun getLotteriesByOwnerId(): Unit = runBlocking {
         repo.saveLottery(lottery)
         repo.saveLottery(lottery.copy(id = "other-lottery"))
@@ -146,7 +158,9 @@ class LotteryRepositoryTest {
 
     @Test
     fun joinFillsLotteryThenWaitlist(): Unit = runBlocking {
-        repo.saveLottery(lottery)
+        // TODO: This was just to make the test pass, should probably rewrite this to have more tests testing that the valid ranges actually work
+        val farFuture = Timestamp(250_000_000_000, 0)
+        repo.saveLottery(lottery.copy(lotteryEndTime = farFuture, registrationStartTime = farFuture, registrationEndTime = farFuture))
 
         assertEquals(JoinResult.JOINED_LOTTERY, repo.joinLottery(lottery.id, "harry"))
         assertEquals(JoinResult.ALREADY_JOINED, repo.joinLottery(lottery.id, "harry"))

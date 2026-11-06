@@ -37,7 +37,7 @@ import androidx.navigation.NavController
 import com.google.firebase.Timestamp
 import com.impala.campala.UserViewMode
 import com.impala.campala.ViewObserver
-import java.time.ZoneId
+import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 
 /**
@@ -151,11 +151,12 @@ class ViewLotteriesView(val controller: ViewLotteriesController) : ViewObserver<
         }
     }
 
-    // Formats like "Nov 1, 2026 at 6:00PM"
+    // Formats like "Nov 1, 2026"
     // Made with the help of Claude Opus 5.5, asking it for a way to format dates into human readable strings in kotlin
+    // The lottery form only picks a day (saved as midnight UTC), so this reads it in UTC and leaves the time out
     private fun formatDrawTime(time: Timestamp): String {
-        return DateTimeFormatter.ofPattern("MMM d, yyyy 'at' h:mma")
-            .withZone(ZoneId.systemDefault())
+        return DateTimeFormatter.ofPattern("MMM d, yyyy")
+            .withZone(ZoneOffset.UTC)
             .format(time.toInstant())
     }
 }

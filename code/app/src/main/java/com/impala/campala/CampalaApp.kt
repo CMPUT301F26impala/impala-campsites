@@ -97,7 +97,7 @@ fun SignedInApp(user: User) {
     val formCampsitesView = remember { FormCampsitesView(formCampsitesController) }
     formCampsitesModel.addObserver((formCampsitesView))
 
-    val formLotteriesModel = remember { FormLotteriesModel(lotteryRepo, coroutineScope, null, user.getUID(), campsiteRepo) }
+    val formLotteriesModel = remember { FormLotteriesModel(lotteryRepo, coroutineScope, null, user.getUID(), campsiteRepo, campsiteOwnerProfileRepo) }
     val formLotteriesController = remember { FormLotteriesController(formLotteriesModel) }
     val formLotteriesView = remember { FormLotteriesView(formLotteriesController) }
     formLotteriesModel.addObserver(formLotteriesView)

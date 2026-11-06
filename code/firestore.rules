@@ -1,0 +1,293 @@
+rules_version = '2';
+
+// DISCLAIMER
+// We were reaching the 1-month threshhold where we could no longer use Firestore in test mode
+// So I prompted Claude Opus 5.5 in the Claude Code Harness with the following
+// "Analyze our usage of our data structures and generate a set of firestore rules so that we can restore access to cloud firestore and also just generally have good security"
+// It generated the below rules, as well as generated the firestore.indexes.json file, and it added one more piece of instrumentation to build.gradle.kts to NOT use these rules on the local emulator
+// Security rules for Campala.
+//
+// Every user signs in (anonymously) when the app starts, so request.auth.uid is the
+// same UID used as the document ID in /users, /entrants and /campsiteOwners, and as
+// ownerId / entrantId on campsites, lotteries and reservations.
+//
+// Anything not explicitly allowed below is denied.
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ---------------------------------------------------------------- helpers
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isSelf(uid) {
+      return signedIn() && request.auth.uid == uid;
+    }
+
+    // Admins are listed in /admins/{uid}, which can only be edited from the Firebase
+    // console. The isAdmin flag on /users can't be trusted because the app writes it
+    // itself (and currently sets it to true for every new user).
+    function isAdmin() {
+      return signedIn()
+        && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+
+    function hasOwnerProfile() {
+      return signedIn()
+        && exists(/databases/$(database)/documents/campsiteOwners/$(request.auth.uid));
+    }
+
+    function campsiteData(campsiteId) {
+      return get(/databases/$(database)/documents/campsites/$(campsiteId)).data;
+    }
+
+    function ownsCampsite(campsiteId) {
+      return campsiteData(campsiteId).get('ownerId', '') == request.auth.uid;
+    }
+
+    // Rules can't loop, so this checks up to 8 campsites one by one.
+    // && and || short-circuit, so ids[n] is never read when the list is shorter.
+    // Firestore allows at most 10 document reads per request in rules, and the
+    // lottery update rule can also use one for isAdmin(), so 8 is the most that fits.
+    function ownsAllCampsites(ids) {
+      return ids.size() >= 1 && ids.size() <= 8
+        && ownsCampsite(ids[0])
+        && (ids.size() < 2 || ownsCampsite(ids[1]))
+        && (ids.size() < 3 || ownsCampsite(ids[2]))
+        && (ids.size() < 4 || ownsCampsite(ids[3]))
+        && (ids.size() < 5 || ownsCampsite(ids[4]))
+        && (ids.size() < 6 || ownsCampsite(ids[5]))
+        && (ids.size() < 7 || ownsCampsite(ids[6]))
+        && (ids.size() < 8 || ownsCampsite(ids[7]));
+    }
+
+    // Fields changed by this update
+    function changedKeys() {
+      return request.resource.data.diff(resource.data).affectedKeys();
+    }
+
+    function unchanged(field) {
+      return !(field in changedKeys());
+    }
+
+    // ------------------------------------------------------------------ users
+
+    // Per-device user record (roles, current view mode). Only the user can see it.
+    match /users/{uid} {
+      allow read, write: if isSelf(uid) || isAdmin();
+    }
+
+    // Entrant profile (name, email, phone). Campsite owners can read them too,
+    // since the owner's lottery screen shows the names of people on the waitlist
+    match /entrants/{uid} {
+      allow read: if isSelf(uid) || hasOwnerProfile() || isAdmin();
+      allow delete: if isSelf(uid) || isAdmin();
+      allow create, update: if (isSelf(uid) || isAdmin())
+        && request.resource.data.userId == uid;
+    }
+
+    // Campsite owner profile. ownedCampsites / ownedLotteries are just a convenience
+    // list for the UI; these rules decide ownership with ownerId on each document.
+    match /campsiteOwners/{uid} {
+      allow read, delete: if isSelf(uid) || isAdmin();
+      allow create, update: if (isSelf(uid) || isAdmin())
+        && request.resource.data.userId == uid;
+    }
+
+    // Users can check whether they're an admin; nobody can write here from the app.
+    match /admins/{uid} {
+      allow read: if isSelf(uid);
+      allow write: if false;
+    }
+
+    // -------------------------------------------------------------- campsites
+
+    function validCampsite(d) {
+      return d.name is string && d.name.size() <= 200
+        && d.location is string && d.location.size() <= 200
+        && d.description is string && d.description.size() <= 5000
+        && d.maxOccupancy is int && d.maxOccupancy >= 0
+        && d.tags is list && d.tags.size() <= 50;
+    }
+
+    // Adding a rating bumps ratingCount by exactly 1 and ratingTotal by the
+    // rating, which the app's slider keeps between 1 and 5 (in half steps).
+    // The small margin is there in case the slider's float isn't exactly 1 or 5
+    function addsOneRating() {
+      let added = request.resource.data.ratingTotal - resource.data.get('ratingTotal', 0);
+      return changedKeys().hasOnly(['ratingTotal', 'ratingCount'])
+        && request.resource.data.ratingCount == resource.data.get('ratingCount', 0) + 1
+        && added >= 0.99 && added <= 5.01;
+    }
+
+    match /campsites/{campsiteId} {
+      // Anyone using the app can browse campsites
+      allow read: if signedIn();
+
+      // A campsite owner can create a campsite, and it must be recorded as theirs
+      allow create: if hasOwnerProfile()
+        && request.resource.data.ownerId == request.auth.uid
+        && request.resource.data.id == campsiteId
+        && validCampsite(request.resource.data);
+
+      // Only the owner can edit it, and they can't hand it to someone else
+      allow update: if (
+          (isSelf(resource.data.ownerId) || isAdmin())
+          && unchanged('ownerId')
+          && unchanged('id')
+          && validCampsite(request.resource.data)
+        )
+        // Anyone can add one rating (CampsiteRepository.addRating)
+        || (signedIn() && addsOneRating());
+
+      allow delete: if isSelf(resource.data.ownerId) || isAdmin();
+    }
+
+    // -------------------------------------------------------------- lotteries
+
+    function noDuplicates(list) {
+      return list.size() == list.toSet().size();
+    }
+
+    // Mirrors LotteryModel.validate(), plus checks the app relies on but doesn't enforce
+    function validLottery(d) {
+      return d.ownerId is string
+        && d.campsiteIds is list && d.campsiteIds.size() > 0
+        && d.lotteryCapacity is int && d.lotteryCapacity > 0
+        && d.waitlistCapacity is int && d.waitlistCapacity >= 0
+        && d.numberOfWinners is int && d.numberOfWinners <= d.lotteryCapacity
+        && d.entrantIds is list && d.entrantIds.size() <= d.lotteryCapacity
+        && d.waitlistIds is list && d.waitlistIds.size() <= d.waitlistCapacity
+        && d.winnerIds is list
+        && noDuplicates(d.entrantIds)
+        && noDuplicates(d.waitlistIds)
+        && d.entrantIds.toSet().intersection(d.waitlistIds.toSet()).size() == 0
+        && d.lotteryStartTime is timestamp
+        && d.lotteryEndTime is timestamp
+        && d.registrationStartTime is timestamp
+        && d.registrationEndTime is timestamp
+        && d.reservationStartDate is timestamp
+        && d.reservationEndDate is timestamp
+        && d.lotteryStartTime <= d.lotteryEndTime
+        && d.lotteryEndTime <= d.registrationEndTime
+        && d.registrationStartTime <= d.registrationEndTime
+        && d.reservationStartDate <= d.reservationEndDate;
+    }
+
+    function participants(d) {
+      return d.entrantIds.toSet().union(d.waitlistIds.toSet());
+    }
+
+    // Joining or leaving: the only fields touched are the entrant list and the
+    // waitlist, and the only person added or removed is the caller. Moving the
+    // first waitlisted person into the lottery when someone leaves is allowed,
+    // since that doesn't change who is participating overall.
+    // Joining is only allowed while the lottery is open, same as LotteryModel.addEntrant
+    // (the form saves these dates as midnight UTC, so this matches the app's day check).
+    // Leaving is allowed any time.
+    function onlyJoinsOrLeavesSelf() {
+      let before = participants(resource.data);
+      let after = participants(request.resource.data);
+      let changedPeople = after.difference(before).union(before.difference(after));
+      let joining = request.auth.uid in after && !(request.auth.uid in before);
+      return changedKeys().hasOnly(['entrantIds', 'waitlistIds'])
+        && changedPeople.hasOnly([request.auth.uid])
+        && (!joining || (request.time >= resource.data.lotteryStartTime
+                         && request.time < resource.data.lotteryEndTime));
+    }
+
+    // Declining a win (LotteryRepository.declineWin): a winner adds themselves to
+    // declinedIds and nothing else changes
+    function onlyDeclinesOwnWin() {
+      let before = resource.data.get('declinedIds', []).toSet();
+      let after = request.resource.data.get('declinedIds', []).toSet();
+      return changedKeys().hasOnly(['declinedIds'])
+        && request.auth.uid in resource.data.winnerIds
+        && after.difference(before).hasOnly([request.auth.uid])
+        && before.difference(after).size() == 0;
+    }
+
+    match /lotteries/{lotteryId} {
+      allow read: if signedIn();
+
+      // An owner can make a lottery for their own campsites; it starts out empty
+      allow create: if isSelf(request.resource.data.ownerId)
+        && request.resource.data.id == lotteryId
+        && validLottery(request.resource.data)
+        && request.resource.data.entrantIds.size() == 0
+        && request.resource.data.waitlistIds.size() == 0
+        && request.resource.data.winnerIds.size() == 0
+        && ownsAllCampsites(request.resource.data.campsiteIds);
+
+      allow update: if validLottery(request.resource.data) && unchanged('id') && (
+        // The owner can edit anything (dates, capacity, drawing winners, removing
+        // entrants) except who owns it, and any campsites must still be theirs
+        (
+          (isSelf(resource.data.ownerId) || isAdmin())
+          && unchanged('ownerId')
+          && (unchanged('campsiteIds') || ownsAllCampsites(request.resource.data.campsiteIds))
+        )
+        // Everyone else can only add or remove themselves, or decline their own win
+        || (signedIn() && (onlyJoinsOrLeavesSelf() || onlyDeclinesOwnWin()))
+      );
+
+      allow delete: if isSelf(resource.data.ownerId) || isAdmin();
+    }
+
+    // ----------------------------------------------------------- reservations
+
+    // If a reservation comes from a lottery, the caller must have won it (and not
+    // declined) and the campsite must be one of that lottery's campsites
+    function wonLotteryFor(lotteryId, campsiteId) {
+      let lottery = get(/databases/$(database)/documents/lotteries/$(lotteryId)).data;
+      return request.auth.uid in lottery.winnerIds
+        && !(request.auth.uid in lottery.get('declinedIds', []))
+        && campsiteId in lottery.campsiteIds;
+    }
+
+    // Changes only the given true/false flag, from false to true
+    function onlyTurnsOn(flag) {
+      return changedKeys().hasOnly([flag])
+        && resource.data.get(flag, false) == false
+        && request.resource.data[flag] == true;
+    }
+
+    match /reservations/{reservationId} {
+      // Any signed in user can read reservations, because the reserve screen and the
+      // campsite details screen query every reservation on a campsite to show which
+      // dates are taken. Firestore rejects a whole query if it could return a document
+      // the rules don't allow, so this can't be limited to "your own" reservations
+      // without changing those screens. A reservation only holds anonymous UIDs and dates.
+      allow read: if signedIn();
+
+      allow create: if isSelf(request.resource.data.entrantId)
+        && request.resource.data.id == reservationId
+        && request.resource.data.startDate is timestamp
+        && request.resource.data.endDate is timestamp
+        && request.resource.data.startDate <= request.resource.data.endDate
+        && request.resource.data.hasRating == false
+        && request.resource.data.hasBeenCancelled == false
+        // ownerId has to really be the owner, so it shows up on their reservations screen
+        && campsiteData(request.resource.data.campsiteId).get('ownerId', '') == request.resource.data.ownerId
+        && (request.resource.data.get('lotteryId', null) == null
+            || wonLotteryFor(request.resource.data.lotteryId, request.resource.data.campsiteId));
+
+      allow update: if
+        // The entrant can mark their stay as rated (ReservationRepository.flagAsRated)
+        // once its last day has started, using the server's clock
+        (isSelf(resource.data.entrantId)
+          && onlyTurnsOn('hasRating')
+          && request.time > resource.data.endDate)
+        // Either side can cancel (ReservationRepository.flagAsCancelled)
+        || ((isSelf(resource.data.entrantId) || isSelf(resource.data.ownerId) || isAdmin())
+          && onlyTurnsOn('hasBeenCancelled'));
+
+      // Either side can delete it (ReservationRepository.deleteReservation)
+      allow delete: if isSelf(resource.data.entrantId)
+        || isSelf(resource.data.ownerId)
+        || isAdmin();
+    }
+  }
+}

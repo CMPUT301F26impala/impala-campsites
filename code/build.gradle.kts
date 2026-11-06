@@ -78,7 +78,12 @@ tasks.register("startFirebaseEmulators") {
                 firebaseScript.absolutePath,
                 "emulators:start",
                 "--project",
-                "campala-b8671"
+                "campala-b8671",
+                // firebase.json has the real security rules for deploying, but the tests write
+                // data the rules wouldn't allow (eg: lotteries owned by made up users), so the
+                // emulator uses a config with no rules, which makes it allow everything
+                "--config",
+                "firebase.emulator.json"
             )
                 .directory(rootDir)
                 .inheritIO()

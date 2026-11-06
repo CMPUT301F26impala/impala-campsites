@@ -36,7 +36,7 @@ import com.impala.campala.ViewObserver
 import com.google.firebase.Timestamp
 import com.impala.campala.model.LotteryModel
 import com.impala.campala.model.ReservationModel
-import java.time.ZoneId
+import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 
 /**
@@ -153,7 +153,7 @@ class CampsiteDetailsView(val controller: CampsiteDetailsController): ViewObserv
     }
 
     private fun formatDate(timestamp: Timestamp): String {
-        return timestamp.toInstant().atZone(ZoneId.systemDefault()).format(DateTimeFormatter.ofPattern("MMM d, yyyy"))
+        return timestamp.toInstant().atZone(ZoneOffset.UTC).format(DateTimeFormatter.ofPattern("MMM d, yyyy"))
     }
 
 
@@ -173,7 +173,7 @@ class CampsiteDetailsView(val controller: CampsiteDetailsController): ViewObserv
                 var enabled = true
                 var buttonAction: () -> Unit = {}
 
-                if(!lotteryExists || joinStatus == LotteryModel.ProspectiveJoinStatus.FULL) {
+                if(!lotteryExists || joinStatus == LotteryModel.ProspectiveJoinStatus.FULL || joinStatus == LotteryModel.ProspectiveJoinStatus.NOT_OPEN) {
                     buttonText = "Lottery Closed"
                     enabled = false
                 }
