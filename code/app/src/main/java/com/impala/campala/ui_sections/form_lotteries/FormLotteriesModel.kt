@@ -6,8 +6,11 @@ import com.impala.campala.model.LotteryRepository
 import kotlinx.coroutines.CoroutineScope
 import com.google.firebase.Timestamp
 import com.impala.campala.model.CampsiteModel
+import com.impala.campala.model.CampsiteOwnerProfileRepository
 import com.impala.campala.model.CampsiteRepository
 import kotlinx.coroutines.launch
+import java.time.LocalDate
+import java.time.ZoneOffset
 
 
 /**
@@ -22,6 +25,7 @@ import kotlinx.coroutines.launch
  * @param lottery lottery whose data will be edited, passed as null in creation mode
  * @param ownerId the id of the campsite owner creating the lottery
  * @param campsiteRepo Repository used to get the campsites for the dropdown
+ * @param campsiteOwnerProfileRepo Repository used to find which campsites the owner owns, so only those are in the dropdown
  */
 class FormLotteriesModel(
     val repo: LotteryRepository,
@@ -29,6 +33,7 @@ class FormLotteriesModel(
     var lottery: LotteryModel? = null,
     val ownerId: String,
     val campsiteRepo: CampsiteRepository,
+    val campsiteOwnerProfileRepo: CampsiteOwnerProfileRepository,
 ): ObservableModel<FormLotteriesModel>() {
 
     var campsiteIds = if (lottery == null) mutableListOf<String>() else lottery!!.campsiteIds.toMutableList()
@@ -94,7 +99,7 @@ class FormLotteriesModel(
                 availableDatesStart = lottery?.reservationStartDate
                 availableDatesEnd = lottery?.reservationEndDate
                 notifyObservers(this@FormLotteriesModel)
-
+                listAllAvailableCampsites()
             }
         }
 
@@ -103,11 +108,28 @@ class FormLotteriesModel(
     var campsiteDropdownData = listOf<CampsiteModel>()
     /**
      * Gets the list of campsites from the repo to display in the dropdown.
+     * Only the owner's own campsites that ARENT in another lottery are listed.
+     * A lottery counts as finished once its booking period end date has passed, since winners can reserve until then
      * Notifies the view after getting the list.
      */
     fun listAllAvailableCampsites() {
+        // Remembered so that if a different lottery gets opened while this is loading, this result is thrown away instead of shown
+        val editingLotteryId = lottery?.id
         scope.launch{
-            campsiteDropdownData = campsiteRepo.getFilteredCampsites()
+            val ownedCampsiteIds = campsiteOwnerProfileRepo.getCampsiteOwnerProfileById(ownerId)?.ownedCampsites ?: emptyList()
+
+            val today = LocalDate.now()
+            val takenCampsiteIds = repo.getLotteries()
+                .filter { it.id != editingLotteryId } // The lottery being edited can keep its own campsites
+                .filter { !today.isAfter(it.registrationEndTime.toInstant().atZone(ZoneOffset.UTC).toLocalDate()) }
+                .flatMap { it.campsiteIds }
+                .toSet()
+
+            val availableCampsites = campsiteRepo.getFilteredCampsites()
+                .filter { it.id in ownedCampsiteIds && it.id !in takenCampsiteIds }
+
+            if (lottery?.id != editingLotteryId) return@launch
+            campsiteDropdownData = availableCampsites
             notifyObservers(this@FormLotteriesModel)
         }
     }

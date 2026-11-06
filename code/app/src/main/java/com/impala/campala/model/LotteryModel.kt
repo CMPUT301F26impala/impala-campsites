@@ -171,7 +171,7 @@ data class LotteryModel @OptIn(ExperimentalUuidApi::class) constructor(
         if (today.isBefore(startDay) || !today.isBefore(endDay)) {
             return JoinResult.NOT_OPEN
         }
-        
+
         if (entrantIds.size < lotteryCapacity) {
             entrantIds.add(entrantId)
             return JoinResult.JOINED_LOTTERY

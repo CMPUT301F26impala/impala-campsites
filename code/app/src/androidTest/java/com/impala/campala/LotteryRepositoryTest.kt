@@ -97,6 +97,18 @@ class LotteryRepositoryTest {
     }
 
     @Test
+    fun getLotteryByCampsiteIdPrefersUnfinishedLottery(): Unit = runBlocking {
+        // The shared lottery's booking period ended in 1970, so this one is finished
+        // The new one's booking period ends far in the future, so it's the campsite's current lottery
+        val farFuture = Timestamp(250_000_000_000, 0)
+        val current = lottery.copy(lotteryEndTime = farFuture, registrationStartTime = farFuture, registrationEndTime = farFuture, id = "current-lottery")
+        repo.saveLottery(lottery)
+        repo.saveLottery(current)
+
+        assertEquals(current, repo.getLotteryByCampsiteId("azkaban"))
+    }
+
+    @Test
     fun getLotteriesByOwnerId(): Unit = runBlocking {
         repo.saveLottery(lottery)
         repo.saveLottery(lottery.copy(id = "other-lottery"))
