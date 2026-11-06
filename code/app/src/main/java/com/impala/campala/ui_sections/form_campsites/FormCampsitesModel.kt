@@ -162,7 +162,8 @@ class FormCampsitesModel(
                 location = location.trim(),
                 description = description,
                 maxOccupancy = occupancy,
-                tags = tags.toMutableList()
+                tags = tags.toMutableList(),
+                ownerId = user.getUID()
             )
         }
 

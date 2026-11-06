@@ -1,0 +1,13 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "campsites",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "location", "order": "ASCENDING" },
+        { "fieldPath": "maxOccupancy", "order": "ASCENDING" }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}

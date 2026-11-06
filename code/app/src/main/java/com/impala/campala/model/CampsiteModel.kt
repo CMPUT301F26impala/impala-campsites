@@ -22,6 +22,7 @@ data class CampsiteModel @OptIn(ExperimentalUuidApi::class) constructor(
     // ratingCount is the number of ratings, the average is just total / count (use the getter below)
     var ratingTotal: Double = 0.0,
     var ratingCount: Int = 0,
+    var ownerId: String = "", // UID of the campsite owner who created it, the Firestore security rules use this to decide who can edit/delete it
     var id: String = Uuid.random().toString()
 ) {
     /**
