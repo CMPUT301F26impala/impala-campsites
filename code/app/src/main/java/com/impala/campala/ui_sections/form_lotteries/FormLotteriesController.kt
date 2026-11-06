@@ -40,20 +40,83 @@ class FormLotteriesController(
     fun onSaveNavigationBecomesFalse() { model.changeSaveFlagFalse() }
 
     //registration and available and booking
+    /**
+     * Changes start of registration date
+     *
+     * @param newStartDate New registration start date
+     */
     fun onRegistrationPeriodStartDateChange(newStartDate: Timestamp) { model.updateRegistrationPeriodStartDate(newStartDate) }
+
+    /**
+     * Changes end of registration date
+     *
+     * @param newEndDate New registration end date
+     */
     fun onRegistrationPeriodEndDateChange(newEndDate: Timestamp) { model.updateRegistrationPeriodEndDate(newEndDate) }
+
+    /**
+     * Changes start of booking date
+     *
+     * @param newStartDate New booking start date
+     */
     fun onBookingPeriodStartDateChange(newStartDate: Timestamp) { model.updateBookingPeriodStartDate(newStartDate) }
+
+    /**
+     * Changes end of booking date
+     *
+     * @param newEndDate New booking end date
+     */
     fun onBookingPeriodEndDateChange(newEndDate: Timestamp) { model.updateBookingPeriodEndDate(newEndDate) }
+
+    /**
+     * Changes start of available dates for booking
+     *
+     * @param newStartDate New available start date
+     */
     fun onAvailableDatesStartChange(newStartDate: Timestamp) { model.updateAvailableDatesStart(newStartDate) }
+
+    /**
+     * Changes end of available dates for booking
+     *
+     * @param newEndDate New available end date
+     */
     fun onAvailableDatesEndChange(newEndDate: Timestamp) { model.updateAvailableDatesEnd(newEndDate) }
 
-    // variables max participant, waitlist, winner, list
+    /**
+     * Changes maximum participants of the lottery
+     *
+     * @param newMaximumParticipants new limit of maximum participants
+     */
     fun onMaximumParticipantsChange(newMaximumParticipants: String) {
         model.updateMaximumParticipants(newMaximumParticipants)
     }
+
+    /**
+     * Changes waitlist size of the lottery
+     *
+     * @param newWaitlistSize new waistlist size
+     */
     fun onWaitlistSizeChange(newWaitlistSize: String) { model.updateWaitlistSize(newWaitlistSize) }
+
+    /**
+     * Changes number of winners in the lottery
+     *
+     * @param newNumberOfWinners Number of winners for the lottery
+     */
     fun onNumberOfWinnersChange(newNumberOfWinners: String) { model.updateNumberOfWinners(newNumberOfWinners) }
+
+    /**
+     * Adds a campsite to chosen locations for a lottery
+     *
+     * @param newCampsiteId Campsite ID of the one being added
+     */
     fun onAddCampsite(newCampsiteId: String) { model.addCampsite(newCampsiteId) }
+
+    /**
+     * Removes a campsite form chosen locations for a lottery
+     *
+     * @param campsiteId Campsite ID of the one being removed
+     */
     fun onRemoveCampsite(campsiteId: String) { model.removeCampsite(campsiteId) }
 
     /**
