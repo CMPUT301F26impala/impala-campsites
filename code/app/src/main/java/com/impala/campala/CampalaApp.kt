@@ -108,7 +108,7 @@ fun SignedInApp(user: User) {
     chooseRoleModel.addObserver(chooseRoleView)
 
     // Shared by both navs, it checks user.getCurrentRole() to decide between the entrant and campsite owner UI
-    val viewLotteriesModel = remember { ViewLotteriesModel(lotteryRepo, campsiteRepo, reservationRepo, user, coroutineScope) }
+    val viewLotteriesModel = remember { ViewLotteriesModel(lotteryRepo, campsiteRepo, reservationRepo, entrantProfileRepo, user, coroutineScope) }
     val viewLotteriesController = remember { ViewLotteriesController(viewLotteriesModel) }
     val viewLotteriesView = remember { ViewLotteriesView(viewLotteriesController) }
     viewLotteriesModel.addObserver(viewLotteriesView)
