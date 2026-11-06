@@ -222,10 +222,8 @@ class CreateReservationModel(val scope: CoroutineScope, val lotteryRepo: Lottery
         }
     }
 
-    /**
-     * A helper function that recalculates isDateRangeValid and canConfirm whenever anything they depend on changes
-     * It has to be called from anything that changes the dates or the campsite
-     */
+     // A helper function that recalculates isDateRangeValid and canConfirm whenever anything they depend on changes
+     // It has to be called from anything that changes the dates or the campsite
     private fun recalculateValidity() {
         val start = selectedStartDate
         val end = selectedEndDate

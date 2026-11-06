@@ -13,8 +13,6 @@ import kotlinx.coroutines.tasks.await
  *
  * Model for anything in the app that wants to access the campsite info
  * including add/update/delete functionality
- *
- * @property db Firestore database lazy reference
  */
 class CampsiteRepository {
     private val db: FirebaseFirestore by lazy { Firebase.firestore }

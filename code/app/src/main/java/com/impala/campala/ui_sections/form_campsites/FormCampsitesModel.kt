@@ -124,12 +124,9 @@ class FormCampsitesModel(
         setFields(repo.getCampsiteById(campsiteId))
     }
 
-    /**
-     * Updated the fields in the form with the data that was passed, and set to null for clearing them
-     * Notifies the views that the fields have been updated.
-     *
-     * @param newCampsite The campsite data that should be added to the form, clear data when it's set to null
-     */
+    // Updated the fields in the form with the data that was passed, and set to null for clearing them
+    // Notifies the views that the fields have been updated.
+    // @param newCampsite The campsite data that should be added to the form, clear data when it's set to null
     private fun setFields(newCampsite: CampsiteModel?) {
         campsite = newCampsite
         title = newCampsite?.name ?: ""

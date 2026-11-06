@@ -376,18 +376,14 @@ class FormLotteriesView(
         } // end of column
     } // end of render function
 
-
-    /**
-     * Used in render to create the 6 date input boxes.
-     * Displays the selected date on a button, or the field name if no date was selected.
-     * When pressed, opens a date picker where the user can enter a date.
-     * The selected date is then passed back using onDateChange after pressing OK.
-     *
-     * @param insideText the text to display if no date has been selected
-     * @param chosenDate the current date selected, or null if no date was selected
-     * @param onDateChange the function called to update the date after the user selects one
-     * @return Unit, but renders a date input button as a side effect
-     */
+    // Used in render to create the 6 date input boxes.
+    // Displays the selected date on a button, or the field name if no date was selected.
+    // When pressed, opens a date picker where the user can enter a date.
+    // The selected date is then passed back using onDateChange after pressing OK.
+    // @param insideText the text to display if no date has been selected
+    // @param chosenDate the current date selected, or null if no date was selected
+    // @param onDateChange the function called to update the date after the user selects one
+    // @return Unit, but renders a date input button as a side effect
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     private fun DateInput(

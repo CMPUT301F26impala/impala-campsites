@@ -19,13 +19,12 @@ import kotlin.uuid.Uuid
  * @param entrantId The ID of the entrant making the reservation
  * @param startDate The first date of a reservation
  * @param endDate The last date of the reservation
- * @param rating The rating left by the entrant on this campsite
+ * @param hasRating True if there is a rating attached to this reservation
  * @param lotteryId The ID of the lottery that this reservation was created from
  * @param id The ID that the object has in the database
  *
  * @property doc The reference to the Firebase document containing this object
  * @property isPast True if the reservation is over
- * @property hasRating True if there is a rating attached to this reservation
  */
 data class ReservationModel @OptIn(ExperimentalUuidApi::class) constructor(
     val campsiteId: String = "", // Campsite

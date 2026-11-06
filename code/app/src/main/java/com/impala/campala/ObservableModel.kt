@@ -2,8 +2,6 @@ package com.impala.campala
 
 /**
  * This is the model interface for MVC classes
- *
- * @property observers a list of Views for the model
  */
 abstract class ObservableModel<M> {
     private val observers = mutableListOf<ViewObserver<M>>()

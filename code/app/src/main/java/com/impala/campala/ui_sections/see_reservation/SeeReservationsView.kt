@@ -89,6 +89,11 @@ class SeeReservationsView(val controller: SeeReservationsController) : ViewObser
     // SCREEN_A = Scheduled/Upcoming Reservations, SCREEN_B = Past, SCREEN_C = Past with the rate modal on top of it, as per how Liam designed this
     private enum class UiTarget { SCREEN_A, SCREEN_B, SCREEN_C }
 
+    /**
+     * The main function that renders the screen
+     *
+     * @param navController The navigation controller for the current user
+     */
     @Composable
     fun Render(navController: NavController) {
         // Load the user's reservations every time this tab is shown, so new bookings show up
@@ -243,9 +248,7 @@ class SeeReservationsView(val controller: SeeReservationsController) : ViewObser
         }
     }
 
-    /**
-     * The campsite owner's version of this tab, with Active, Past, and Cancelled tabs
-     */
+    // The campsite owner's version of this tab, with Active, Past, and Cancelled tabs
     @Composable
     private fun DrawOwnerRes() {
         // Instead of doing it based off of an enum, I'm just using the index of the tab in the tab bar
@@ -292,13 +295,10 @@ class SeeReservationsView(val controller: SeeReservationsController) : ViewObser
         }
     }
 
-    /**
-     * One reservation on the campsite owner's screen, with relevant info and actions
-     *
-     * @param res the reservation
-     * @param showActions whether to show the Reject and Message buttons, only true on Active
-     * @param onReject called when the Reject button is pressed
-     */
+    // One reservation on the campsite owner's screen, with relevant info and actions
+    // @param res the reservation
+    // @param showActions whether to show the Reject and Message buttons, only true on Active
+    // @param onReject called when the Reject button is pressed
     @Composable
     private fun DrawOwnerResRow(res: ReservationModel, showActions: Boolean, onReject: () -> Unit) {
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -366,23 +366,17 @@ class SeeReservationsView(val controller: SeeReservationsController) : ViewObser
         }
     }
 
-    /**
-     * The name of whoever made the reservation, entrant profiles don't always have a name set yet so this has a fallback
-     *
-     * @param res the reservation
-     */
+    // The name of whoever made the reservation, entrant profiles don't always have a name set yet so this has a fallback
+    // @param res the reservation
     private fun getEntrantName(res: ReservationModel): String {
         val name = entrants.find { it.userId == res.entrantId }?.name
         return if (name.isNullOrBlank()) "Unknown Entrant" else name
     }
 
-    /**
-     * The modal for a campsite owner to reject an active reservation
-     *
-     * @param res the active reservation being rejected
-     * @param onClose called when the modal is closed, whether by Cancel, Reject, or tapping outside it
-     * @param onConfirm called when the rejection has been confirmed
-     */
+    // The modal for a campsite owner to reject an active reservation
+    // @param res the active reservation being rejected
+    // @param onClose called when the modal is closed, whether by Cancel, Reject, or tapping outside it
+    // @param onConfirm called when the rejection has been confirmed
     @Composable
     private fun DrawRejectModal(res: ReservationModel, onClose: () -> Unit, onConfirm: () -> Unit) {
         AlertDialog(
@@ -407,11 +401,8 @@ class SeeReservationsView(val controller: SeeReservationsController) : ViewObser
         )
     }
 
-    /**
-     * Draws a date icon and the date range of the stay, extracted here for readability
-     *
-     * @param res the reservation
-     */
+    // Draws a date icon and the date range of the stay, extracted here for readability
+    // @param res the reservation
     @Composable
     private fun DrawDateRange(res: ReservationModel) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -433,13 +424,10 @@ class SeeReservationsView(val controller: SeeReservationsController) : ViewObser
         return timestamp.toInstant().atZone(ZoneId.systemDefault()).format(DateTimeFormatter.ofPattern("MMM d"))
     }
 
-    /**
-     * The rate campsite modal, otherwise known as SCREEN_C
-     *
-     * @param res the past reservation being rated
-     * @param onClose called when the modal is closed, whether by Cancel, Confirm, or tapping outside it
-     * @param onConfirm called when a confirmation has happened, and given the chosen rating
-     */
+    // The rate campsite modal, otherwise known as SCREEN_C
+    //@param res the past reservation being rated
+    // @param onClose called when the modal is closed, whether by Cancel, Confirm, or tapping outside it
+    // @param onConfirm called when a confirmation has happened, and given the chosen rating
     @Composable
     private fun DrawRateModal(res: ReservationModel, onClose: () -> Unit, onConfirm: (Double) -> Unit) {
         // Starts in the middle each time the modal opens

@@ -156,10 +156,8 @@ class CampsiteDetailsView(val controller: CampsiteDetailsController): ViewObserv
         return timestamp.toInstant().atZone(ZoneId.systemDefault()).format(DateTimeFormatter.ofPattern("MMM d, yyyy"))
     }
 
-    /**
-     * A function to render the relevant buttons in the bottom right of the screen based on flags
-     * @return Unit, but it does render Composable UI as a side effect
-     */
+
+    // A function to render the relevant buttons in the bottom right of the screen based on flags
     @Composable
     private fun RenderBottomButtons(modifier: Modifier = Modifier, navController: NavController) {
         Column(modifier = modifier.padding(all = 10.dp).fillMaxWidth(),
