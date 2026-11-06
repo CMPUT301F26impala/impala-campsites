@@ -113,6 +113,7 @@ class ViewLotteriesView(val controller: ViewLotteriesController) : ViewObserver<
                 IconLabel(Icons.Default.LocationOn, item.campsite?.location ?: "", modifier = Modifier.weight(1f))
                 IconLabel(Icons.Outlined.Person, "${item.spotsRemaining} Spots Remaining")
             }
+            IconLabel(Icons.AutoMirrored.Filled.List, "Waitlist: ${item.waitlistNames.joinToString("; ").ifEmpty { "none" }}")
         }
     }
 
