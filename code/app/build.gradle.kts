@@ -7,12 +7,14 @@ plugins {
 android {
     namespace = "com.impala.campala"
     compileSdk {
-        version = release(37)
+        version = release(37){
+            minorApiLevel=1
+        }
     }
 
     defaultConfig {
         applicationId = "com.impala.campala"
-        minSdk = 26
+        minSdk = 34
         targetSdk = 37
         versionCode = 1
         versionName = "1.0"
@@ -72,4 +74,5 @@ dependencies {
     implementation(libs.firebase.auth)
     implementation(libs.kotlinx.coroutines.play.services)
     testImplementation(libs.kotlinx.coroutines.test)
+    implementation(libs.androidx.compose.foundation.layout)
 }

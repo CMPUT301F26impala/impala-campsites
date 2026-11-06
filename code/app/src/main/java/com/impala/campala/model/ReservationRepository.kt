@@ -66,6 +66,20 @@ class ReservationRepository {
             .map { ReservationModel.load(it) }
     }
 
+    /**
+     * Gets all Reservations (past and future) for one campsite
+     *
+     * Used for the booking screen to find which dates a campsite is already reserved on
+     *
+     * @param campsiteId ID for campsite
+     *
+     * @return list of the campsite's reservations
+     */
+    suspend fun getReservationsByCampsite(campsiteId: String): List<ReservationModel> {
+        return collection.whereEqualTo("campsiteId", campsiteId).get().await()
+            .map { ReservationModel.load(it) }
+    }
+
     suspend fun getReservationsByDateRange(start: Timestamp, end: Timestamp): List<ReservationModel> {
         // someone should use their 272 knowledge and clean this up
         return collection.where(
@@ -118,5 +132,27 @@ class ReservationRepository {
      */
     suspend fun deleteReservation(reservation: ReservationModel): Unit {
         collection.document(reservation.id).delete().await()
+    }
+
+    /**
+     * Marks a past reservation as rated
+     *
+     * The rating itself is saved on the campsite, so this just sets hasRating to true
+     *
+     * @param reservationId ID of the reservation being rated
+     */
+    suspend fun flagAsRated(reservationId: String): Unit {
+        collection.document(reservationId).update("hasRating", true).await()
+    }
+
+    /**
+     * Marks a reservation as cancelled, used when a campsite owner rejects one
+     *
+     * The reservation isn't deleted so it can still be shown in the cancelled list, this just sets hasBeenCancelled to true
+     *
+     * @param reservationId ID of the reservation being cancelled
+     */
+    suspend fun flagAsCancelled(reservationId: String): Unit {
+        collection.document(reservationId).update("hasBeenCancelled", true).await()
     }
 }

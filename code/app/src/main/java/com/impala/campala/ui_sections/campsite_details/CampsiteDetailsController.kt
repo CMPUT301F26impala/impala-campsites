@@ -39,10 +39,6 @@ class CampsiteDetailsController(val model: CampsiteDetailsModel) : Controller {
         navController.popBackStack()
     }
 
-    fun moveToBookings() {
-        // TODO: Add functionality to move back to the booked dates screen
-    }
-
     fun generateQRCode() {
         // TODO: Add functionality to generate and display a QR Code.
     }

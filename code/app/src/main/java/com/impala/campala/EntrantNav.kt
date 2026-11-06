@@ -24,6 +24,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -38,8 +39,10 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.impala.campala.model.CampsiteModel
 import com.impala.campala.ui_sections.campsite_details.CampsiteDetailsView
-import com.impala.campala.ui_sections.reservation_related.SeeReservationsView
+import com.impala.campala.ui_sections.create_reservation.CreateReservationView
+import com.impala.campala.ui_sections.see_reservation.SeeReservationsView
 import com.impala.campala.ui_sections.search_campsites.SearchCampsitesView
 import com.impala.campala.ui_sections.view_lotteries.ViewLotteriesView
 
@@ -49,6 +52,7 @@ fun EntrantNavigationRoot(
     campsiteDetailsScreen: CampsiteDetailsView,
     seeReservationsScreen: SeeReservationsView,
     viewLotteriesScreen: ViewLotteriesView,
+    createReservationScreen: CreateReservationView,
     onSwitchRole: () -> Unit
 ) {
     val navController = rememberNavController()
@@ -65,6 +69,11 @@ fun EntrantNavigationRoot(
                     campsiteDetailsScreen.Render(navController, campsiteId)
                 }
             }
+        }
+        // Opened from the Reserve button on the Lotteries tab, for a lottery the entrant won
+        composable("createReservation/{lotteryId}") { backStackEntry ->
+            val lotteryId = backStackEntry.arguments?.getString("lotteryId") ?: ""
+            createReservationScreen.Render(navController, lotteryId)
         }
     }
 }
@@ -144,13 +153,6 @@ fun SearchTab(navController: NavController) {
         }) {
             Text("Example Button Taking You To Another Screen")
         }
-    }
-}
-
-@Composable
-fun ReservationsTab(navController: NavController) {
-    Column() {
-        Text("Reservations Screen!!!!") // TODO: Wire this up to the SeeReservations View & Controller
     }
 }
 

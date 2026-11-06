@@ -69,6 +69,7 @@ class SearchCampsitesView(val controller: SearchCampsitesController): ViewObserv
     private var dateFilter by mutableStateOf<LocalDate?>( null);
 
     private var results by mutableStateOf<List<CampsiteModel>>(mutableListOf())
+    private var locations by mutableStateOf<List<String>>(emptyList())
     private var viewMode by mutableStateOf(SearchCampsitesViewMode.ENTRANT)
 
     // No KDoc because that's described in the ViewObserver contract
@@ -78,6 +79,7 @@ class SearchCampsitesView(val controller: SearchCampsitesController): ViewObserv
         this.locationFilter = model.locationFilter
         this.dateFilter = model.dateFilter
         this.results = model.results
+        this.locations = model.locations
         this.viewMode = model.viewMode
     }
 
@@ -199,17 +201,15 @@ class SearchCampsitesView(val controller: SearchCampsitesController): ViewObserv
             )
             DropdownMenu(expanded=locationDropdownOpen, onDismissRequest = { locationDropdownOpen = false }) {
                 DropdownMenuItem(
-                    text={ Text("Jasper") },
-                    onClick={ locationDropdownOpen = false; controller.onLocationChange("Jasper") }
+                    text={ Text("Any Location") },
+                    onClick={ locationDropdownOpen = false; controller.onLocationChange(null) }
                 )
-                DropdownMenuItem(
-                    text={ Text("Banff") },
-                    onClick={ locationDropdownOpen = false; controller.onLocationChange("Banff") }
-                )
-                DropdownMenuItem(
-                    text={ Text("Lake Louise") },
-                    onClick={ locationDropdownOpen = false; controller.onLocationChange("Lake Louise") }
-                )
+                locations.forEach { location ->
+                    DropdownMenuItem(
+                        text={ Text(location) },
+                        onClick={ locationDropdownOpen = false; controller.onLocationChange(location) }
+                    )
+                }
             }
         }
     }
@@ -288,7 +288,11 @@ class SearchCampsitesView(val controller: SearchCampsitesController): ViewObserv
                     }
                     Row(modifier = Modifier.weight(1f),verticalAlignment = Alignment.CenterVertically) {
                         Icon(Icons.Default.Star, contentDescription = "Star Icon", tint = MaterialTheme.colorScheme.onSurfaceVariant)
-                        Text("5 Stars", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(
+                            campsite.averageRating?.let { "%.1f Stars".format(it) } ?: "No ratings yet",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
                     Row(modifier = Modifier.weight(1f),verticalAlignment = Alignment.CenterVertically) {
                         Icon(Icons.Default.Person, contentDescription = "Person Icon", tint = MaterialTheme.colorScheme.onSurfaceVariant)

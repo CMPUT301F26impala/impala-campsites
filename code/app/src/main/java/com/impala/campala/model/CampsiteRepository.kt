@@ -1,6 +1,7 @@
 package com.impala.campala.model
 
 import com.google.firebase.Firebase
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.firestore
@@ -25,6 +26,20 @@ class CampsiteRepository {
     // You can do this from any @Composable function by doing rememberCoroutineScope() and then using scope.launch
     // Or you can use LaunchedEffect(Unit) if you want something to run as soon as that Composable function is rendered
     // If you want to use it inside a model class, you just have to pass in the coroutine scope as a parameter. So we could create the scope inside the root of our app and pass it to our classes
+
+    /**
+     * Gets every unique location that at least one campsite has set.
+     *
+     * @return A list of strings, which are all the locations the campsites have
+     */
+    suspend fun getLocations(): List<String> {
+        val snapshot = db.collection("campsites").get().await()
+        return snapshot.toObjects(CampsiteModel::class.java)
+            .map { it.location.trim() }
+            .filter { it.isNotBlank() }
+            .distinct()
+            .sorted()
+    }
 
     /**
      * Gets a list of campsites based on optional filters
@@ -120,5 +135,21 @@ class CampsiteRepository {
      */
     suspend fun deleteCampsite(campsite: CampsiteModel): Unit {
         db.collection("campsites").document(campsite.id).delete().await()
+    }
+
+    /**
+     * Adds a rating to the campsite's total and incremements the count of ratings
+     *
+     * @param campsiteId ID of the campsite being rated
+     * @param rating the rating out of 5, can be a half (eg: 3.5)
+     */
+    suspend fun addRating(campsiteId: String, rating: Double): Unit {
+        // Since I'm not as familiar with Firebase, I did some googling and found this .increment function
+        db.collection("campsites").document(campsiteId)
+            .update(
+                "ratingTotal", FieldValue.increment(rating),
+                "ratingCount", FieldValue.increment(1)
+            )
+            .await()
     }
 }

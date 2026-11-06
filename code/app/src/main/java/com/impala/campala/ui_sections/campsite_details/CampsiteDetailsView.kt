@@ -15,6 +15,7 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -32,7 +33,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.impala.campala.ViewObserver
+import com.google.firebase.Timestamp
 import com.impala.campala.model.LotteryModel
+import com.impala.campala.model.ReservationModel
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 /**
  * The Campsite Details Screen
@@ -47,19 +52,24 @@ class CampsiteDetailsView(val controller: CampsiteDetailsController): ViewObserv
     private var location by mutableStateOf("")
     private var description by mutableStateOf("")
     private var maxOccupancy by mutableIntStateOf(0)
+    private var averageRating by mutableStateOf<Double?>(null)
     private var tags = mutableStateListOf<String>()
     private var joinStatus by mutableStateOf<LotteryModel.ProspectiveJoinStatus?>(null)
+    private var reservedDates = mutableStateListOf<ReservationModel>()
 
     override fun update(model: CampsiteDetailsModel) {
         this.name = model.name
         this.location = model.location
         this.description = model.description
         this.maxOccupancy = model.maxOccupancy
+        this.averageRating = model.averageRating
         this.tags.clear()
         this.tags.addAll(model.tags)
         this.isOwner = model.userIsOwner
         this.lotteryExists = model.lotteryExists
         this.joinStatus = model.joinStatus
+        this.reservedDates.clear()
+        this.reservedDates.addAll(model.reservedDates)
     }
 
     /**
@@ -101,6 +111,15 @@ class CampsiteDetailsView(val controller: CampsiteDetailsController): ViewObserv
             RenderIconText()
             RenderTextSection("Description", description)
             RenderTextSection("Tags", tags.joinToString())
+            if(isOwner) {
+                // TODO: This is not how our storyboard describes this should look, this will need to be polished up in final checkpoint to actually use the calendar renderer
+                // But for now, I had Claude Opus 5.5 generate this .joinToString call, with the prompt "How can I turn ranges of dates into a range string but still have each range be it's own line"
+                RenderTextSection(
+                    "Reserved Dates",
+                    reservedDates.joinToString("\n") { "${formatDate(it.startDate)} - ${formatDate(it.endDate)}" }
+                        .ifEmpty { "No upcoming reservations" }
+                )
+            }
             RenderBottomButtons(modifier = Modifier.weight(1f), navController)
         }
     }
@@ -119,6 +138,14 @@ class CampsiteDetailsView(val controller: CampsiteDetailsController): ViewObserv
             Icon(Icons.Default.Person, contentDescription = "Person Icon", tint = MaterialTheme.colorScheme.onSurfaceVariant)
             Text("Up to $maxOccupancy occupants", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
+        Row(modifier = Modifier.padding(horizontal = 10.dp), verticalAlignment = Alignment.CenterVertically) {
+            Icon(Icons.Default.Star, contentDescription = "Star Icon", tint = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(
+                averageRating?.let { "%.1f Stars".format(it) } ?: "No ratings yet",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
     }
 
     /**
@@ -130,6 +157,10 @@ class CampsiteDetailsView(val controller: CampsiteDetailsController): ViewObserv
         Spacer(modifier = Modifier.height(16.dp))
         Text(title, style = MaterialTheme.typography.headlineMedium, modifier = Modifier.padding(horizontal = 10.dp))
         Text(content, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(horizontal = 10.dp))
+    }
+
+    private fun formatDate(timestamp: Timestamp): String {
+        return timestamp.toInstant().atZone(ZoneId.systemDefault()).format(DateTimeFormatter.ofPattern("MMM d, yyyy"))
     }
 
     /**
@@ -144,7 +175,6 @@ class CampsiteDetailsView(val controller: CampsiteDetailsController): ViewObserv
         ) {
             if(isOwner) {
                 Button(onClick = { controller.generateQRCode() }) { Text("Generate QR") }
-                Button(onClick = { controller.moveToBookings() }) { Text("View Booked Dates") }
             }
             // Show a different button based on whether the lottery exists and is full
             else {

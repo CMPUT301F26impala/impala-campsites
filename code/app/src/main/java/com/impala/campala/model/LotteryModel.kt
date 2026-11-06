@@ -35,6 +35,7 @@ import kotlin.uuid.Uuid
  * @property numberOfWinners Number of possible winners for the lottery, defaults to at least 1 winner
  * @property waitlistIds IDs of people on the waitlist, in the order they joined (earliest first)
  * @property winnerIds IDs of entrants who were drawn as winners, empty until the lottery is drawn
+ * @property declinedIds IDs of winners who declined to reserve, they stay in winnerIds so there's still a record of who won
  * @property ownerId ID of the campsite owner who created the lottery
  */
 data class LotteryModel @OptIn(ExperimentalUuidApi::class) constructor(
@@ -51,6 +52,7 @@ data class LotteryModel @OptIn(ExperimentalUuidApi::class) constructor(
     var numberOfWinners: Int = 1,
     var waitlistIds: MutableList<String> = mutableListOf(),
     var winnerIds: MutableList<String> = mutableListOf(),
+    var declinedIds: MutableList<String> = mutableListOf(),
     var ownerId: String = "",
     var id: String = Uuid.random().toString()
 ) {

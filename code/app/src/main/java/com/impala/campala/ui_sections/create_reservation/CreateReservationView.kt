@@ -1,0 +1,543 @@
+package com.impala.campala.ui_sections.create_reservation
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.PressInteraction
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Grid
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.SelectableDates
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.getSelectedDate
+import androidx.compose.material3.rememberDatePickerState
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import com.google.firebase.Timestamp
+import com.impala.campala.model.ReservationRepository
+import kotlinx.coroutines.CoroutineScope
+import java.time.LocalDate
+import java.time.YearMonth
+import java.time.Instant
+import java.time.ZoneId
+import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
+import java.time.format.TextStyle
+import androidx.compose.ui.platform.LocalLocale
+import androidx.navigation.NavController
+import com.impala.campala.ViewObserver
+import com.impala.campala.model.CampsiteModel
+
+enum class MODAL_STATE {
+    CLOSED,
+    CONFIRM_MODAL_OPEN,
+    DECLINE_MODAL_OPEN,
+}
+
+class CreateReservationView(
+    val controller: CreateReservationController,
+): ViewObserver<CreateReservationModel> {
+    private var currentStage by mutableStateOf(CURRENT_RESERVATION_STAGE.TERMS_ACCEPT)
+    private var availableCampsites by mutableStateOf<List<CampsiteModel>>(emptyList())
+    private var selectedCampsite by mutableStateOf<CampsiteModel?>(null)
+    private var dateRangeStart by mutableStateOf<LocalDate>(LocalDate.now())
+    private var dateRangeEnd by mutableStateOf<LocalDate>(LocalDate.now())
+    private var alreadyReservedDatesForSelectedCampsite by mutableStateOf<List<LocalDate>>(emptyList())
+    private var selectedStartDate by mutableStateOf<LocalDate?>(null)
+    private var selectedEndDate by mutableStateOf<LocalDate?>(null)
+    private var isDateRangeValid by mutableStateOf(false)
+    private var canConfirm by mutableStateOf(false)
+
+    override fun update(model: CreateReservationModel) {
+        modalState = MODAL_STATE.CLOSED
+        currentStage = model.currentStage
+        availableCampsites = model.availableCampsites
+        selectedCampsite = model.selectedCampsite
+        dateRangeStart = model.dateRangeStart
+        dateRangeEnd = model.dateRangeEnd
+        alreadyReservedDatesForSelectedCampsite = model.alreadyReservedDatesForSelectedCampsite
+        selectedStartDate = model.selectedStartDate
+        selectedEndDate = model.selectedEndDate
+        isDateRangeValid = model.isDateRangeValid
+        canConfirm = model.canConfirm
+    }
+
+    private var modalState by mutableStateOf(MODAL_STATE.CLOSED)
+
+    @Composable
+    fun Render(navController: NavController, lotteryId: String) {
+        LaunchedEffect(lotteryId) {
+            controller.onOpen(lotteryId)
+        }
+
+        Scaffold(
+            floatingActionButton = {
+                if (currentStage == CURRENT_RESERVATION_STAGE.PICK_CAMPSITE_AND_DATES) {
+                    DrawFabs()
+                } else if (currentStage == CURRENT_RESERVATION_STAGE.CONFIRMATION) {
+                    ExtendedFloatingActionButton(
+                        onClick = { controller.goHome(navController) },
+                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    ) {
+                        Text("Back To Home")
+                    }
+                }
+            }
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(it)
+                    .verticalScroll(rememberScrollState())
+                    .padding(16.dp)
+            ) {
+                Text(
+                    if (currentStage == CURRENT_RESERVATION_STAGE.CONFIRMATION) "You're All Set!" else "Reserve Campsite",
+                    style = MaterialTheme.typography.headlineLarge
+                )
+                if (currentStage == CURRENT_RESERVATION_STAGE.TERMS_ACCEPT) {
+                    DrawTermsStage(Modifier.weight(1f))
+                } else if (currentStage == CURRENT_RESERVATION_STAGE.PICK_CAMPSITE_AND_DATES) {
+                    if (availableCampsites.size > 1) {
+                        DrawCampsiteSelector()
+                    }
+                    DrawCalendar(dateRangeStart, dateRangeEnd)
+                    DrawDateFields()
+                    // Spacer so the fabs don't cover content
+                    Spacer(modifier = Modifier.height(160.dp))
+                } else if (currentStage == CURRENT_RESERVATION_STAGE.CONFIRMATION) {
+                    DrawConfirmationStage()
+                }
+            }
+        }
+        DrawModal(navController)
+    }
+
+    /**
+     * The final screen after a reservation is confirmed, it just restates what was booked
+     */
+    @Composable
+    private fun DrawConfirmationStage() {
+        val start = selectedStartDate
+        val end = selectedEndDate
+        val dateFormat = DateTimeFormatter.ofPattern("MMMM d, uuuu")
+        Column(
+            modifier = Modifier.padding(top = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            ConfirmationDetail(Icons.Default.LocationOn, "${selectedCampsite?.name ?: ""}, ${selectedCampsite?.location ?: ""}")
+            // TODO: campsites don't have ratings yet, also do we need to put ratings here?
+            ConfirmationDetail(Icons.Default.Star, "5 Stars")
+            if (start != null && end != null) {
+                ConfirmationDetail(Icons.Default.DateRange, "${start.format(dateFormat)} - ${end.format(dateFormat)}")
+            }
+            ConfirmationDetail(Icons.Outlined.Person, "Up to ${selectedCampsite?.maxOccupancy ?: 0} Occupants")
+        }
+    }
+
+    @Composable
+    private fun ConfirmationDetail(icon: ImageVector, text: String) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+            Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(18.dp))
+            Text(text, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+    }
+
+    /**
+     * Draws the "Are you sure" modal, its one component that handles both the decline and confirmation modal because they can't both be open anyway
+     * Draws nothing when modalState is CLOSED
+     *
+     * @param navController the NavController, so declining can go back to the previous screen
+     */
+    @Composable
+    private fun DrawModal(navController: NavController) {
+        if (modalState == MODAL_STATE.CLOSED) {
+            return
+        }
+        val isDecline = modalState == MODAL_STATE.DECLINE_MODAL_OPEN
+        AlertDialog(
+            onDismissRequest = { modalState = MODAL_STATE.CLOSED },
+            title = { Text(if (isDecline) "Confirm Cancellation" else "Confirm Reservation") },
+            text = {
+                Text(
+                    if (isDecline) {
+                        "Are you sure you want to decline this reservation? You will not be allowed to book in this registration period."
+                    } else {
+                        "Are you sure you want to confirm this reservation? You cannot change your dates or campsite after although you can cancel."
+                    }
+                )
+            },
+            dismissButton = {
+                TextButton(onClick = { modalState = MODAL_STATE.CLOSED }) {
+                    Text("Go Back")
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    modalState = MODAL_STATE.CLOSED
+                    if (isDecline) {
+                        controller.onDeclinePress(navController)
+                    } else {
+                        controller.onConfirmPress()
+                    }
+                }) {
+                    Text(if (isDecline) "Decline" else "Confirm")
+                }
+            }
+        )
+    }
+
+    @Composable
+    private fun DrawTermsStage(modifier: Modifier = Modifier) {
+        Column(modifier = modifier.fillMaxWidth()) {
+            Text(
+                "Campsite rules and policies",
+                style = MaterialTheme.typography.bodyLarge
+            )
+            for (campsite in availableCampsites) {
+                // If there's more than one campsite, each one needs a title for it's terms
+                if (availableCampsites.size > 1) {
+                    Text(
+                        campsite.name,
+                        style = MaterialTheme.typography.titleMedium,
+                        modifier = Modifier.padding(top = 12.dp)
+                    )
+                }
+                Text(
+                    campsite.rules.ifBlank { "No terms provided" },
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
+            Spacer(modifier = Modifier.weight(1f))
+            Row(
+                modifier = Modifier.align(
+                    Alignment.CenterHorizontally
+                ),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Button(onClick = {
+                    controller.onAcceptTerms()
+                }) {
+                    Text("I accept", style = MaterialTheme.typography.titleMedium)
+                }
+            }
+        }
+
+    }
+
+    /**
+     * Draws the FABs, Decline is always present, while Confirm is only present when the configuration is valid
+     */
+    @Composable
+    private fun DrawFabs() {
+        Column(
+            horizontalAlignment = Alignment.End,
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            ExtendedFloatingActionButton(
+                onClick = { modalState = MODAL_STATE.DECLINE_MODAL_OPEN },
+                icon = { Icon(Icons.Default.Close, contentDescription = null) },
+                text = { Text("Decline Reservation") },
+                containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                contentColor = MaterialTheme.colorScheme.onTertiaryContainer
+            )
+            if (canConfirm) {
+                ExtendedFloatingActionButton(
+                    onClick = { modalState = MODAL_STATE.CONFIRM_MODAL_OPEN },
+                    icon = { Icon(Icons.Default.DateRange, contentDescription = null) },
+                    text = { Text("Confirm Reservation") },
+                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                )
+            }
+        }
+    }
+
+    /**
+     * Draws the Start Date and End Date fields
+     */
+    @Composable
+    private fun DrawDateFields() {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            DateField("Start Date", selectedStartDate, Modifier.weight(1f)) { date ->
+                controller.onStartDateChange(date)
+            }
+            DateField("End Date", selectedEndDate, Modifier.weight(1f)) { date ->
+                controller.onEndDateChange(date)
+            }
+        }
+    }
+
+    /**
+     * An OutlinedTextField that opens a date picker when pressed
+     *
+     * @param label the label shown on the field
+     * @param date the currently picked date, null if none is picked
+     * @param modifier android modifier
+     * @param onDateChange called with the new date when one is picked, or null when it's cleared
+     */
+    @OptIn(ExperimentalMaterial3Api::class)
+    @Composable
+    private fun DateField(label: String, date: LocalDate?, modifier: Modifier, onDateChange: (LocalDate?) -> Unit) {
+        var datePickerOpen by remember { mutableStateOf(false) }
+
+        // I had problems with having the text input that opened up the dialog, because yknow a text input doesn't really want to open something else when pressed it wants to open the keyboard
+        // So I asked Claude Opus 5.5 how to make an OutlinedTextField trigger other code when pressed, and it gave me the below LaunchedEffect block
+        // the TextField itself is my code
+        val interactionSource = remember { MutableInteractionSource() }
+        LaunchedEffect(interactionSource) {
+            interactionSource.interactions.collect { interaction ->
+                if (interaction is PressInteraction.Release) {
+                    datePickerOpen = true
+                }
+            }
+        }
+
+        OutlinedTextField(
+            value = date?.format(DateTimeFormatter.ofPattern("MM/dd/uuuu")) ?: "",
+            onValueChange = {},
+            readOnly = true,
+            label = { Text(label) },
+            singleLine = true,
+            interactionSource = interactionSource,
+            trailingIcon = {
+                if (date != null) {
+                    IconButton(onClick = { onDateChange(null) }) {
+                        Icon(Icons.Default.Clear, contentDescription = "Clear $label")
+                    }
+                }
+            },
+            modifier = modifier
+        )
+
+        if (datePickerOpen) {
+            // I Used Claude Opus 5.5 with the prompt "How can I wire up a DatePickerDialog in Kotlin such that it has a list of specific selectable dates"
+            // It helped me create this rememberDatePickerState call
+            // Aside from that, I still wrote the UI for this myself.
+            val datePickerState = rememberDatePickerState(
+                initialSelectedDate = date,
+                initialDisplayedMonth = YearMonth.from(date ?: dateRangeStart),
+                selectableDates = object : SelectableDates {
+                    override fun isSelectableDate(utcTimeMillis: Long): Boolean {
+                        // The picker gives dates as milliseconds at midnight UTC
+                        val day = Instant.ofEpochMilli(utcTimeMillis).atZone(ZoneOffset.UTC).toLocalDate()
+                        return !day.isBefore(dateRangeStart) && !day.isAfter(dateRangeEnd) &&
+                            day !in alreadyReservedDatesForSelectedCampsite
+                    }
+
+                    override fun isSelectableYear(year: Int): Boolean {
+                        return year in dateRangeStart.year..dateRangeEnd.year
+                    }
+                }
+            )
+            DatePickerDialog(
+                onDismissRequest = { datePickerOpen = false },
+                confirmButton = {
+                    TextButton(onClick = {
+                        datePickerOpen = false
+                        onDateChange(datePickerState.getSelectedDate())
+                    }) {
+                        Text("OK")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { datePickerOpen = false }) {
+                        Text("Cancel")
+                    }
+                }
+            ) {
+                DatePicker(state = datePickerState)
+            }
+        }
+    }
+
+    /**
+     * Draws a radio button for each campsite so the user can pick which one to reserve
+     */
+    @Composable
+    private fun DrawCampsiteSelector() {
+        // I googled some Radio button implementations for this
+        Column(modifier = Modifier.selectableGroup()) {
+            for (campsite in availableCampsites) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .selectable(
+                            selected = campsite.id == selectedCampsite?.id,
+                            onClick = { controller.onCampsiteSelect(campsite.id) },
+                            role = Role.RadioButton
+                        )
+                        .padding(vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // onClick is null since the Row above already handles the tap
+                    RadioButton(selected = campsite.id == selectedCampsite?.id, onClick = null)
+                    Text(
+                        campsite.name,
+                        style = MaterialTheme.typography.bodyLarge,
+                        modifier = Modifier.padding(start = 16.dp)
+                    )
+                }
+            }
+        }
+    }
+
+    /**
+     * Draws a calendar of every day from [startDate] up to and including [endDate]
+     *
+     * this function splits the range into months, and calls a subfunction to render each month
+     *
+     * @param startDate the first day to show
+     * @param endDate the last day to show
+     */
+    @Composable
+    private fun DrawCalendar(startDate: LocalDate, endDate: LocalDate) {
+        Column {
+            var firstMonth = YearMonth.from(startDate)
+            val lastMonth = YearMonth.from(endDate)
+            // Effectively this is "for each month from first to last"
+            while (!firstMonth.isAfter(lastMonth)) {
+                Text(
+                    firstMonth.month.getDisplayName(TextStyle.FULL, LocalLocale.current.platformLocale),
+                    style = MaterialTheme.typography.titleSmall,
+                    modifier = Modifier.padding(top = 16.dp, bottom = 8.dp)
+                )
+                DrawMonth(
+                    firstMonth.atDay(1),
+                    firstMonth.atEndOfMonth(),
+                    startDate,
+                    endDate
+                )
+                firstMonth = firstMonth.plusMonths(1)
+            }
+        }
+    }
+
+    /**
+     * Draws one month's grid, from the start date up to the end date INCLUDING the end date
+     * This is Minh's code, I've just extracted it to this function so that multi-month ranges can render multiple of these
+     *
+     * @param startDate the first day of this month to show
+     * @param endDate the last day of this month to show
+     * @param availableStart the first day that can be booked, days before it are greyed out
+     * @param availableEnd the last day that can be booked, days after it are greyed out
+     */
+    @Composable
+    private fun DrawMonth(startDate: LocalDate, endDate: LocalDate, availableStart: LocalDate, availableEnd: LocalDate) {
+        Grid(
+            config = {
+                repeat(7) {
+                    column(1 / 7f)
+                }
+                gap(8.dp)
+            }
+        ) {
+            Text("Mon")
+            Text("Tue")
+            Text("Wed")
+            Text("Thu")
+            Text("Fri")
+            Text("Sat")
+            Text("Sun")
+            // theres probably a better way to insert blanks
+            for (i in 1..(startDate.dayOfWeek.value - 1)) {
+                Text("")
+            }
+
+            for (date in startDate.datesUntil(endDate.plusDays(1))) {
+                var backgroundColor = MaterialTheme.colorScheme.primary
+                var textColor = MaterialTheme.colorScheme.onPrimary
+                if (date.isBefore(availableStart) || date.isAfter(availableEnd)) {
+                    backgroundColor = Color.Transparent
+                    textColor = MaterialTheme.colorScheme.onSurface
+                } else if (date in alreadyReservedDatesForSelectedCampsite) {
+                    // Reserved days stay red
+                    backgroundColor = MaterialTheme.colorScheme.tertiary
+                } else if (isDateSelected(date)) {
+                    backgroundColor = MaterialTheme.colorScheme.primaryContainer
+                    textColor = MaterialTheme.colorScheme.onPrimaryContainer
+                }
+
+                Text(
+                    "${date.dayOfMonth}",
+                    modifier = Modifier
+                        .background(
+                            color = backgroundColor,
+                            shape = RoundedCornerShape(12.dp)
+                        )
+                        .fillMaxWidth()
+                        .fillMaxHeight(),
+                    style = MaterialTheme.typography.displaySmall,
+                    color = textColor,
+                    textAlign = TextAlign.Center
+                )
+            }
+        }
+    }
+
+    /**
+     * Whether a day is part of the user's current selection, used to highlight it on the calendar
+     *
+     * With both dates picked, it's every day from the start to the end (in either order, so a backwards range still shows)
+     * With only one picked, it's just that day
+     *
+     * @param date the day to check
+     * @return true if the day should be highlighted
+     */
+    private fun isDateSelected(date: LocalDate): Boolean {
+        val start = selectedStartDate
+        val end = selectedEndDate
+        if (start != null && end != null) {
+            return !date.isBefore(minOf(start, end)) && !date.isAfter(maxOf(start, end))
+        }
+        return date == start || date == end
+    }
+}
