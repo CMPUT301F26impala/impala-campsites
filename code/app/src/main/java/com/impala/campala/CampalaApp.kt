@@ -97,7 +97,7 @@ fun SignedInApp(user: User) {
     val formLotteriesView = remember { FormLotteriesView(formLotteriesController) }
     formLotteriesModel.addObserver(formLotteriesView)
 
-    val campsiteDetailsModel = remember { CampsiteDetailsModel(campsiteRepo, lotteryRepo, campsiteOwnerProfileRepo, user, coroutineScope) }
+    val campsiteDetailsModel = remember { CampsiteDetailsModel(campsiteRepo, lotteryRepo, campsiteOwnerProfileRepo, reservationRepo, user, coroutineScope) }
     val campsiteDetailsController = remember { CampsiteDetailsController(campsiteDetailsModel) }
     val campsiteDetailsView = remember { CampsiteDetailsView(campsiteDetailsController) }
     campsiteDetailsModel.addObserver(campsiteDetailsView)
@@ -115,7 +115,7 @@ fun SignedInApp(user: User) {
 
     val createReservationModel = remember { CreateReservationModel(coroutineScope, lotteryRepo, campsiteRepo, reservationRepo, user) }
     val createReservationController = remember { CreateReservationController(createReservationModel) }
-    val createReservationView = remember { CreateReservationView(createReservationController, reservationRepo, coroutineScope) }
+    val createReservationView = remember { CreateReservationView(createReservationController) }
     createReservationModel.addObserver(createReservationView)
 
     val seeReservationsModel = remember { SeeReservationsModel(reservationRepo, campsiteRepo, entrantProfileRepo, user, coroutineScope) }

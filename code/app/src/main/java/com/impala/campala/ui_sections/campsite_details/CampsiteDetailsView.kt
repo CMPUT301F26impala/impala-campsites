@@ -33,7 +33,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.impala.campala.ViewObserver
+import com.google.firebase.Timestamp
 import com.impala.campala.model.LotteryModel
+import com.impala.campala.model.ReservationModel
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 /**
  * The Campsite Details Screen
@@ -51,6 +55,7 @@ class CampsiteDetailsView(val controller: CampsiteDetailsController): ViewObserv
     private var averageRating by mutableStateOf<Double?>(null)
     private var tags = mutableStateListOf<String>()
     private var joinStatus by mutableStateOf<LotteryModel.ProspectiveJoinStatus?>(null)
+    private var reservedDates = mutableStateListOf<ReservationModel>()
 
     override fun update(model: CampsiteDetailsModel) {
         this.name = model.name
@@ -63,6 +68,8 @@ class CampsiteDetailsView(val controller: CampsiteDetailsController): ViewObserv
         this.isOwner = model.userIsOwner
         this.lotteryExists = model.lotteryExists
         this.joinStatus = model.joinStatus
+        this.reservedDates.clear()
+        this.reservedDates.addAll(model.reservedDates)
     }
 
     /**
@@ -104,6 +111,15 @@ class CampsiteDetailsView(val controller: CampsiteDetailsController): ViewObserv
             RenderIconText()
             RenderTextSection("Description", description)
             RenderTextSection("Tags", tags.joinToString())
+            if(isOwner) {
+                // TODO: This is not how our storyboard describes this should look, this will need to be polished up in final checkpoint to actually use the calendar renderer
+                // But for now, I had Claude Opus 5.5 generate this .joinToString call, with the prompt "How can I turn ranges of dates into a range string but still have each range be it's own line"
+                RenderTextSection(
+                    "Reserved Dates",
+                    reservedDates.joinToString("\n") { "${formatDate(it.startDate)} - ${formatDate(it.endDate)}" }
+                        .ifEmpty { "No upcoming reservations" }
+                )
+            }
             RenderBottomButtons(modifier = Modifier.weight(1f), navController)
         }
     }
@@ -143,6 +159,10 @@ class CampsiteDetailsView(val controller: CampsiteDetailsController): ViewObserv
         Text(content, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(horizontal = 10.dp))
     }
 
+    private fun formatDate(timestamp: Timestamp): String {
+        return timestamp.toInstant().atZone(ZoneId.systemDefault()).format(DateTimeFormatter.ofPattern("MMM d, yyyy"))
+    }
+
     /**
      * A function to render the relevant buttons in the bottom right of the screen based on flags
      * @return Unit, but it does render Composable UI as a side effect
@@ -155,7 +175,6 @@ class CampsiteDetailsView(val controller: CampsiteDetailsController): ViewObserv
         ) {
             if(isOwner) {
                 Button(onClick = { controller.generateQRCode() }) { Text("Generate QR") }
-                Button(onClick = { controller.moveToBookings() }) { Text("View Booked Dates") }
             }
             // Show a different button based on whether the lottery exists and is full
             else {
