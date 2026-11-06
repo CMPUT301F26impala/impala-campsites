@@ -115,7 +115,7 @@ fun SignedInApp(user: User) {
 
     val createReservationModel = remember { CreateReservationModel(coroutineScope, lotteryRepo, campsiteRepo, reservationRepo, user) }
     val createReservationController = remember { CreateReservationController(createReservationModel) }
-    val createReservationView = remember { CreateReservationView(createReservationController, reservationRepo, coroutineScope) }
+    val createReservationView = remember { CreateReservationView(createReservationController) }
     createReservationModel.addObserver(createReservationView)
 
     val seeReservationsModel = remember { SeeReservationsModel(reservationRepo, campsiteRepo, entrantProfileRepo, user, coroutineScope) }
