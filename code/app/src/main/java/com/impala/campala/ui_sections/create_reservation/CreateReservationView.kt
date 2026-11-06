@@ -78,6 +78,11 @@ enum class MODAL_STATE {
     DECLINE_MODAL_OPEN,
 }
 
+/**
+ * The screen from which entrants will create reservations
+ *
+ * @param controller The controller for this View which updates the related model
+ */
 class CreateReservationView(
     val controller: CreateReservationController,
 ): ViewObserver<CreateReservationModel> {
@@ -108,6 +113,12 @@ class CreateReservationView(
 
     private var modalState by mutableStateOf(MODAL_STATE.CLOSED)
 
+    /**
+     * The main render function for the CreateReservationView
+     *
+     * @param navController The navigation controller for the current user
+     * @param lotteryId The ID of the lottery this reservation is being created from
+     */
     @Composable
     fun Render(navController: NavController, lotteryId: String) {
         LaunchedEffect(lotteryId) {
@@ -158,9 +169,6 @@ class CreateReservationView(
         DrawModal(navController)
     }
 
-    /**
-     * The final screen after a reservation is confirmed, it just restates what was booked
-     */
     @Composable
     private fun DrawConfirmationStage() {
         val start = selectedStartDate
@@ -188,12 +196,9 @@ class CreateReservationView(
         }
     }
 
-    /**
-     * Draws the "Are you sure" modal, its one component that handles both the decline and confirmation modal because they can't both be open anyway
-     * Draws nothing when modalState is CLOSED
-     *
-     * @param navController the NavController, so declining can go back to the previous screen
-     */
+     // Draws the "Are you sure" modal, its one component that handles both the decline and confirmation modal because they can't both be open anyway
+     // Draws nothing when modalState is CLOSED
+     // @param navController the NavController, so declining can go back to the previous screen
     @Composable
     private fun DrawModal(navController: NavController) {
         if (modalState == MODAL_STATE.CLOSED) {
@@ -270,9 +275,7 @@ class CreateReservationView(
 
     }
 
-    /**
-     * Draws the FABs, Decline is always present, while Confirm is only present when the configuration is valid
-     */
+    // Draws the FABs, Decline is always present, while Confirm is only present when the configuration is valid
     @Composable
     private fun DrawFabs() {
         Column(
@@ -298,9 +301,7 @@ class CreateReservationView(
         }
     }
 
-    /**
-     * Draws the Start Date and End Date fields
-     */
+    // Draws the Start Date and End Date fields
     @Composable
     private fun DrawDateFields() {
         Row(
@@ -316,14 +317,11 @@ class CreateReservationView(
         }
     }
 
-    /**
-     * An OutlinedTextField that opens a date picker when pressed
-     *
-     * @param label the label shown on the field
-     * @param date the currently picked date, null if none is picked
-     * @param modifier android modifier
-     * @param onDateChange called with the new date when one is picked, or null when it's cleared
-     */
+    // An OutlinedTextField that opens a date picker when pressed
+    // @param label the label shown on the field
+    // @param date the currently picked date, null if none is picked
+    // @param modifier android modifier
+    // @param onDateChange called with the new date when one is picked, or null when it's cleared
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     private fun DateField(label: String, date: LocalDate?, modifier: Modifier, onDateChange: (LocalDate?) -> Unit) {
@@ -399,9 +397,7 @@ class CreateReservationView(
         }
     }
 
-    /**
-     * Draws a radio button for each campsite so the user can pick which one to reserve
-     */
+    // Draws a radio button for each campsite so the user can pick which one to reserve
     @Composable
     private fun DrawCampsiteSelector() {
         // I googled some Radio button implementations for this
@@ -430,14 +426,10 @@ class CreateReservationView(
         }
     }
 
-    /**
-     * Draws a calendar of every day from [startDate] up to and including [endDate]
-     *
-     * this function splits the range into months, and calls a subfunction to render each month
-     *
-     * @param startDate the first day to show
-     * @param endDate the last day to show
-     */
+    // Draws a calendar of every day from [startDate] up to and including [endDate]
+    // this function splits the range into months, and calls a subfunction to render each month
+    //c@param startDate the first day to show
+    // @param endDate the last day to show
     @Composable
     private fun DrawCalendar(startDate: LocalDate, endDate: LocalDate) {
         Column {
@@ -461,15 +453,12 @@ class CreateReservationView(
         }
     }
 
-    /**
-     * Draws one month's grid, from the start date up to the end date INCLUDING the end date
-     * This is Minh's code, I've just extracted it to this function so that multi-month ranges can render multiple of these
-     *
-     * @param startDate the first day of this month to show
-     * @param endDate the last day of this month to show
-     * @param availableStart the first day that can be booked, days before it are greyed out
-     * @param availableEnd the last day that can be booked, days after it are greyed out
-     */
+    // Draws one month's grid, from the start date up to the end date INCLUDING the end date
+    // This is Minh's code, I've just extracted it to this function so that multi-month ranges can render multiple of these
+    // @param startDate the first day of this month to show
+    // @param endDate the last day of this month to show
+    // @param availableStart the first day that can be booked, days before it are greyed out
+    // @param availableEnd the last day that can be booked, days after it are greyed out
     @Composable
     private fun DrawMonth(startDate: LocalDate, endDate: LocalDate, availableStart: LocalDate, availableEnd: LocalDate) {
         Grid(
@@ -523,15 +512,11 @@ class CreateReservationView(
         }
     }
 
-    /**
-     * Whether a day is part of the user's current selection, used to highlight it on the calendar
-     *
-     * With both dates picked, it's every day from the start to the end (in either order, so a backwards range still shows)
-     * With only one picked, it's just that day
-     *
-     * @param date the day to check
-     * @return true if the day should be highlighted
-     */
+    // Whether a day is part of the user's current selection, used to highlight it on the calendar
+    // With both dates picked, it's every day from the start to the end (in either order, so a backwards range still shows)
+    // With only one picked, it's just that day
+    // date is the day to check
+    // returns true if the day should be highlighted
     private fun isDateSelected(date: LocalDate): Boolean {
         val start = selectedStartDate
         val end = selectedEndDate

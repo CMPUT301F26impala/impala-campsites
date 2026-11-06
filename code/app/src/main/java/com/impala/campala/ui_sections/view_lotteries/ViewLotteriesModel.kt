@@ -58,6 +58,7 @@ data class LotteryListItem(
  *
  * @property lotteries every lottery for this user (minus ones an entrant lost or already reserved through)
  * @property viewMode the user's role when the lotteries were last loaded, CAMPSITE_OWNER shows the owner UI, anything else shows the entrant UI
+ * @property visibleLotteries the list of rows that should be visible to the users
  */
 class ViewLotteriesModel(
     val lotteryRepo: LotteryRepository,

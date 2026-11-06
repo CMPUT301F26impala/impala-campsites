@@ -46,6 +46,16 @@ import com.impala.campala.ui_sections.see_reservation.SeeReservationsView
 import com.impala.campala.ui_sections.search_campsites.SearchCampsitesView
 import com.impala.campala.ui_sections.view_lotteries.ViewLotteriesView
 
+/**
+ * Composable class that sets up the navigation for a user signed in as a Campsite Owner
+ *
+ * @param searchCampsitesScreen The View where the user can search for campsites
+ * @param campsiteDetailsScreen The View where the user can see details of a campsite
+ * @param seeReservationsScreen The View where the user can see the details of their reservation
+ * @param viewLotteriesScreen The View where the user can see details of a lottery
+ * @param createReservationScreen The View where the user can make a reservation from
+ * @param onSwitchRole a function to be executed when the user clicks the button to switch roles
+ */
 @Composable
 fun EntrantNavigationRoot(
     searchCampsitesScreen: SearchCampsitesView,
@@ -86,9 +96,14 @@ enum class EntrantTab(val label: String, val icon: ImageVector) {
 }
 
 
-// Because nested navigators is hard, the decision I made for tabs
-// (Still subject to change in the future) is that the home page tab nav
-// Will just be a piece of local state in the HomeScreen, the navbar screens aren't real screens in the stack
+/**
+ * A composable function that generates tabs the user can use to move through the base screens
+ *
+ * @param navController The navigation controller for the campsite owners section of the app
+ * @param searchCampsitesScreen The View where the user can search for campsites
+ * @param viewLotteriesScreen The View where the user can see details of a lottery
+ * @param onSwitchRole a function to be executed when the user clicks the button to switch roles
+ */
 // In researching how this is normally done, I did use AI
 // I prompted Claude Opus 5.5 in the claude.ai web app "In a Jetpack Compose android app, what's the best way to have a stack nav with the home page having a tab nav inside of it"
 // It suggested this approach and the rememberSavable and rememberSavableStateHolder functions, and from there I implemented it conforming to that suggestion
@@ -144,18 +159,11 @@ fun EntrantHomeScreen(navController: NavController, searchCampsitesScreen: Searc
     }
 }
 
-@Composable
-fun SearchTab(navController: NavController) {
-    Column() {
-        Text("Search Screen!!!!")
-        Button(onClick = {
-            navController.navigate("screen1")
-        }) {
-            Text("Example Button Taking You To Another Screen")
-        }
-    }
-}
-
+/**
+ * A temporary class while the actual View is being made
+ *
+ * @param navController The navigation controller for the campsite owner section
+ */
 @Composable
 fun ProfileTab(navController: NavController) {
     Column() {

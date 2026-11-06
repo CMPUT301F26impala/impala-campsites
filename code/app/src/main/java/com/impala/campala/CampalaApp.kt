@@ -44,13 +44,13 @@ import com.impala.campala.ui_sections.create_reservation.CreateReservationContro
 import com.impala.campala.ui_sections.create_reservation.CreateReservationModel
 import com.impala.campala.ui_sections.create_reservation.CreateReservationView
 
-
+/**
+ * Composable function that acts as the root of the app
+ * It sets up the user and SignedInApp does the rest
+ * That way, the rest of the code can just assume User is not null and is already initialized
+ */
 @Composable
 fun CampalaApp() {
-    // This is the root of the app
-    // What this does is just set up the User, and then SignedInApp does the rest
-    // That way, the entire rest of the code can just assume User is not null and is already initialized.
-    // Makes our lives a lot easier.
     var user by remember { mutableStateOf<User?>(null) }
     LaunchedEffect(Unit) {
         user = User().initialize()
@@ -59,6 +59,11 @@ fun CampalaApp() {
     user?.let { SignedInApp(it) } // Nothing is shown until the user has loaded
 }
 
+/**
+ * A composable function that initializes the screens and directs the user to a Nav based on their role
+ *
+ * @param user The user using the app
+ */
 @Composable
 fun SignedInApp(user: User) {
     // This is just a property on user, but it's cleaner to extract it out

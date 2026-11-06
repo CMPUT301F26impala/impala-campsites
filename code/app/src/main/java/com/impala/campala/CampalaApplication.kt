@@ -4,6 +4,9 @@ import android.app.Application
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
+/**
+ * A class that handles the Firestore setup
+ */
 // i got ai to make this cuz setting up this db thing was hell
 // (Github Copilot, "Setup the firebase cli to launch when a debug build is made", 2026-10-22)
 // pretty bad name, but it looks like some kind of base layer
