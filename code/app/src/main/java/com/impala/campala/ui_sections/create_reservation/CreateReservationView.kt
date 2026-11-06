@@ -87,8 +87,6 @@ enum class MODAL_STATE {
  */
 class CreateReservationView(
     val controller: CreateReservationController,
-    val reservationRepo: ReservationRepository,
-    val scope: CoroutineScope
 ): ViewObserver<CreateReservationModel> {
     private var currentStage by mutableStateOf(CURRENT_RESERVATION_STAGE.TERMS_ACCEPT)
     private var availableCampsites by mutableStateOf<List<CampsiteModel>>(emptyList())

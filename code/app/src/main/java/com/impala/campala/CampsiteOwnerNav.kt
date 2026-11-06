@@ -37,6 +37,7 @@ import com.impala.campala.ui_sections.campsite_details.CampsiteDetailsView
 import com.impala.campala.ui_sections.form_campsites.FormCampsitesView
 import com.impala.campala.ui_sections.form_lotteries.FormLotteriesView
 import com.impala.campala.ui_sections.search_campsites.SearchCampsitesView
+import com.impala.campala.ui_sections.see_reservation.SeeReservationsView
 import com.impala.campala.ui_sections.view_lotteries.ViewLotteriesView
 
 /**
@@ -56,6 +57,7 @@ fun CampsiteOwnerNavigationRoot(
     formCampsitesScreen: FormCampsitesView,
     formLotteriesScreen: FormLotteriesView,
     viewLotteriesScreen: ViewLotteriesView,
+    seeReservationsScreen: SeeReservationsView,
     onSwitchRole: () -> Unit
 ) {
     val navController = rememberNavController()
@@ -63,7 +65,7 @@ fun CampsiteOwnerNavigationRoot(
     NavHost(navController = navController, startDestination = "home") {
         // "home" is the tab navigation, the 4 tabs inside of home are controlled by the CampsiteOwnerHomeScreen function
         // Any screens that aren't part of the tabs and are 'fullscreen' should be declared here
-        composable("home") { CampsiteOwnerHomeScreen(navController, searchCampsitesScreen, viewLotteriesScreen, onSwitchRole) }
+        composable("home") { CampsiteOwnerHomeScreen(navController, searchCampsitesScreen, viewLotteriesScreen, seeReservationsScreen, onSwitchRole) }
         composable("campsite/{campsiteId}") { backStackEntry ->
             val campsiteId = backStackEntry.arguments?.getString("campsiteId") ?: ""
             // Scaffold is just here so the screen respects the status bar / nav bar insets
@@ -125,7 +127,7 @@ enum class CampsiteOwnerTab(val label: String, val icon: ImageVector) {
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CampsiteOwnerHomeScreen(navController: NavController, searchCampsitesScreen: SearchCampsitesView, viewLotteriesScreen: ViewLotteriesView, onSwitchRole: () -> Unit) {
+fun CampsiteOwnerHomeScreen(navController: NavController, searchCampsitesScreen: SearchCampsitesView, viewLotteriesScreen: ViewLotteriesView, seeReservationsScreen: SeeReservationsView, onSwitchRole: () -> Unit) {
     var selected by rememberSaveable { mutableStateOf(CampsiteOwnerTab.Campsites) }
     val tabState = rememberSaveableStateHolder() // keeps each tab's scroll/state
     Scaffold(
@@ -166,7 +168,7 @@ fun CampsiteOwnerHomeScreen(navController: NavController, searchCampsitesScreen:
                 when (selected) {
                     CampsiteOwnerTab.Campsites -> searchCampsitesScreen.Render(navController)
                     CampsiteOwnerTab.Lotteries -> viewLotteriesScreen.Render(navController)
-                    CampsiteOwnerTab.Reservations -> ReservationsTab(navController)
+                    CampsiteOwnerTab.Reservations -> seeReservationsScreen.Render(navController)
                     CampsiteOwnerTab.Notifs -> NotifsTab(navController)
                 }
             }

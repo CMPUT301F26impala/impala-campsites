@@ -8,6 +8,8 @@ import com.impala.campala.model.CampsiteOwnerProfileRepository
 import com.impala.campala.model.CampsiteRepository
 import com.impala.campala.model.LotteryModel
 import com.impala.campala.model.LotteryRepository
+import com.impala.campala.model.ReservationModel
+import com.impala.campala.model.ReservationRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlin.uuid.Uuid
@@ -21,6 +23,7 @@ import kotlin.uuid.Uuid
  * @param campsiteRepo the repo to fetch relevant campsite from
  * @param lotteryRepo the repo to fetch the campsite lottery from
  * @param campsiteOwnerProfileRepo the repo to check which campsites the user owns
+ * @param reservationRepo the repo to fetch the campsite's reservations from
  * @param user the object which contains the current user's information
  * @param scope the CoroutineScope that the suspend fetches run in
  *
@@ -29,16 +32,19 @@ import kotlin.uuid.Uuid
  * @property description the Campsite description
  * @property maxOccupancy the Campsite occupancy limit
  * @property tags the set of tags the Campsite has
+ * @property averageRating the Campsite's average rating out of 5, null if nobody has rated it yet
  * @property campsite the Campsite object whose details are displayed
  * @property lottery the Lottery for the Campsite, if it exists
  * @property joinStatus indicates whether a user can join a lottery or the reason they cannot
  * @property userIsOwner flag for if the current user owns the campsite
  * @property lotteryExists flag indicating if there is a lottery for the selected campsite
+ * @property reservedDates the campsite's upcoming, non-cancelled reservations sorted by start date, only loaded for the owner
  */
 class CampsiteDetailsModel(
     val campsiteRepo: CampsiteRepository,
     val lotteryRepo: LotteryRepository,
     val campsiteOwnerProfileRepo: CampsiteOwnerProfileRepository,
+    val reservationRepo: ReservationRepository,
     val user: User,
     val scope: CoroutineScope
 ) : ObservableModel<CampsiteDetailsModel>() {
@@ -47,12 +53,13 @@ class CampsiteDetailsModel(
     var description: String = ""
     var maxOccupancy: Int = 0
     var tags: MutableList<String> = mutableListOf()
+    var averageRating: Double? = null
     var campsite: CampsiteModel? = null
     var lottery: LotteryModel? = null
     var joinStatus: LotteryModel.ProspectiveJoinStatus? = null
     var userIsOwner: Boolean = false
     var lotteryExists: Boolean = false
-
+    var reservedDates: List<ReservationModel> = emptyList()
 
     /**
      * Called every time the screen is rendered.
@@ -70,9 +77,19 @@ class CampsiteDetailsModel(
         this.description = campsite?.description ?: ""
         this.maxOccupancy = campsite?.maxOccupancy ?: 0
         this.tags = campsite?.tags ?: mutableListOf()
+        this.averageRating = campsite?.averageRating
 
         userIsOwner = user.getCurrentRole() == UserViewMode.CAMPSITE_OWNER &&
             campsiteOwnerProfileRepo.getCampsiteOwnerProfileById(user.getUID())?.ownedCampsites?.contains(campsiteId) == true
+
+        // Only the owner sees the reserved dates, cancelled and past reservations are left out
+        reservedDates = if (userIsOwner) {
+            reservationRepo.getReservationsByCampsite(campsiteId)
+                .filter { !it.hasBeenCancelled && !it.isPast }
+                .sortedBy { it.startDate }
+        } else {
+            emptyList()
+        }
 
         lottery = lotteryRepo.getLotteryByCampsiteId(campsiteId)
 

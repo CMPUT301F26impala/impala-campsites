@@ -34,8 +34,19 @@ data class CampsiteModel @OptIn(ExperimentalUuidApi::class) constructor(
     var imageUrl: String = "",
     var tags: MutableList<String> = mutableListOf(),
     var rules: String="",
+    // ratingTotal is the sum of all star ratings a campsite has gotten (eg: 3.5 + 5 + 4.5)
+    // ratingCount is the number of ratings, the average is just total / count (use the getter below)
+    var ratingTotal: Double = 0.0,
+    var ratingCount: Int = 0,
     var id: String = Uuid.random().toString()
 ) {
+    /**
+     * The campsite's average rating out of 5, or null if nobody has rated it yet
+     */
+    @get:Exclude
+    val averageRating: Double?
+        get() = if (ratingCount == 0) null else ratingTotal / ratingCount
+
     companion object {
         fun load(doc: DocumentSnapshot): CampsiteModel {
             return doc.toObject(CampsiteModel::class.java)!!

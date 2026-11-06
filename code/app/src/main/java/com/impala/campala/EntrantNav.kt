@@ -42,7 +42,7 @@ import androidx.navigation.compose.rememberNavController
 import com.impala.campala.model.CampsiteModel
 import com.impala.campala.ui_sections.campsite_details.CampsiteDetailsView
 import com.impala.campala.ui_sections.create_reservation.CreateReservationView
-import com.impala.campala.ui_sections.reservation_related.SeeReservationsView
+import com.impala.campala.ui_sections.see_reservation.SeeReservationsView
 import com.impala.campala.ui_sections.search_campsites.SearchCampsitesView
 import com.impala.campala.ui_sections.view_lotteries.ViewLotteriesView
 
@@ -156,18 +156,6 @@ fun EntrantHomeScreen(navController: NavController, searchCampsitesScreen: Searc
                 }
             }
         }
-    }
-}
-
-/**
- * A temporary class while the actual View is being made
- *
- * @param navController The navigation controller for the campsite owner section
- */
-@Composable
-fun ReservationsTab(navController: NavController) {
-    Column() {
-        Text("Reservations Screen!!!!") // TODO: Wire this up to the SeeReservations View & Controller
     }
 }
 
