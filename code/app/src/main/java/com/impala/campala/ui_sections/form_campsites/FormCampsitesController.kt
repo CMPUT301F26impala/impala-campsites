@@ -28,26 +28,56 @@ class FormCampsitesController(
         }
     }
 
+    /**
+     * Changes title of the campsite
+     *
+     * @param newTitle New title of the campsite
+     */
     fun onTitleChange(newTitle: String) {
         model.updateTitle(newTitle)
     }
 
+    /**
+     * Changes location of the campsite
+     *
+     * @param newLocation New location of the campsite
+     */
     fun onLocationChange(newLocation: String) {
         model.updateLocation(newLocation)
     }
 
+    /**
+     * Changes description of the campsite
+     *
+     * @param newDescription New description to be added
+     */
     fun onDescriptionChange(newDescription: String) {
         model.updateDescription(newDescription)
     }
 
+    /**
+     * Controls change of maximum occupacy
+     *
+     * @param newOccupancy New maximum occupancy value
+     */
     fun onMaximumOccupancyChange(newOccupancy: String) {
         model.updateMaximumOccupancy(newOccupancy)
     }
 
+    /**
+     * Adds a tag to the list of tags
+     *
+     * @param newTag Tag to be added
+     */
     fun onAddTag(newTag: String) {
         model.addTag(newTag)
     }
 
+    /**
+     * Removes tag form the list of tags
+     *
+     * @param tag String of the tag to be removed
+     */
     fun onRemoveTag(tag: String) {
         model.removeTag(tag)
     }

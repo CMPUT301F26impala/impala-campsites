@@ -26,6 +26,18 @@ import java.time.ZoneOffset
  * @param ownerId the id of the campsite owner creating the lottery
  * @param campsiteRepo Repository used to get the campsites for the dropdown
  * @param campsiteOwnerProfileRepo Repository used to find which campsites the owner owns, so only those are in the dropdown
+ *
+ * @property campsiteIds Stores a list of campsite IDs corresponding to those currently selected for the lottery
+ * @property maximumParticipants Stores the value currently in the field for the maximum number of lottery participants
+ * @property waitlistSize Stores the value currently in the field for the size of the waiting list
+ * @property numberOfWinners Stores the value currently in the field for the number of lottery winners
+ * @property wasLotterySavedSuccessfully True if the lottery has been saved in the database
+ * @property registrationPeriodStartDate Stores the value currently in the field for the first day of the registration period
+ * @property registrationPeriodEndDate Stores the value currently in the field for the last day of the registration period
+ * @property bookingPeriodStartDate Stores the value currently in the field for the first day of the booking period
+ * @property bookingPeriodEndDate Stores the value currently in the field for the last day of the booking period
+ * @property availableDatesStart Stores the value currently in the field for the first available reservation date
+ * @property availableDatesEnd Stores the value currently in the field for the last available reservation date
  */
 class FormLotteriesModel(
     val repo: LotteryRepository,

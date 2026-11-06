@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
+    <title>CampsiteDetailsModel</title>
+    <link href="../../../images/logo-icon.svg" rel="icon" type="image/svg">
+        <script>var pathToRoot = "../../../";</script>
+    <script>document.documentElement.classList.replace("no-js", "js");</script>
+    <script>const storage = localStorage.getItem("dokka-dark-mode")
+      if (storage == null) {
+        const osDarkSchemePreferred = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+        if (osDarkSchemePreferred === true) {
+          document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+      } else {
+        const savedDarkMode = JSON.parse(storage)
+        if (savedDarkMode === true) {
+          document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+      }
+    </script>
+<script type="text/javascript" src="../../../scripts/sourceset_dependencies.js" async="async"></script>
+<link href="../../../styles/style.css" rel="Stylesheet">
+<link href="../../../styles/main.css" rel="Stylesheet">
+<link href="../../../styles/prism.css" rel="Stylesheet">
+<link href="../../../styles/logo-styles.css" rel="Stylesheet">
+<link href="../../../ui-kit/ui-kit.min.css" rel="Stylesheet">
+<script type="text/javascript" src="../../../scripts/safe-local-storage_blocking.js"></script>
+<script type="text/javascript" src="../../../scripts/navigation-loader.js" async="async"></script>
+<script type="text/javascript" src="../../../scripts/platform-content-handler.js" async="async"></script>
+<script type="text/javascript" src="../../../scripts/main.js" defer="defer"></script>
+<script type="text/javascript" src="../../../scripts/prism.js" async="async"></script>
+<script type="text/javascript" src="../../../ui-kit/ui-kit.min.js" defer="defer"></script>
+</head>
+<body>
+<div class="root">
+    <header class="navigation theme-dark" id="navigation-wrapper" role="banner">
+            <a class="library-name--link" href="../../../index.html" tabindex="1">
+                    app
+            </a>
+        <button class="navigation-controls--btn navigation-controls--btn_toc ui-kit_mobile-only" id="toc-toggle"
+                type="button">Toggle table of contents
+        </button>
+        <div class="navigation-controls--break ui-kit_mobile-only"></div>
+        <div class="library-version" id="library-version">
+        </div>
+        <div class="navigation-controls">
+        <ul class="filter-section filter-section_loading" id="filter-section" aria-label="Target filter">
+                <button class="platform-tag platform-selector jvm-like" data-active="" aria-pressed="true"
+                        data-filter=":app/release">release</button>
+            <div class="dropdown filter-section--dropdown" data-role="dropdown" id="filter-section-dropdown">
+                <button class="button button_dropdown filter-section--dropdown-toggle" role="combobox"
+                        data-role="dropdown-toggle"
+                        aria-controls="platform-tags-listbox"
+                        aria-haspopup="listbox"
+                        aria-expanded="false"
+                        aria-label="Toggle source sets"
+                ></button>
+                <ul role="listbox" id="platform-tags-listbox" class="dropdown--list" data-role="dropdown-listbox" aria-label="Target filter">
+                    <div class="dropdown--header"><span>Target filter</span>
+                        <button class="button" data-role="dropdown-toggle" aria-label="Close target filter">
+                            <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                        </button>
+                    </div>
+                        <li role="option" class="dropdown--option platform-selector-option jvm-like" tabindex="0">
+                            <label class="checkbox">
+                                <input type="checkbox" class="checkbox--input" id=":app/release"
+                                       data-filter=":app/release"/>
+                                <span class="checkbox--icon"></span>
+                                release
+                            </label>
+                        </li>
+                </ul>
+                <div class="dropdown--overlay"></div>
+            </div>
+        </ul>
+            <button class="navigation-controls--btn navigation-controls--btn_theme" id="theme-toggle-button"
+                    type="button">Switch theme
+            </button>
+            <div class="navigation-controls--btn navigation-controls--btn_search" id="searchBar" role="button">Search in
+                API
+            </div>
+        </div>
+    </header>
+    <div id="container">
+        <nav id="leftColumn" class="sidebar" data-item-type="SECTION" data-item-config='{"defaultSize": 280, "minSize": 200, "maxSize": 400}'>
+            <a class="toc--skip-link" href="#main">Skip to content</a>
+            <div class="dropdown theme-dark_mobile" data-role="dropdown" id="toc-dropdown">
+                <ul role="listbox" id="toc-listbox" class="dropdown--list dropdown--list_toc-list"
+                    data-role="dropdown-listbox" aria-label="Table of contents">
+                    <div class="dropdown--header">
+                            <span>
+                                    app
+                            </span>
+                        <button class="button" data-role="dropdown-toggle" aria-label="Close table of contents">
+                            <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                        </button>
+                    </div>
+                    <div class="sidebar--inner" id="sideMenu"></div>
+                </ul>
+                <div class="dropdown--overlay"></div>
+            </div>
+        </nav>
+        <div id="resizer" class="resizer" data-item-type="BAR"></div>
+        <div id="main" data-item-type="SECTION" role="main">
+<div class="main-content" data-page-type="classlike" id="content" pageIds="app::com.impala.campala.ui_sections.campsite_details/CampsiteDetailsModel///PointingToDeclaration//-865142711">
+  <div class="breadcrumbs"><a href="../../../index.html">app</a><span class="delimiter">/</span><a href="../index.html">com.impala.campala.ui_sections.campsite_details</a><span class="delimiter">/</span><span class="current">CampsiteDetailsModel</span></div>
+  <div class="cover ">
+    <h1 class="cover"><span>Campsite</span><wbr></wbr><span>Details</span><wbr></wbr><span><span>Model</span></span></h1>
+    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":app/release"><div class="symbol monospace"><span class="token keyword">class </span><a href="index.html">CampsiteDetailsModel</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span class="token keyword">val </span>campsiteRepo<span class="token operator">: </span><a href="../../com.impala.campala.model/-campsite-repository/index.html">CampsiteRepository</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>lotteryRepo<span class="token operator">: </span><a href="../../com.impala.campala.model/-lottery-repository/index.html">LotteryRepository</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>campsiteOwnerProfileRepo<span class="token operator">: </span><a href="../../com.impala.campala.model/-campsite-owner-profile-repository/index.html">CampsiteOwnerProfileRepository</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>reservationRepo<span class="token operator">: </span><a href="../../com.impala.campala.model/-reservation-repository/index.html">ReservationRepository</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>user<span class="token operator">: </span><a href="../../com.impala.campala/-user/index.html">User</a><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>scope<span class="token operator">: </span><span data-unresolved-link="kotlinx.coroutines/CoroutineScope///PointingToDeclaration/">CoroutineScope</span></span></span><span class="token punctuation">)</span> : <a href="../../com.impala.campala/-observable-model/index.html">ObservableModel</a><span class="token operator">&lt;</span><a href="index.html">CampsiteDetailsModel</a><span class="token operator">&gt; </span></div><p class="paragraph">Model for the Campsite Details screen</p><p class="paragraph">There will be one of these objects, not one for each campsite The attributes will be updated when a different campsite is displayed</p><h4 class="tableheader">Parameters</h4><div class="table"><div class="table-row table-row_content" data-filterable-current=":app/release" data-filterable-set=":app/release"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span>campsite</span><wbr></wbr><span><span>Repo</span></span></u></div></span></div><div><div class="title"><p class="paragraph">the repo to fetch relevant campsite from</p></div></div></div></div><div class="table-row table-row_content" data-filterable-current=":app/release" data-filterable-set=":app/release"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span>lottery</span><wbr></wbr><span><span>Repo</span></span></u></div></span></div><div><div class="title"><p class="paragraph">the repo to fetch the campsite lottery from</p></div></div></div></div><div class="table-row table-row_content" data-filterable-current=":app/release" data-filterable-set=":app/release"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span>campsite</span><wbr></wbr><span>Owner</span><wbr></wbr><span>Profile</span><wbr></wbr><span><span>Repo</span></span></u></div></span></div><div><div class="title"><p class="paragraph">the repo to check which campsites the user owns</p></div></div></div></div><div class="table-row table-row_content" data-filterable-current=":app/release" data-filterable-set=":app/release"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span>reservation</span><wbr></wbr><span><span>Repo</span></span></u></div></span></div><div><div class="title"><p class="paragraph">the repo to fetch the campsite's reservations from</p></div></div></div></div><div class="table-row table-row_content" data-filterable-current=":app/release" data-filterable-set=":app/release"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span><span>user</span></span></u></div></span></div><div><div class="title"><p class="paragraph">the object which contains the current user's information</p></div></div></div></div><div class="table-row table-row_content" data-filterable-current=":app/release" data-filterable-set=":app/release"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span><span>scope</span></span></u></div></span></div><div><div class="title"><p class="paragraph">the CoroutineScope that the suspend fetches run in</p></div></div></div></div></div></div></div>
+  </div>
+  <div class="tabbedcontent">
+    <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION">Members</button></div>
+    <div class="tabs-section-body">
+      <div data-togglable="CONSTRUCTOR">
+        <h2 class="tableheader">Constructors</h2>
+        <div class="table"><a data-name="-103366824%2FConstructors%2F-865142711" anchor-label="CampsiteDetailsModel" id="-103366824%2FConstructors%2F-865142711" data-filterable-set=":app/release"></a>
+          <div class="table-row table-row_content" data-togglable="CONSTRUCTOR" data-filterable-current=":app/release" data-filterable-set=":app/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-campsite-details-model.html"><span>Campsite</span><wbr></wbr><span>Details</span><wbr></wbr><span><span>Model</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-103366824%2FConstructors%2F-865142711"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":app/release"><div class="symbol monospace"><span class="token keyword">constructor</span><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">campsiteRepo<span class="token operator">: </span><a href="../../com.impala.campala.model/-campsite-repository/index.html">CampsiteRepository</a><span class="token punctuation">, </span></span><span class="parameter ">lotteryRepo<span class="token operator">: </span><a href="../../com.impala.campala.model/-lottery-repository/index.html">LotteryRepository</a><span class="token punctuation">, </span></span><span class="parameter ">campsiteOwnerProfileRepo<span class="token operator">: </span><a href="../../com.impala.campala.model/-campsite-owner-profile-repository/index.html">CampsiteOwnerProfileRepository</a><span class="token punctuation">, </span></span><span class="parameter ">reservationRepo<span class="token operator">: </span><a href="../../com.impala.campala.model/-reservation-repository/index.html">ReservationRepository</a><span class="token punctuation">, </span></span><span class="parameter ">user<span class="token operator">: </span><a href="../../com.impala.campala/-user/index.html">User</a><span class="token punctuation">, </span></span><span class="parameter ">scope<span class="token operator">: </span><span data-unresolved-link="kotlinx.coroutines/CoroutineScope///PointingToDeclaration/">CoroutineScope</span></span></span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="PROPERTY">
+        <h2 class="tableheader">Properties</h2>
+        <div class="table"><a data-name="-2019779580%2FProperties%2F-865142711" anchor-label="averageRating" id="-2019779580%2FProperties%2F-865142711" data-filterable-set=":app/release"></a>
+          <div class="table-row table-row_content" data-filterable-current=":app/release" data-filterable-set=":app/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="average-rating.html"><span>average</span><wbr></wbr><span><span>Rating</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-2019779580%2FProperties%2F-865142711"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":app/release"><div class="symbol monospace"><span class="token keyword">var </span><a href="average-rating.html">averageRating</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-double/index.html">Double</a><span class="token operator">?</span></div><div class="brief "><p class="paragraph">the Campsite's average rating out of 5, null if nobody has rated it yet</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="213518772%2FProperties%2F-865142711" anchor-label="campsite" id="213518772%2FProperties%2F-865142711" data-filterable-set=":app/release"></a>
+          <div class="table-row table-row_content" data-filterable-current=":app/release" data-filterable-set=":app/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="campsite.html"><span><span>campsite</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="213518772%2FProperties%2F-865142711"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":app/release"><div class="symbol monospace"><span class="token keyword">var </span><a href="campsite.html">campsite</a><span class="token operator">: </span><a href="../../com.impala.campala.model/-campsite-model/index.html">CampsiteModel</a><span class="token operator">?</span></div><div class="brief "><p class="paragraph">the Campsite object whose details are displayed</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="539852940%2FProperties%2F-865142711" anchor-label="campsiteOwnerProfileRepo" id="539852940%2FProperties%2F-865142711" data-filterable-set=":app/release"></a>
+          <div class="table-row table-row_content" data-filterable-current=":app/release" data-filterable-set=":app/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="campsite-owner-profile-repo.html"><span>campsite</span><wbr></wbr><span>Owner</span><wbr></wbr><span>Profile</span><wbr></wbr><span><span>Repo</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="539852940%2FProperties%2F-865142711"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":app/release"><div class="symbol monospace"><span class="token keyword">val </span><a href="campsite-owner-profile-repo.html">campsiteOwnerProfileRepo</a><span class="token operator">: </span><a href="../../com.impala.campala.model/-campsite-owner-profile-repository/index.html">CampsiteOwnerProfileRepository</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-2024165662%2FProperties%2F-865142711" anchor-label="campsiteRepo" id="-2024165662%2FProperties%2F-865142711" data-filterable-set=":app/release"></a>
+          <div class="table-row table-row_content" data-filterable-current=":app/release" data-filterable-set=":app/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="campsite-repo.html"><span>campsite</span><wbr></wbr><span><span>Repo</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-2024165662%2FProperties%2F-865142711"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":app/release"><div class="symbol monospace"><span class="token keyword">val </span><a href="campsite-repo.html">campsiteRepo</a><span class="token operator">: </span><a href="../../com.impala.campala.model/-campsite-repository/index.html">CampsiteRepository</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-930406238%2FProperties%2F-865142711" anchor-label="description" id="-930406238%2FProperties%2F-865142711" data-filterable-set=":app/release"></a>
+          <div class="table-row table-row_content" data-filterable-current=":app/release" data-filterable-set=":app/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="description.html"><span><span>description</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-930406238%2FProperties%2F-865142711"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":app/release"><div class="symbol monospace"><span class="token keyword">var </span><a href="description.html">description</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a></div><div class="brief "><p class="paragraph">the Campsite description</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="2046017536%2FProperties%2F-865142711" anchor-label="joinStatus" id="2046017536%2FProperties%2F-865142711" data-filterable-set=":app/release"></a>
+          <div class="table-row table-row_content" data-filterable-current=":app/release" data-filterable-set=":app/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="join-status.html"><span>join</span><wbr></wbr><span><span>Status</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="2046017536%2FProperties%2F-865142711"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":app/release"><div class="symbol monospace"><span class="token keyword">var </span><a href="join-status.html">joinStatus</a><span class="token operator">: </span><a href="../../com.impala.campala.model/-lottery-model/-prospective-join-status/index.html">LotteryModel.ProspectiveJoinStatus</a><span class="token operator">?</span></div><div class="brief "><p class="paragraph">indicates whether a user can join a lottery or the reason they cannot</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="740016103%2FProperties%2F-865142711" anchor-label="location" id="740016103%2FProperties%2F-865142711" data-filterable-set=":app/release"></a>
+          <div class="table-row table-row_content" data-filterable-current=":app/release" data-filterable-set=":app/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="location.html"><span><span>location</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="740016103%2FProperties%2F-865142711"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":app/release"><div class="symbol monospace"><span class="token keyword">var </span><a href="location.html">location</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a></div><div class="brief "><p class="paragraph">the Campsite location</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-475658635%2FProperties%2F-865142711" anchor-label="lottery" id="-475658635%2FProperties%2F-865142711" data-filterable-set=":app/release"></a>
+          <div class="table-row table-row_content" data-filterable-current=":app/release" data-filterable-set=":app/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="lottery.html"><span><span>lottery</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-475658635%2FProperties%2F-865142711"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":app/release"><div class="symbol monospace"><span class="token keyword">var </span><a href="lottery.html">lottery</a><span class="token operator">: </span><a href="../../com.impala.campala.model/-lottery-model/index.html">LotteryModel</a><span class="token operator">?</span></div><div class="brief "><p class="paragraph">the Lottery for the Campsite, if it exists</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-637239431%2FProperties%2F-865142711" anchor-label="lotteryExists" id="-637239431%2FProperties%2F-865142711" data-filterable-set=":app/release"></a>
+          <div class="table-row table-row_content" data-filterable-current=":app/release" data-filterable-set=":app/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="lottery-exists.html"><span>lottery</span><wbr></wbr><span><span>Exists</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-637239431%2FProperties%2F-865142711"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":app/release"><div class="symbol monospace"><span class="token keyword">var </span><a href="lottery-exists.html">lotteryExists</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div><div class="brief "><p class="paragraph">flag indicating if there is a lottery for the selected campsite</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-628661469%2FProperties%2F-865142711" anchor-label="lotteryRepo" id="-628661469%2FProperties%2F-865142711" data-filterable-set=":app/release"></a>
+          <div class="table-row table-row_content" data-filterable-current=":app/release" data-filterable-set=":app/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="lottery-repo.html"><span>lottery</span><wbr></wbr><span><span>Repo</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-628661469%2FProperties%2F-865142711"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":app/release"><div class="symbol monospace"><span class="token keyword">val </span><a href="lottery-repo.html">lotteryRepo</a><span class="token operator">: </span><a href="../../com.impala.campala.model/-lottery-repository/index.html">LotteryRepository</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-264381613%2FProperties%2F-865142711" anchor-label="maxOccupancy" id="-264381613%2FProperties%2F-865142711" data-filterable-set=":app/release"></a>
+          <div class="table-row table-row_content" data-filterable-current=":app/release" data-filterable-set=":app/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="max-occupancy.html"><span>max</span><wbr></wbr><span><span>Occupancy</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-264381613%2FProperties%2F-865142711"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":app/release"><div class="symbol monospace"><span class="token keyword">var </span><a href="max-occupancy.html">maxOccupancy</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></div><div class="brief "><p class="paragraph">the Campsite occupancy limit</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="945264977%2FProperties%2F-865142711" anchor-label="name" id="945264977%2FProperties%2F-865142711" data-filterable-set=":app/release"></a>
+          <div class="table-row table-row_content" data-filterable-current=":app/release" data-filterable-set=":app/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="name.html"><span><span>name</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="945264977%2FProperties%2F-865142711"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":app/release"><div class="symbol monospace"><span class="token keyword">var </span><a href="name.html">name</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a></div><div class="brief "><p class="paragraph">the Campsite name</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-991842048%2FProperties%2F-865142711" anchor-label="reservationRepo" id="-991842048%2FProperties%2F-865142711" data-filterable-set=":app/release"></a>
+          <div class="table-row table-row_content" data-filterable-current=":app/release" data-filterable-set=":app/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="reservation-repo.html"><span>reservation</span><wbr></wbr><span><span>Repo</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-991842048%2FProperties%2F-865142711"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":app/release"><div class="symbol monospace"><span class="token keyword">val </span><a href="reservation-repo.html">reservationRepo</a><span class="token operator">: </span><a href="../../com.impala.campala.model/-reservation-repository/index.html">ReservationRepository</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="5875521%2FProperties%2F-865142711" anchor-label="reservedDates" id="5875521%2FProperties%2F-865142711" data-filterable-set=":app/release"></a>
+          <div class="table-row table-row_content" data-filterable-current=":app/release" data-filterable-set=":app/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="reserved-dates.html"><span>reserved</span><wbr></wbr><span><span>Dates</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="5875521%2FProperties%2F-865142711"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":app/release"><div class="symbol monospace"><span class="token keyword">var </span><a href="reserved-dates.html">reservedDates</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-list/index.html">List</a><span class="token operator">&lt;</span><a href="../../com.impala.campala.model/-reservation-model/index.html">ReservationModel</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">the campsite's upcoming, non-cancelled reservations sorted by start date, only loaded for the owner</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1003416054%2FProperties%2F-865142711" anchor-label="scope" id="-1003416054%2FProperties%2F-865142711" data-filterable-set=":app/release"></a>
+          <div class="table-row table-row_content" data-filterable-current=":app/release" data-filterable-set=":app/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="scope.html"><span><span>scope</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1003416054%2FProperties%2F-865142711"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":app/release"><div class="symbol monospace"><span class="token keyword">val </span><a href="scope.html">scope</a><span class="token operator">: </span><span data-unresolved-link="kotlinx.coroutines/CoroutineScope///PointingToDeclaration/">CoroutineScope</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-231531645%2FProperties%2F-865142711" anchor-label="tags" id="-231531645%2FProperties%2F-865142711" data-filterable-set=":app/release"></a>
+          <div class="table-row table-row_content" data-filterable-current=":app/release" data-filterable-set=":app/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="tags.html"><span><span>tags</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-231531645%2FProperties%2F-865142711"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":app/release"><div class="symbol monospace"><span class="token keyword">var </span><a href="tags.html">tags</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-mutable-list/index.html">MutableList</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">the set of tags the Campsite has</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1782968303%2FProperties%2F-865142711" anchor-label="user" id="-1782968303%2FProperties%2F-865142711" data-filterable-set=":app/release"></a>
+          <div class="table-row table-row_content" data-filterable-current=":app/release" data-filterable-set=":app/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="user.html"><span><span>user</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1782968303%2FProperties%2F-865142711"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":app/release"><div class="symbol monospace"><span class="token keyword">val </span><a href="user.html">user</a><span class="token operator">: </span><a href="../../com.impala.campala/-user/index.html">User</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="232428928%2FProperties%2F-865142711" anchor-label="userIsOwner" id="232428928%2FProperties%2F-865142711" data-filterable-set=":app/release"></a>
+          <div class="table-row table-row_content" data-filterable-current=":app/release" data-filterable-set=":app/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="user-is-owner.html"><span>user</span><wbr></wbr><span>Is</span><wbr></wbr><span><span>Owner</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="232428928%2FProperties%2F-865142711"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":app/release"><div class="symbol monospace"><span class="token keyword">var </span><a href="user-is-owner.html">userIsOwner</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div><div class="brief "><p class="paragraph">flag for if the current user owns the campsite</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="FUNCTION">
+        <h2 class="tableheader">Functions</h2>
+        <div class="table"><a data-name="-908430505%2FFunctions%2F-865142711" anchor-label="addObserver" id="-908430505%2FFunctions%2F-865142711" data-filterable-set=":app/release"></a>
+          <div class="table-row table-row_content" data-filterable-current=":app/release" data-filterable-set=":app/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.impala.campala/-observable-model/add-observer.html"><span>add</span><wbr></wbr><span><span>Observer</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-908430505%2FFunctions%2F-865142711"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":app/release"><div class="symbol monospace"><span class="token keyword">fun </span><a href="../../com.impala.campala/-observable-model/add-observer.html"><span class="token function">addObserver</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">o<span class="token operator">: </span><a href="../../com.impala.campala/-view-observer/index.html">ViewObserver</a><span class="token operator">&lt;</span><a href="index.html">CampsiteDetailsModel</a><span class="token operator">&gt;</span></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Add a View to the observers list</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-779557057%2FFunctions%2F-865142711" anchor-label="joinLottery" id="-779557057%2FFunctions%2F-865142711" data-filterable-set=":app/release"></a>
+          <div class="table-row table-row_content" data-filterable-current=":app/release" data-filterable-set=":app/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="join-lottery.html"><span>join</span><wbr></wbr><span><span>Lottery</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-779557057%2FFunctions%2F-865142711"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":app/release"><div class="symbol monospace"><span class="token keyword">fun </span><a href="join-lottery.html"><span class="token function">joinLottery</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Called when the entrant tries to join the lottery or waitlist</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="42392756%2FFunctions%2F-865142711" anchor-label="leaveWaitlist" id="42392756%2FFunctions%2F-865142711" data-filterable-set=":app/release"></a>
+          <div class="table-row table-row_content" data-filterable-current=":app/release" data-filterable-set=":app/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="leave-waitlist.html"><span>leave</span><wbr></wbr><span><span>Waitlist</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="42392756%2FFunctions%2F-865142711"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":app/release"><div class="symbol monospace"><span class="token keyword">fun </span><a href="leave-waitlist.html"><span class="token function">leaveWaitlist</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Called when the entrant tries to leave the waitlist</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-2124422698%2FFunctions%2F-865142711" anchor-label="loadCampsite" id="-2124422698%2FFunctions%2F-865142711" data-filterable-set=":app/release"></a>
+          <div class="table-row table-row_content" data-filterable-current=":app/release" data-filterable-set=":app/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="load-campsite.html"><span>load</span><wbr></wbr><span><span>Campsite</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-2124422698%2FFunctions%2F-865142711"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":app/release"><div class="symbol monospace"><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="load-campsite.html"><span class="token function">loadCampsite</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">campsiteId<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Called every time the screen is rendered. Gets a campsite object from the repo by ID and uses it to update the properites of this class. Finds a lottery for the campsite if it exists. Also loads the current user's entrant profile. Will notify the view that a change has been made</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="221549728%2FFunctions%2F-865142711" anchor-label="removeObserver" id="221549728%2FFunctions%2F-865142711" data-filterable-set=":app/release"></a>
+          <div class="table-row table-row_content" data-filterable-current=":app/release" data-filterable-set=":app/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.impala.campala/-observable-model/remove-observer.html"><span>remove</span><wbr></wbr><span><span>Observer</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="221549728%2FFunctions%2F-865142711"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":app/release"><div class="symbol monospace"><span class="token keyword">fun </span><a href="../../com.impala.campala/-observable-model/remove-observer.html"><span class="token function">removeObserver</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">o<span class="token operator">: </span><a href="../../com.impala.campala/-view-observer/index.html">ViewObserver</a><span class="token operator">&lt;</span><a href="index.html">CampsiteDetailsModel</a><span class="token operator">&gt;</span></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Remove a View from the observers list</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    <div class="footer">
+        <div class="footer--container">
+            <a href="#content" id="go-to-top-link" class="footer--button footer--button_go-to-top"></a>
+            <div class="footer--content">
+                <div>
+                    <span>Generated by </span>
+                    <a class="footer--link footer--link_external" href="https://github.com/Kotlin/dokka">
+                        Dokka
+                    </a>
+                    <div>© 2026 Copyright</div>
+                </div>
+            </div>
+        </div>
+    </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

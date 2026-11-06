@@ -26,6 +26,14 @@ import kotlin.collections.List
  * @param entrantDB the EntrantProfileRepository, used in campsite owner mode to get the name of whoever made each reservation
  * @param user the signed in User
  * @param scope the CoroutineScope that the suspend fetches run in
+ *
+ * @property viewMode Indicates whether the user viewing the screen is in Entrant or Campsite Owner mode
+ * @property campsites A list of the campsites that appear in the displayed reservations
+ * @property entrants A list of the entrants that appear in the displayed reservations
+ * @property reservations A list of all reservations to be displayed
+ * @property oldReservations A sublist of the reservations with those uncancelled ones that have finished
+ * @property newReservations A sublist of the reservations with those uncancelled ones that haven't finished yet
+ * @property cancelledReservations A sublist of the reservations with those that have been cancelled
  */
 public class SeeReservationsModel(val resDB: ReservationRepository, val campsiteDB: CampsiteRepository, val entrantDB: EntrantProfileRepository, val user: User, val scope: CoroutineScope) : ObservableModel<SeeReservationsModel>() {
     var viewMode: UserViewMode = UserViewMode.ENTRANT
@@ -36,6 +44,9 @@ public class SeeReservationsModel(val resDB: ReservationRepository, val campsite
     var newReservations: List<ReservationModel> = emptyList()
     var cancelledReservations: List<ReservationModel> = emptyList()
 
+    /**
+     * Clear old data and initialize new data
+     */
     public fun initialize() {
         val role = if (user.getCurrentRole() == UserViewMode.CAMPSITE_OWNER) UserViewMode.CAMPSITE_OWNER else UserViewMode.ENTRANT
 

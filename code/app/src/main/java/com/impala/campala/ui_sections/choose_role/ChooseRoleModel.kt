@@ -12,6 +12,16 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
+/**
+ * The model for the section where the user chooses their role upon entering the app
+ *
+ * @param entrantProfileRepo The repository to fetch relevant entrant profiles from
+ * @param campsiteOwnerProfileRepo The repository to fetch relevant owner profiles from
+ * @param scope The coroutine scope the suspend functions run in
+ *
+ * @property isSaving true while the profile is being created, so the buttons can't be pressed twice
+ * @property chosenRole The role chosen by the user
+ */
 class ChooseRoleModel(
     val entrantProfileRepo: EntrantProfileRepository,
     val campsiteOwnerProfileRepo: CampsiteOwnerProfileRepository,

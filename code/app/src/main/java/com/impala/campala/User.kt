@@ -22,16 +22,6 @@ enum class UserViewMode { ENTRANT, CAMPSITE_OWNER, ADMIN }
  * REMEMBER TO CALL initialize()!
  * Represents a user of the site, their permissions, their name (if they set one), and their currently selected role (Owner, Admin, Entrant).
  * Details of the Entrant Profile or Campsite Owner Profile are contained in their own classes and pointed to by User's ID
- *
- * @property uid The unique ID for this user.
- * @property isAdmin Does the user have admin permissions? True on first sign in, and potentially after.
- * @property isOwner Does the user have owner permissions? True on first sign in, and potentially after.
- * @property isEntrant Does the user have entrant permissions? Almost always, yes.
- * @property hasCreatedEntrantProfile A boolean for if this user has ever made an entrant profile? Some users only ever act as campsite owners and so this would be false.
- * @property hasActiveEntrantProfile Is this user's entrant profile still usable? False if it was never made, or if it got banned/deleted.
- * @property hasCreatedCampsiteOwnerProfile A boolean for if this user has ever made a campsite owner profile? Some users only ever act as entrants and so this would be false.
- * @property hasActiveCampsiteOwnerProfile Is this user's campsite owner profile still usable? False if it was never made, or if it got banned/deleted.
- * @property currentRole Which view the app should open in on start. Null if they haven't picked one yet.
  */
 
 class User() {
@@ -51,6 +41,11 @@ class User() {
     private var currentRole : UserViewMode? = null
     private val TAG = "User" // TODO: Looks like this is just for error reporting but I should clarify with Liam
 
+    /**
+     * This gets a user profile from the database and sets all the properties based on that
+     *
+     * @return This User object
+     */
     public suspend fun initialize() : User {
 
         var currentUser = auth.currentUser
@@ -114,7 +109,6 @@ class User() {
         return this
     }
 
-
     private suspend fun checkServerForUser(uid: String) : Boolean {
 
         val foundUser = db.collection("users").document(uid).get().await()
@@ -122,6 +116,11 @@ class User() {
         return foundUser.exists()
     }
 
+    /**
+     * Update the details of this class to those of a User's in the database, identified by ID
+     *
+     * @param uid The ID of the user whose details to update this class's to match
+     */
     suspend fun updateLocalDetails(uid: String) {
         val document = db.collection("users").document(uid).get().await()
 
@@ -142,6 +141,11 @@ class User() {
     }
 
 
+    /**
+     * Update the profile of a user in the database to match this class's local details
+     *
+     * @param uid The ID of the user to update
+     */
     public fun updateUserProfile(uid: String) { // In a real project this function should be private for security purposes. But this is aight for now
         val userData = mutableMapOf(
             "isAdmin" to isAdmin,
@@ -169,51 +173,146 @@ class User() {
 
     // ~~~ Getters and setters ~~~
 
+    /**
+     * Get the isAdmin property
+     *
+     * @return isAdmin
+     */
     fun getIsAdmin(): Boolean = isAdmin
+    /**
+     * Update the isAdmin property
+     *
+     * @param value The value to update to
+     */
     fun setIsAdmin(value: Boolean) {
         isAdmin = value
     }
 
+    /**
+     * Get the isOwner property
+     *
+     * @return isOwner
+     */
     fun getIsOwner(): Boolean = isOwner
+    /**
+     * Update the isOwner property
+     *
+     * @param value The value to update to
+     */
     fun setIsOwner(value: Boolean) {
         isOwner = value
     }
 
+    /**
+     * Get the isEntrant property
+     *
+     * @return isEntrant
+     */
     fun getIsEntrant(): Boolean = isEntrant
+    /**
+     * Update the isEntrant property
+     *
+     * @param value The value to update to
+     */
     fun setIsEntrant(value: Boolean) {
         isEntrant = value
     }
 
+    /**
+     * Get the userName property
+     *
+     * @return userName
+     */
     fun getuserName(): String? = userName
+    /**
+     * Update the userName property
+     *
+     * @param value The value to update to
+     */
     fun setuserName(value: String?) {
         userName = value
     }
 
+    /**
+     * Get the hasCreatedEntrantProfile property
+     *
+     * @return hasCreatedEntrantProfile
+     */
     fun getHasCreatedEntrantProfile(): Boolean = hasCreatedEntrantProfile
+    /**
+     * Update the hasCreatedEntrantProfile property
+     *
+     * @param value The value to update to
+     */
     fun setHasCreatedEntrantProfile(value: Boolean) {
         hasCreatedEntrantProfile = value
     }
 
+    /**
+     * Get the hasActiveEntrantProfile property
+     *
+     * @return hasActiveEntrantProfile
+     */
     fun getHasActiveEntrantProfile(): Boolean = hasActiveEntrantProfile
+    /**
+     * Update the hasActiveEntrantProfile property
+     *
+     * @param value The value to update to
+     */
     fun setHasActiveEntrantProfile(value: Boolean) {
         hasActiveEntrantProfile = value
     }
 
+    /**
+     * Get the hasCreatedCampsiteOwnerProfile property
+     *
+     * @return hasCreatedCampsiteOwnerProfile
+     */
     fun getHasCreatedCampsiteOwnerProfile(): Boolean = hasCreatedCampsiteOwnerProfile
+    /**
+     * Update the hasCreatedCampsiteOwnerProfile property
+     *
+     * @param value The value to update to
+     */
     fun setHasCreatedCampsiteOwnerProfile(value: Boolean) {
         hasCreatedCampsiteOwnerProfile = value
     }
 
+    /**
+     * Get the hasActiveCampsiteOwner property
+     *
+     * @return hasActiveCampsiteOwner
+     */
     fun getHasActiveCampsiteOwnerProfile(): Boolean = hasActiveCampsiteOwnerProfile
+    /**
+     * Update the hasActiveCampsiteOwner property
+     *
+     * @param value The value to update to
+     */
     fun setHasActiveCampsiteOwnerProfile(value: Boolean) {
         hasActiveCampsiteOwnerProfile = value
     }
 
+    /**
+     * Get the currentRole property
+     *
+     * @return currentRole
+     */
     fun getCurrentRole(): UserViewMode? = currentRole
+    /**
+     * Update the currentRole property
+     *
+     * @param value The value to update to
+     */
     fun setCurrentRole(value: UserViewMode?) {
         currentRole = value
     }
 
+    /**
+     * Get the uid property
+     *
+     * @return uid
+     */
     fun getUID(): String = uid
     private fun setUID(value: String?) {
         println("Nope! Not how that works. BUT... if you wanna do this for testing purposes, then sure, change uid to a var, but be careful.")
