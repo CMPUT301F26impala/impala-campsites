@@ -1,4 +1,4 @@
-package com.impala.campala
+package com.impala.campala.ui
 
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.junit4.createComposeRule

@@ -1,9 +1,11 @@
-package com.impala.campala
+package com.impala.campala.integration
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.android.gms.tasks.Tasks
+import com.google.firebase.Firebase
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.firestore
 import com.impala.campala.model.CampsiteModel
 import com.impala.campala.model.CampsiteRepository
 import com.impala.campala.model.ReservationModel
@@ -18,6 +20,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import java.time.LocalDate
 import java.time.ZoneId
+import java.util.concurrent.TimeUnit
 
 @RunWith(AndroidJUnit4::class)
 class ReservationRepositoryTest {
@@ -124,5 +127,20 @@ class ReservationRepositoryTest {
 
         repo.deleteReservation(reservation)
         assertNull("Reservation should not exist after deleting",repo.getReservationById(reservation.id))
+    }
+
+    // Moved here from the old androidTest ReservationModelTest, since it goes through Firestore
+    @Test
+    fun firestoreEmulatorRoundTrip() {
+
+        Tasks.await(reservation.save(), 10, TimeUnit.SECONDS)
+
+        val storedModel = ReservationModel.load(
+            Tasks.await(
+                Firebase.firestore.collection("reservations").document(reservation.id).get()
+            )
+        )
+
+        assertEquals(reservation, storedModel)
     }
 }
