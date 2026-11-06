@@ -7,6 +7,8 @@ import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.Exclude
 import com.google.firebase.firestore.firestore
+import java.time.LocalDate
+import java.time.ZoneOffset
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
@@ -25,7 +27,9 @@ data class ReservationModel @OptIn(ExperimentalUuidApi::class) constructor(
     val isPast: Boolean
         // TODO: use server time instead of this, since clients can change
         //  their system time. from brief research this might need server functions
-        get() = Timestamp.now() > endDate
+        // endDate is the LAST day of the stay (saved as midnight UTC), so the stay isn't over until that whole day is
+        // This compares so it only becomes past the day after
+        get() = LocalDate.now().isAfter(endDate.toInstant().atZone(ZoneOffset.UTC).toLocalDate())
 
     companion object {
         fun load(doc: DocumentSnapshot): ReservationModel {

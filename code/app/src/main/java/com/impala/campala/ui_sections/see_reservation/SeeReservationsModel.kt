@@ -1,6 +1,5 @@
 package com.impala.campala.ui_sections.see_reservation
 
-import com.google.firebase.Timestamp
 import com.impala.campala.ObservableModel
 import com.impala.campala.User
 import com.impala.campala.UserViewMode
@@ -49,7 +48,6 @@ public class SeeReservationsModel(val resDB: ReservationRepository, val campsite
         notifyObservers(this)
 
         scope.launch {
-            val currentDate: com.google.firebase.Timestamp = Timestamp.now()
             val fetched = if (viewMode == UserViewMode.CAMPSITE_OWNER) resDB.getReservationsByOwner(user.getUID()) else resDB.getReservationsByUser(user.getUID())
             val loaded = fetched.sortedBy { it.startDate }
             // Load each campsite once, all at the same time, before showing the list so it never shows ids
@@ -68,8 +66,9 @@ public class SeeReservationsModel(val resDB: ReservationRepository, val campsite
                 }
             }
             reservations = loaded
-            oldReservations = reservations.filter {it.endDate < currentDate && !it.hasBeenCancelled}
-            newReservations = reservations.filter {it.endDate >= currentDate && !it.hasBeenCancelled}
+            // isPast only counts a stay as past once its last day is over, comparing endDate to now directly would move it a day early
+            oldReservations = reservations.filter {it.isPast && !it.hasBeenCancelled}
+            newReservations = reservations.filter {!it.isPast && !it.hasBeenCancelled}
             cancelledReservations = reservations.filter {it.hasBeenCancelled}
             notifyObservers(this@SeeReservationsModel)
         }
