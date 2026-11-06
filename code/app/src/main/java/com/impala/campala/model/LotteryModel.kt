@@ -7,6 +7,8 @@ import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.Exclude
 import com.google.firebase.firestore.firestore
+import java.time.LocalDate
+import java.time.ZoneOffset
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
@@ -63,7 +65,8 @@ data class LotteryModel @OptIn(ExperimentalUuidApi::class) constructor(
         JOINED_LOTTERY,
         JOINED_WAITLIST,
         ALREADY_JOINED,
-        FULL
+        FULL,
+        NOT_OPEN
     }
 
     // This is the return value of evaluateUserAction
@@ -73,7 +76,8 @@ data class LotteryModel @OptIn(ExperimentalUuidApi::class) constructor(
         CAN_JOIN_WAITLIST,
         ALREADY_IN_LOTTERY,
         ALREADY_IN_WAITLIST,
-        FULL
+        FULL,
+        NOT_OPEN
     }
 
     companion object {
@@ -117,9 +121,10 @@ data class LotteryModel @OptIn(ExperimentalUuidApi::class) constructor(
      * This is basically a function to figure out "What should the 'Join' button do
      *
      * It returns what action that entrant can take, are they already in the lottery or waitlist, can they join either, or is it full
+     * People already in the lottery or waitlist get those statuses even outside the lottery period, so they can still leave the waitlist
      *
      * @param entrantId ID of the person joining
-     * @return A ProspectiveJoinStatus enum, which is one of ALREADY_IN_LOTTERY, ALREADY_IN_WAITLIST, CAN_JOIN_LOTTERY, CAN_JOIN_WAITLIST, or FULL
+     * @return A ProspectiveJoinStatus enum, which is one of ALREADY_IN_LOTTERY, ALREADY_IN_WAITLIST, NOT_OPEN, CAN_JOIN_LOTTERY, CAN_JOIN_WAITLIST, or FULL
      */
     @Exclude
     fun evaluateUserAction(entrantId: String): ProspectiveJoinStatus {
@@ -129,6 +134,14 @@ data class LotteryModel @OptIn(ExperimentalUuidApi::class) constructor(
         if (entrantId in waitlistIds) {
             return ProspectiveJoinStatus.ALREADY_IN_WAITLIST
         }
+        // Check if the lottery is even open
+        val today = LocalDate.now()
+        val startDay = lotteryStartTime.toInstant().atZone(ZoneOffset.UTC).toLocalDate()
+        val endDay = lotteryEndTime.toInstant().atZone(ZoneOffset.UTC).toLocalDate()
+        if (today.isBefore(startDay) || !today.isBefore(endDay)) {
+            return ProspectiveJoinStatus.NOT_OPEN
+        }
+
         if (entrantIds.size < lotteryCapacity) {
             return ProspectiveJoinStatus.CAN_JOIN_LOTTERY
         }
@@ -145,13 +158,20 @@ data class LotteryModel @OptIn(ExperimentalUuidApi::class) constructor(
      * The repository will have a method to add an entrant to a campsite, and it will take that campsite, call this method on it, and then call save
      *
      * @param entrantId ID of the person joining
-     * @return A JoinResult enum which is where they ended up
+     * @return A JoinResult enum which is where they ended up, or NOT_OPEN if it isn't the lottery period
      */
     @Exclude
     fun addEntrant(entrantId: String): JoinResult {
         if (entrantId in entrantIds || entrantId in waitlistIds) {
             return JoinResult.ALREADY_JOINED
         }
+        val today = LocalDate.now()
+        val startDay = lotteryStartTime.toInstant().atZone(ZoneOffset.UTC).toLocalDate()
+        val endDay = lotteryEndTime.toInstant().atZone(ZoneOffset.UTC).toLocalDate()
+        if (today.isBefore(startDay) || !today.isBefore(endDay)) {
+            return JoinResult.NOT_OPEN
+        }
+        
         if (entrantIds.size < lotteryCapacity) {
             entrantIds.add(entrantId)
             return JoinResult.JOINED_LOTTERY

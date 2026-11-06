@@ -146,7 +146,9 @@ class LotteryRepositoryTest {
 
     @Test
     fun joinFillsLotteryThenWaitlist(): Unit = runBlocking {
-        repo.saveLottery(lottery)
+        // TODO: This was just to make the test pass, should probably rewrite this to have more tests testing that the valid ranges actually work
+        val farFuture = Timestamp(250_000_000_000, 0)
+        repo.saveLottery(lottery.copy(lotteryEndTime = farFuture, registrationStartTime = farFuture, registrationEndTime = farFuture))
 
         assertEquals(JoinResult.JOINED_LOTTERY, repo.joinLottery(lottery.id, "harry"))
         assertEquals(JoinResult.ALREADY_JOINED, repo.joinLottery(lottery.id, "harry"))

@@ -182,7 +182,7 @@ class CampsiteDetailsView(val controller: CampsiteDetailsController): ViewObserv
                 var enabled = true
                 var buttonAction: () -> Unit = {}
 
-                if(!lotteryExists || joinStatus == LotteryModel.ProspectiveJoinStatus.FULL) {
+                if(!lotteryExists || joinStatus == LotteryModel.ProspectiveJoinStatus.FULL || joinStatus == LotteryModel.ProspectiveJoinStatus.NOT_OPEN) {
                     buttonText = "Lottery Closed"
                     enabled = false
                 }
