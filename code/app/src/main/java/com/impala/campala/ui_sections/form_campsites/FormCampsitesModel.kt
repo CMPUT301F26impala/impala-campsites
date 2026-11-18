@@ -1,5 +1,6 @@
 package com.impala.campala.ui_sections.form_campsites
 
+import android.net.Uri
 import com.impala.campala.ObservableModel
 import com.impala.campala.User
 import com.impala.campala.model.CampsiteModel
@@ -25,6 +26,7 @@ import kotlinx.coroutines.launch
  * @property description The description to go on the campsite
  * @property maximumOccupancy The maximum occupancy to go on the campsite
  * @property tags The list of tags to go on the campsite
+ * @property unsavedImage The image picked by a form, not uploaded yet
  * @property wasCampsiteSavedSuccessfully True if the new campsite was saved to the database successfully
  */
 class FormCampsitesModel(
@@ -40,6 +42,7 @@ class FormCampsitesModel(
     var description = campsite?.description ?: ""
     var maximumOccupancy = campsite?.maxOccupancy?.toString() ?: ""
     var tags = campsite?.tags?.toMutableList() ?: mutableListOf()
+    var unsavedImage: Uri? = null
 
     // if campsite was saved successfully
     var wasCampsiteSavedSuccessfully = false
@@ -109,6 +112,16 @@ class FormCampsitesModel(
     }
 
     /**
+     * Holds the image picked in the form until the campsite is saved
+     *
+     * @param imageUri content Uri of the image the user picked
+     */
+    fun updateUnsavedImage(imageUri: Uri) {
+        unsavedImage = imageUri
+        notifyObservers(this)
+    }
+
+    /**
      * Prepares the model for creating a new campsite by clearing the form's fields
      */
     fun startNewCampsite() {
@@ -134,6 +147,7 @@ class FormCampsitesModel(
         description = newCampsite?.description ?: ""
         maximumOccupancy = newCampsite?.maxOccupancy?.toString() ?: ""
         tags = newCampsite?.tags?.toMutableList() ?: mutableListOf()
+        unsavedImage = null
         notifyObservers(this)
     }
 
@@ -173,6 +187,7 @@ class FormCampsitesModel(
 
         //save to firebase
         scope.launch {
+            // TODO: if unsavedImage isn't null, compress it and upload it to Firestore before saving the campsite
             repo.saveCampsite(updatedCampsite)
             // If this is a new campsite, make sure to actually add it to the campsite owner profile too
             if (existingCampsite == null) {

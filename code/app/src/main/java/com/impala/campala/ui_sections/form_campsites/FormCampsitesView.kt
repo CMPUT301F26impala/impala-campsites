@@ -1,5 +1,9 @@
 package com.impala.campala.ui_sections.form_campsites
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -91,6 +95,14 @@ class FormCampsitesView(
     fun Render(navController: NavController, campsiteId: String? = null) {
         LaunchedEffect(campsiteId) {
             controller.onOpen(campsiteId)
+        }
+        // https://developer.android.com/training/data-storage/shared/photo-picker#compose
+        val imagePicker = rememberLauncherForActivityResult(
+            ActivityResultContracts.PickVisualMedia()
+        ) { uri ->
+            if (uri != null) {
+                controller.onUploadImage(uri)
+            }
         }
         LaunchedEffect(wasCampsiteSavedSuccessfully) {
             if (wasCampsiteSavedSuccessfully == true) {
@@ -233,13 +245,19 @@ class FormCampsitesView(
                     )
                 }
 
-                // button to pick an image from gallery
+                // This button just launched the image picker popup defined above in the file
                 item {
                     Text(
-                        text = "Upload Alternative Image",
+                        text = "Upload Image",
                         color = MaterialTheme.colorScheme.primary,
                         textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                imagePicker.launch(
+                                    PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                                )
+                            }
                     )
                 }
             } // personal reference, end of lazy column here
