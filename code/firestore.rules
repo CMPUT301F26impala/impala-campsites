@@ -145,6 +145,14 @@ service cloud.firestore {
       allow delete: if isSelf(resource.data.ownerId) || isAdmin();
     }
 
+    // ----------------------------------------------------------------- images
+
+    // Compressed images (ImageRepository), campsites store the ID of their image
+    // Kept simple for the MVP, any signed in user can read, write or delete any image
+    match /images/{imageId} {
+      allow read, write: if signedIn();
+    }
+
     // -------------------------------------------------------------- lotteries
 
     function noDuplicates(list) {
