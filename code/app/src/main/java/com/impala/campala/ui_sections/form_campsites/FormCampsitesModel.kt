@@ -1,11 +1,15 @@
 package com.impala.campala.ui_sections.form_campsites
 
 import android.net.Uri
+import com.google.firebase.firestore.Blob
+import com.impala.campala.ImageCompressor
 import com.impala.campala.ObservableModel
 import com.impala.campala.User
 import com.impala.campala.model.CampsiteModel
 import com.impala.campala.model.CampsiteOwnerProfileRepository
 import com.impala.campala.model.CampsiteRepository
+import com.impala.campala.model.ImageModel
+import com.impala.campala.model.ImageRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
@@ -17,6 +21,8 @@ import kotlinx.coroutines.launch
  *
  * @param repo CampsiteRepository consisting of all campsites
  * @param campsiteOwnerProfileRepo Repository of campsite owner profiles. Used for saving new campsites to a user's profile
+ * @param imageRepo Repository of images. Used for saving the campsite's image when one is picked
+ * @param imageCompressor Used to shrink the picked image before it's saved
  * @param user the authorized user editing the form
  * @param scope the CoroutineScope used for Firebase operations
  * @param campsite campsite whose data will be edited, passed as null in creation mode
@@ -32,6 +38,8 @@ import kotlinx.coroutines.launch
 class FormCampsitesModel(
     val repo: CampsiteRepository,
     val campsiteOwnerProfileRepo: CampsiteOwnerProfileRepository,
+    val imageRepo: ImageRepository,
+    val imageCompressor: ImageCompressor,
     val user: User,
     val scope: CoroutineScope,
     var campsite: CampsiteModel? = null
@@ -153,6 +161,7 @@ class FormCampsitesModel(
 
     /**
      * Create or update a campsite using the form's values.
+     * If an image was picked, it's compressed and saved first, and replaces the campsite's old image.
      * Adds the campsite Id to the user's campsite owner profile, then notifies the view
      */
     fun saveCampsite() {
@@ -187,8 +196,20 @@ class FormCampsitesModel(
 
         //save to firebase
         scope.launch {
-            // TODO: if unsavedImage isn't null, compress it and upload it to Firestore before saving the campsite
+            val imageUri = unsavedImage
+            val oldImageId = existingCampsite?.imageId ?: ""
+            if (imageUri != null) {
+                val image = ImageModel(data = Blob.fromBytes(imageCompressor.compress(imageUri)))
+                imageRepo.saveImage(image)
+                updatedCampsite.imageId = image.id
+            }
+
             repo.saveCampsite(updatedCampsite)
+
+            // Now that the campsite points to the new image, the old one isn't used anywhere
+            if (imageUri != null && oldImageId.isNotEmpty()) {
+                imageRepo.deleteImage(oldImageId)
+            }
             // If this is a new campsite, make sure to actually add it to the campsite owner profile too
             if (existingCampsite == null) {
                 campsiteOwnerProfileRepo.getCampsiteOwnerProfileById(user.getUID())?.let {

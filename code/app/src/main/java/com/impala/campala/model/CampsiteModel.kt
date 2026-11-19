@@ -18,7 +18,7 @@ import kotlin.uuid.Uuid
  * @param description Campsite description as a String
  * @param maxOccupancy Integer for the campsite's maximum occupancy
  * @param mapLocation TODO: Implement this as likely a pair of floats with coordinates
- * @param imageUrl Link to the profile picture of the campsite
+ * @param imageId ID of the campsite's image in the images collection, empty if it has no image
  * @param tags A list of Strings with relevant tags
  * @param rules A string containing campsite rules
  * @param id The ID of the campsite connecting it to an entry in the database
@@ -31,7 +31,7 @@ data class CampsiteModel @OptIn(ExperimentalUuidApi::class) constructor(
     var description: String = "",
     var maxOccupancy: Int = 0,
     var mapLocation: String = "", // probably pair of float for lat and longitude
-    var imageUrl: String = "",
+    var imageId: String = "",
     var tags: MutableList<String> = mutableListOf(),
     var rules: String="",
     // ratingTotal is the sum of all star ratings a campsite has gotten (eg: 3.5 + 5 + 4.5)
