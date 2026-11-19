@@ -3,6 +3,7 @@ package com.impala.campala
 import android.content.ContentResolver
 import android.graphics.Bitmap
 import android.graphics.ImageDecoder
+import android.graphics.Rect
 import android.net.Uri
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -24,7 +25,7 @@ import java.io.IOException
  * Then used that to create the following class (code is my own)
  *
  * @param contentResolver an android internal used to read the image data that a uri points to
- * @param maxWidth the width in pixels images are scaled down to, height is scaled to keep the aspect ratio. Narrower images aren't scaled up
+ * @param maxWidth the width in pixels images are scaled down to, height is scaled to keep the aspect ratio. Narrower images aren't scaled up.
  * @param maxBytes the size in bytes the compressed image should fit under
  */
 class ImageCompressor(
@@ -35,14 +36,26 @@ class ImageCompressor(
     private fun scaleUriToBitmap(uri: Uri): Bitmap {
         // This basically turns a uri (a link) to the actual image data so that we can work on it
         val source = ImageDecoder.createSource(contentResolver, uri)
-        return ImageDecoder.decodeBitmap(source) { decoder, info, _ ->
+
+        // Minh pointed out that we should have a maxHeight too (to prevent images that are like 10,000px tall)
+        // So now, IF the image is taller than it is wide, we center crop it to a square
+        // Campsite images are landscape, and pfps are square
+        // So we'll never need more than square
+        val croppedBitmap = ImageDecoder.decodeBitmap(source) { decoder, info, _ ->
             val width = info.size.width
             val height = info.size.height
-            if (width > maxWidth) {
-                val scaledHeight = height * maxWidth / width
-                decoder.setTargetSize(maxWidth, maxOf(1, scaledHeight))
+            if (height > width) {
+                val top = (height - width) / 2
+                decoder.crop = Rect(0, top, width, top + width)
             }
         }
+
+        // After the crop, now we scale it down if needed
+        if (croppedBitmap.width <= maxWidth) {
+            return croppedBitmap
+        }
+        val scaledHeight = maxOf(1, croppedBitmap.height * maxWidth / croppedBitmap.width)
+        return Bitmap.createScaledBitmap(croppedBitmap, maxWidth, scaledHeight, true)
     }
 
     private fun compressBitmap(bitmap: Bitmap): ByteArray {
