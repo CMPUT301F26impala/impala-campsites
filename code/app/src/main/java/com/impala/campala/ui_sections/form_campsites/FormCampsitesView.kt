@@ -37,6 +37,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.navigation.NavController
+import com.impala.campala.ImageDisplay
 import com.impala.campala.ViewObserver
 
 
@@ -63,6 +64,8 @@ class FormCampsitesView(
     private var tags by mutableStateOf<List<String>>(emptyList())
     private var tagInput by mutableStateOf("")
     private var isEditing by mutableStateOf(false)
+    private var existingImageBytes by mutableStateOf<ByteArray?>(null)
+    private var hasPendingImage by mutableStateOf(false)
     private var wasCampsiteSavedSuccessfully by mutableStateOf(false)
 
     /**
@@ -77,6 +80,8 @@ class FormCampsitesView(
         maximumOccupancy = model.maximumOccupancy
         tags = model.tags.toList()
         isEditing = model.campsite != null
+        existingImageBytes = model.existingImageBytes
+        hasPendingImage = model.unsavedImage != null
         wasCampsiteSavedSuccessfully = model.wasCampsiteSavedSuccessfully
     }
 
@@ -234,15 +239,24 @@ class FormCampsitesView(
                     }
                 }
 
-                // image white placeholder, will be changed later
+                // Shows the campsite's current image (white if it has none)
+                // Since images only get turned from Uri to ByteArray once you hit save, we can't really show it in the meantime
+                // So it just say "New image"
                 item {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(150.dp)
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(Color.White)
-                    )
+                    val imageModifier = Modifier
+                        .fillMaxWidth()
+                        .height(150.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                    if (hasPendingImage) {
+                        Box(
+                            modifier = imageModifier.background(Color.White),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text("New image pending save", color = Color.DarkGray)
+                        }
+                    } else {
+                        ImageDisplay(imageBytes = existingImageBytes, modifier = imageModifier)
+                    }
                 }
 
                 // This button just launched the image picker popup defined above in the file

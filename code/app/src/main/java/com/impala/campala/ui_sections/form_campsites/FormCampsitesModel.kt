@@ -21,7 +21,7 @@ import kotlinx.coroutines.launch
  *
  * @param repo CampsiteRepository consisting of all campsites
  * @param campsiteOwnerProfileRepo Repository of campsite owner profiles. Used for saving new campsites to a user's profile
- * @param imageRepo Repository of images. Used for saving the campsite's image when one is picked
+ * @param imageRepo Repository of images. Used for loading the campsite's current image, and saving a new one when it's picked
  * @param imageCompressor Used to shrink the picked image before it's saved
  * @param user the authorized user editing the form
  * @param scope the CoroutineScope used for Firebase operations
@@ -33,6 +33,7 @@ import kotlinx.coroutines.launch
  * @property maximumOccupancy The maximum occupancy to go on the campsite
  * @property tags The list of tags to go on the campsite
  * @property unsavedImage The image picked by a form, not uploaded yet
+ * @property existingImageBytes The campsite's current saved image, null when creating a campsite or if it has no image
  * @property wasCampsiteSavedSuccessfully True if the new campsite was saved to the database successfully
  */
 class FormCampsitesModel(
@@ -51,6 +52,7 @@ class FormCampsitesModel(
     var maximumOccupancy = campsite?.maxOccupancy?.toString() ?: ""
     var tags = campsite?.tags?.toMutableList() ?: mutableListOf()
     var unsavedImage: Uri? = null
+    var existingImageBytes: ByteArray? = null
 
     // if campsite was saved successfully
     var wasCampsiteSavedSuccessfully = false
@@ -133,6 +135,7 @@ class FormCampsitesModel(
      * Prepares the model for creating a new campsite by clearing the form's fields
      */
     fun startNewCampsite() {
+        existingImageBytes = null
         setFields(null)
     }
 
@@ -142,7 +145,10 @@ class FormCampsitesModel(
      * @param campsiteId ID of the campsite being edited
      */
     suspend fun loadCampsite(campsiteId: String) {
-        setFields(repo.getCampsiteById(campsiteId))
+        val loadedCampsite = repo.getCampsiteById(campsiteId)
+        val imageId = loadedCampsite?.imageId ?: ""
+        existingImageBytes = if (imageId.isNotEmpty()) imageRepo.getImageById(imageId)?.data?.toBytes() else null
+        setFields(loadedCampsite)
     }
 
     // Updated the fields in the form with the data that was passed, and set to null for clearing them

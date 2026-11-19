@@ -86,13 +86,13 @@ fun SignedInApp(user: User) {
     val contentResolver = LocalContext.current.contentResolver
     val imageCompressor = remember { ImageCompressor(contentResolver) }
 
-    val searchCampsitesModel = remember { SearchCampsitesModel(campsiteRepo, campsiteOwnerProfileRepo, lotteryRepo, user, coroutineScope, SearchCampsitesViewMode.ENTRANT) }
+    val searchCampsitesModel = remember { SearchCampsitesModel(campsiteRepo, campsiteOwnerProfileRepo, lotteryRepo, imageRepo, user, coroutineScope, SearchCampsitesViewMode.ENTRANT) }
     val searchCampsitesController = remember { SearchCampsitesController(searchCampsitesModel) }
     val searchCampsitesView = remember { SearchCampsitesView(searchCampsitesController) }
     searchCampsitesModel.addObserver(searchCampsitesView)
 
     // Same screen as above, but in campsite owner mode it only shows the user's own campsites and has the Add Campsite button
-    val ownerSearchCampsitesModel = remember { SearchCampsitesModel(campsiteRepo, campsiteOwnerProfileRepo, lotteryRepo, user, coroutineScope, SearchCampsitesViewMode.CAMPSITE_OWNER) }
+    val ownerSearchCampsitesModel = remember { SearchCampsitesModel(campsiteRepo, campsiteOwnerProfileRepo, lotteryRepo, imageRepo, user, coroutineScope, SearchCampsitesViewMode.CAMPSITE_OWNER) }
     val ownerSearchCampsitesController = remember { SearchCampsitesController(ownerSearchCampsitesModel) }
     val ownerSearchCampsitesView = remember { SearchCampsitesView(ownerSearchCampsitesController) }
     ownerSearchCampsitesModel.addObserver(ownerSearchCampsitesView)
@@ -107,7 +107,7 @@ fun SignedInApp(user: User) {
     val formLotteriesView = remember { FormLotteriesView(formLotteriesController) }
     formLotteriesModel.addObserver(formLotteriesView)
 
-    val campsiteDetailsModel = remember { CampsiteDetailsModel(campsiteRepo, lotteryRepo, campsiteOwnerProfileRepo, reservationRepo, user, coroutineScope) }
+    val campsiteDetailsModel = remember { CampsiteDetailsModel(campsiteRepo, lotteryRepo, campsiteOwnerProfileRepo, reservationRepo, imageRepo, user, coroutineScope) }
     val campsiteDetailsController = remember { CampsiteDetailsController(campsiteDetailsModel) }
     val campsiteDetailsView = remember { CampsiteDetailsView(campsiteDetailsController) }
     campsiteDetailsModel.addObserver(campsiteDetailsView)
