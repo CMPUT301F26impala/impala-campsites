@@ -9,6 +9,8 @@ import com.impala.campala.model.EntrantProfileModel
 import com.impala.campala.model.EntrantProfileRepository
 import com.impala.campala.model.ReservationModel
 import com.impala.campala.model.ReservationRepository
+import com.impala.campala.model.ReviewModel
+import com.impala.campala.model.ReviewRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -24,6 +26,7 @@ import kotlin.collections.List
  * @param resDB the ReservationRepository to fetch reservations from
  * @param campsiteDB the CampsiteRepository to fetch each reservation's campsite from
  * @param entrantDB the EntrantProfileRepository, used in campsite owner mode to get the name of whoever made each reservation
+ * @param reviewDB the ReviewRepository that reviews are posted to
  * @param user the signed in User
  * @param scope the CoroutineScope that the suspend fetches run in
  *
@@ -35,7 +38,7 @@ import kotlin.collections.List
  * @property newReservations A sublist of the reservations with those uncancelled ones that haven't finished yet
  * @property cancelledReservations A sublist of the reservations with those that have been cancelled
  */
-public class SeeReservationsModel(val resDB: ReservationRepository, val campsiteDB: CampsiteRepository, val entrantDB: EntrantProfileRepository, val user: User, val scope: CoroutineScope) : ObservableModel<SeeReservationsModel>() {
+public class SeeReservationsModel(val resDB: ReservationRepository, val campsiteDB: CampsiteRepository, val entrantDB: EntrantProfileRepository, val reviewDB: ReviewRepository, val user: User, val scope: CoroutineScope) : ObservableModel<SeeReservationsModel>() {
     var viewMode: UserViewMode = UserViewMode.ENTRANT
     var campsites: List<CampsiteModel> = emptyList()
     var entrants: List<EntrantProfileModel> = emptyList()
@@ -98,15 +101,20 @@ public class SeeReservationsModel(val resDB: ReservationRepository, val campsite
     }
 
     /**
-     * Marks a reservation as rated and also adjusts the rating values in the campsite itself
+     * Marks a reservation as rated, posts the review, and also adjusts the rating values in the campsite itself
+     * Then reloads so the Rate button goes away
      *
      * @param res the past reservation being rated
      * @param rating the rating out of 5
+     * @param reviewText the written review, can be an empty string but not null
      */
-    public fun rateReservation(res: ReservationModel, rating: Double) {
+    public fun rateReservation(res: ReservationModel, rating: Double, reviewText: String) {
         scope.launch {
             resDB.flagAsRated(res.id)
             campsiteDB.addRating(res.campsiteId, rating)
+            reviewDB.saveReview(ReviewModel(posterId = user.getUID(), campsiteId = res.campsiteId, rating = rating, reviewText = reviewText.trim()))
+            // Reinitialize so that it can correctly see it's already rated this
+            initialize()
         }
     }
 }
