@@ -82,6 +82,9 @@ class ChooseRoleView(val controller: ChooseRoleController) : ViewObserver<Choose
                 Button(onClick = { controller.useAsCampsiteOwner(user) }, enabled = !isSaving) {
                     Text("Use as a Campsite Owner")
                 }
+                Button(onClick = { controller.useAsAdmin(user) }, enabled = !isSaving) {
+                    Text("View as Admin")
+                }
             }
             Spacer(modifier = Modifier.height(64.dp))
         }
