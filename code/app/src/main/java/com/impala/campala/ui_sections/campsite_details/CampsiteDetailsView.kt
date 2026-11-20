@@ -6,10 +6,12 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Edit
@@ -87,41 +89,45 @@ class CampsiteDetailsView(val controller: CampsiteDetailsController): ViewObserv
         LaunchedEffect(campsiteId) {
             controller.onOpen(campsiteId)
         }
-        Column(modifier = Modifier.fillMaxHeight()) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(color = MaterialTheme.colorScheme.primary)
-                    .height(192.dp)
-            ) {}
-            Row(
-                modifier = Modifier.padding(horizontal = 10.dp).fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween,
-            ) {
-                Text(name, style = MaterialTheme.typography.headlineMedium)
-                if(isOwner) {
-                    IconButton(
-                        onClick = { controller.moveToEdit(navController, campsiteId) }
-                    ) {
-                        Icon(Icons.Default.Edit, contentDescription = "Edit Icon", tint = MaterialTheme.colorScheme.onSurfaceVariant)
+        Box(modifier = Modifier.fillMaxSize()) {
+            Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(color = MaterialTheme.colorScheme.primary)
+                        .height(192.dp)
+                ) {}
+                Row(
+                    modifier = Modifier.padding(horizontal = 10.dp).fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                ) {
+                    Text(name, style = MaterialTheme.typography.headlineMedium)
+                    if(isOwner) {
+                        IconButton(
+                            onClick = { controller.moveToEdit(navController, campsiteId) }
+                        ) {
+                            Icon(Icons.Default.Edit, contentDescription = "Edit Icon", tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
                     }
                 }
+                Spacer(modifier = Modifier.height(16.dp))
+                RenderIconText()
+                RenderTextSection("Description", description)
+                RenderTextSection("Tags", tags.joinToString())
+                if(isOwner) {
+                    // TODO: This is not how our storyboard describes this should look, this will need to be polished up in final checkpoint to actually use the calendar renderer
+                    // But for now, I had Claude Opus 5.5 generate this .joinToString call, with the prompt "How can I turn ranges of dates into a range string but still have each range be it's own line"
+                    RenderTextSection(
+                        "Reserved Dates",
+                        reservedDates.joinToString("\n") { "${formatDate(it.startDate)} - ${formatDate(it.endDate)}" }
+                            .ifEmpty { "No upcoming reservations" }
+                    )
+                }
+                // Room for the floating buttons
+                Spacer(modifier = Modifier.height(128.dp))
             }
-            Spacer(modifier = Modifier.height(16.dp))
-            RenderIconText()
-            RenderTextSection("Description", description)
-            RenderTextSection("Tags", tags.joinToString())
-            if(isOwner) {
-                // TODO: This is not how our storyboard describes this should look, this will need to be polished up in final checkpoint to actually use the calendar renderer
-                // But for now, I had Claude Opus 5.5 generate this .joinToString call, with the prompt "How can I turn ranges of dates into a range string but still have each range be it's own line"
-                RenderTextSection(
-                    "Reserved Dates",
-                    reservedDates.joinToString("\n") { "${formatDate(it.startDate)} - ${formatDate(it.endDate)}" }
-                        .ifEmpty { "No upcoming reservations" }
-                )
-            }
-            RenderBottomButtons(modifier = Modifier.weight(1f), navController)
+            RenderBottomButtons(modifier = Modifier.align(Alignment.BottomEnd), navController)
         }
     }
 
@@ -160,7 +166,7 @@ class CampsiteDetailsView(val controller: CampsiteDetailsController): ViewObserv
     // A function to render the relevant buttons in the bottom right of the screen based on flags
     @Composable
     private fun RenderBottomButtons(modifier: Modifier = Modifier, navController: NavController) {
-        Column(modifier = modifier.padding(all = 10.dp).fillMaxWidth(),
+        Column(modifier = modifier.padding(all = 10.dp),
             horizontalAlignment = Alignment.End,
             verticalArrangement = Arrangement.Bottom
         ) {
