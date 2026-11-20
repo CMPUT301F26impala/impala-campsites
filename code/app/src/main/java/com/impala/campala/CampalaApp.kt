@@ -25,6 +25,7 @@ import com.impala.campala.model.CampsiteOwnerProfileRepository
 import com.impala.campala.model.EntrantProfileRepository
 import com.impala.campala.model.LotteryRepository
 import com.impala.campala.model.ReservationRepository
+import com.impala.campala.model.ReviewRepository
 import com.impala.campala.ui_sections.campsite_details.CampsiteDetailsController
 import com.impala.campala.ui_sections.campsite_details.CampsiteDetailsModel
 import com.impala.campala.ui_sections.campsite_details.CampsiteDetailsView
@@ -80,6 +81,7 @@ fun SignedInApp(user: User) {
     val campsiteOwnerProfileRepo = remember { CampsiteOwnerProfileRepository() }
     val lotteryRepo = remember { LotteryRepository() }
     val reservationRepo = remember { ReservationRepository() }
+    val reviewRepo = remember { ReviewRepository() }
 
     val searchCampsitesModel = remember { SearchCampsitesModel(campsiteRepo, campsiteOwnerProfileRepo, lotteryRepo, user, coroutineScope, SearchCampsitesViewMode.ENTRANT) }
     val searchCampsitesController = remember { SearchCampsitesController(searchCampsitesModel) }
@@ -102,7 +104,7 @@ fun SignedInApp(user: User) {
     val formLotteriesView = remember { FormLotteriesView(formLotteriesController) }
     formLotteriesModel.addObserver(formLotteriesView)
 
-    val campsiteDetailsModel = remember { CampsiteDetailsModel(campsiteRepo, lotteryRepo, campsiteOwnerProfileRepo, reservationRepo, user, coroutineScope) }
+    val campsiteDetailsModel = remember { CampsiteDetailsModel(campsiteRepo, lotteryRepo, campsiteOwnerProfileRepo, reservationRepo, reviewRepo, user, coroutineScope) }
     val campsiteDetailsController = remember { CampsiteDetailsController(campsiteDetailsModel) }
     val campsiteDetailsView = remember { CampsiteDetailsView(campsiteDetailsController) }
     campsiteDetailsModel.addObserver(campsiteDetailsView)
@@ -123,7 +125,7 @@ fun SignedInApp(user: User) {
     val createReservationView = remember { CreateReservationView(createReservationController) }
     createReservationModel.addObserver(createReservationView)
 
-    val seeReservationsModel = remember { SeeReservationsModel(reservationRepo, campsiteRepo, entrantProfileRepo, user, coroutineScope) }
+    val seeReservationsModel = remember { SeeReservationsModel(reservationRepo, campsiteRepo, entrantProfileRepo, reviewRepo, user, coroutineScope) }
     val seeReservationsController = remember { SeeReservationsController(seeReservationsModel) }
     val seeReservationsView = remember { SeeReservationsView(seeReservationsController) }
     seeReservationsModel.addObserver(seeReservationsView)

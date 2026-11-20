@@ -10,6 +10,8 @@ import com.impala.campala.model.LotteryModel
 import com.impala.campala.model.LotteryRepository
 import com.impala.campala.model.ReservationModel
 import com.impala.campala.model.ReservationRepository
+import com.impala.campala.model.ReviewModel
+import com.impala.campala.model.ReviewRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlin.uuid.Uuid
@@ -24,6 +26,7 @@ import kotlin.uuid.Uuid
  * @param lotteryRepo the repo to fetch the campsite lottery from
  * @param campsiteOwnerProfileRepo the repo to check which campsites the user owns
  * @param reservationRepo the repo to fetch the campsite's reservations from
+ * @param reviewRepo the repo to fetch the campsite's reviews from
  * @param user the object which contains the current user's information
  * @param scope the CoroutineScope that the suspend fetches run in
  *
@@ -39,12 +42,14 @@ import kotlin.uuid.Uuid
  * @property userIsOwner flag for if the current user owns the campsite
  * @property lotteryExists flag indicating if there is a lottery for the selected campsite
  * @property reservedDates the campsite's upcoming, non-cancelled reservations sorted by start date, only loaded for the owner
+ * @property reviews the reviews entrants have left on the campsite
  */
 class CampsiteDetailsModel(
     val campsiteRepo: CampsiteRepository,
     val lotteryRepo: LotteryRepository,
     val campsiteOwnerProfileRepo: CampsiteOwnerProfileRepository,
     val reservationRepo: ReservationRepository,
+    val reviewRepo: ReviewRepository,
     val user: User,
     val scope: CoroutineScope
 ) : ObservableModel<CampsiteDetailsModel>() {
@@ -60,6 +65,7 @@ class CampsiteDetailsModel(
     var userIsOwner: Boolean = false
     var lotteryExists: Boolean = false
     var reservedDates: List<ReservationModel> = emptyList()
+    var reviews: List<ReviewModel> = emptyList()
 
     /**
      * Called every time the screen is rendered.
@@ -90,6 +96,9 @@ class CampsiteDetailsModel(
         } else {
             emptyList()
         }
+
+        // Everyone sees the reviews, owner or entrant
+        reviews = reviewRepo.getReviewsByCampsite(campsiteId)
 
         lottery = lotteryRepo.getLotteryByCampsiteId(campsiteId)
 
