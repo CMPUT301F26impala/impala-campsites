@@ -10,6 +10,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -38,6 +40,7 @@ import com.impala.campala.ViewObserver
 import com.google.firebase.Timestamp
 import com.impala.campala.model.LotteryModel
 import com.impala.campala.model.ReservationModel
+import com.impala.campala.model.ReviewModel
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 
@@ -58,6 +61,7 @@ class CampsiteDetailsView(val controller: CampsiteDetailsController): ViewObserv
     private var tags = mutableStateListOf<String>()
     private var joinStatus by mutableStateOf<LotteryModel.ProspectiveJoinStatus?>(null)
     private var reservedDates = mutableStateListOf<ReservationModel>()
+    private var reviews = mutableStateListOf<ReviewModel>()
 
     override fun update(model: CampsiteDetailsModel) {
         this.name = model.name
@@ -72,6 +76,8 @@ class CampsiteDetailsView(val controller: CampsiteDetailsController): ViewObserv
         this.joinStatus = model.joinStatus
         this.reservedDates.clear()
         this.reservedDates.addAll(model.reservedDates)
+        this.reviews.clear()
+        this.reviews.addAll(model.reviews)
     }
 
     /**
@@ -124,6 +130,7 @@ class CampsiteDetailsView(val controller: CampsiteDetailsController): ViewObserv
                             .ifEmpty { "No upcoming reservations" }
                     )
                 }
+                RenderReviews()
                 // Room for the floating buttons
                 Spacer(modifier = Modifier.height(128.dp))
             }
@@ -156,6 +163,27 @@ class CampsiteDetailsView(val controller: CampsiteDetailsController): ViewObserv
         Spacer(modifier = Modifier.height(16.dp))
         Text(title, style = MaterialTheme.typography.headlineMedium, modifier = Modifier.padding(horizontal = 10.dp))
         Text(content, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(horizontal = 10.dp))
+    }
+
+    @Composable
+    private fun RenderReviews() {
+        Spacer(modifier = Modifier.height(16.dp))
+        Text("Reviews", style = MaterialTheme.typography.headlineMedium, modifier = Modifier.padding(horizontal = 10.dp))
+        if (reviews.isEmpty()) {
+            Text("No reviews yet", style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(horizontal = 10.dp))
+        }
+        reviews.forEach { review ->
+            Column(modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Default.Star, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(18.dp))
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text("%.1f Stars".format(review.rating), style = MaterialTheme.typography.titleMedium)
+                }
+                if (review.reviewText.isNotBlank()) {
+                    Text(review.reviewText, style = MaterialTheme.typography.bodyMedium)
+                }
+            }
+        }
     }
 
     private fun formatDate(timestamp: Timestamp): String {

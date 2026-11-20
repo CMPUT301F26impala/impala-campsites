@@ -143,7 +143,7 @@ class ReservationRepository {
     /**
      * Marks a past reservation as rated
      *
-     * The rating itself is saved on the campsite, so this just sets hasRating to true
+     * The review itself is saved with ReviewRepository, so this just sets hasRating to true
      *
      * @param reservationId ID of the reservation being rated
      */
