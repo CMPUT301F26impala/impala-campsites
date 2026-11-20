@@ -2,9 +2,7 @@ package com.impala.campala
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -143,12 +141,7 @@ fun SignedInApp(user: User) {
             UserViewMode.ENTRANT -> EntrantNavigationRoot(searchCampsitesScreen=searchCampsitesView, campsiteDetailsScreen=campsiteDetailsView, seeReservationsScreen=seeReservationsView, viewLotteriesScreen=viewLotteriesView, createReservationScreen=createReservationView, onSwitchRole={ needsRoleChoice = true })
             UserViewMode.CAMPSITE_OWNER -> CampsiteOwnerNavigationRoot(searchCampsitesScreen=ownerSearchCampsitesView, campsiteDetailsScreen=campsiteDetailsView, formCampsitesScreen=formCampsitesView, formLotteriesScreen = formLotteriesView, viewLotteriesScreen = viewLotteriesView, seeReservationsScreen = seeReservationsView, onSwitchRole={ needsRoleChoice = true })
 
-            UserViewMode.ADMIN -> {
-                Button(onClick = { needsRoleChoice = true}) {
-                    Text("Go Back, Not Done Yet")
-                }
-                // TODO: ADMIN UI
-            }
+            UserViewMode.ADMIN -> AdminNavigationRoot(onSwitchRole={ needsRoleChoice = true })
 
             null -> {
                 // They have a profile but no role saved, so just send them to the entrant UI so the app is still usable

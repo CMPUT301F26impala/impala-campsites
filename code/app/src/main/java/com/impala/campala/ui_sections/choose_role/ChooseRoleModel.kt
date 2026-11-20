@@ -36,7 +36,7 @@ class ChooseRoleModel(
      * If this is the first time choosing said role, it will create the object for it, and then it also updates the role property on the user.
      *
      * @param user The User picking a role
-     * @param role Either UserViewMode.ENTRANT or UserViewMode.CAMPSITE_OWNER
+     * @param role UserViewMode.ENTRANT, UserViewMode.CAMPSITE_OWNER, or UserViewMode.ADMIN
      */
     fun chooseRole(user: User, role: UserViewMode) {
         // First we set isSaving so that double presses can't happen
@@ -52,8 +52,8 @@ class ChooseRoleModel(
                     UserViewMode.CAMPSITE_OWNER -> if (!user.getHasCreatedCampsiteOwnerProfile()) {
                         campsiteOwnerProfileRepo.createCampsiteOwnerProfile(user, CampsiteOwnerProfileModel())
                     }
-                    // TODO: Admin is a post-halfway checkpoint thing
-                    UserViewMode.ADMIN -> throw IllegalArgumentException("Can't pick admin from the choose role screen")
+                    // Admin has no profile object to create, so we just switch the role
+                    UserViewMode.ADMIN -> {}
                 }
                 user.setCurrentRole(role)
                 user.updateUserProfile(user.getUID())
