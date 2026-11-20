@@ -117,19 +117,23 @@ class CampsiteDetailsModel(
 
     /**
      * Called when the entrant tries to join the lottery or waitlist
+     * Then reloads the campsite so the button shows the new join status
      */
     fun joinLottery() {
         this.scope.launch {
             lotteryRepo.joinLottery(lottery!!.id, user.getUID())
+            campsite?.let { loadCampsite(it.id) }
         }
     }
 
     /**
      * Called when the entrant tries to leave the waitlist
+     * Then reloads the campsite so the button shows the new join status
      */
     fun leaveWaitlist() {
         this.scope.launch {
             lotteryRepo.leaveLottery(lottery!!.id, user.getUID())
+            campsite?.let { loadCampsite(it.id) }
         }
     }
 }
