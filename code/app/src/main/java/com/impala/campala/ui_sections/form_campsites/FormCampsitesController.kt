@@ -1,5 +1,6 @@
 package com.impala.campala.ui_sections.form_campsites
 
+import android.net.Uri
 import com.impala.campala.Controller
 
 
@@ -80,6 +81,17 @@ class FormCampsitesController(
      */
     fun onRemoveTag(tag: String) {
         model.removeTag(tag)
+    }
+
+    /**
+     * Called by the image picker dialog after an image is chosen
+     * This does NOT upload/compress the image to firebase
+     * It just stores it in the model as unsaved Image
+     *
+     * @param imageUri content Uri of the image the user picked
+     */
+    fun onUploadImage(imageUri: Uri) {
+        model.updateUnsavedImage(imageUri)
     }
 
     /**

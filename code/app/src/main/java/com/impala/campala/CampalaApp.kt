@@ -11,6 +11,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import com.impala.campala.ui_sections.search_campsites.SearchCampsitesController
 import com.impala.campala.ui_sections.search_campsites.SearchCampsitesModel
 import com.impala.campala.ui_sections.search_campsites.SearchCampsitesView
@@ -21,6 +22,7 @@ import com.impala.campala.ui_sections.form_campsites.FormCampsitesView
 import com.impala.campala.model.CampsiteRepository
 import com.impala.campala.model.CampsiteOwnerProfileRepository
 import com.impala.campala.model.EntrantProfileRepository
+import com.impala.campala.model.ImageRepository
 import com.impala.campala.model.LotteryRepository
 import com.impala.campala.model.ReservationRepository
 import com.impala.campala.ui_sections.campsite_details.CampsiteDetailsController
@@ -78,19 +80,22 @@ fun SignedInApp(user: User) {
     val campsiteOwnerProfileRepo = remember { CampsiteOwnerProfileRepository() }
     val lotteryRepo = remember { LotteryRepository() }
     val reservationRepo = remember { ReservationRepository() }
+    val imageRepo = remember { ImageRepository() }
+    val contentResolver = LocalContext.current.contentResolver
+    val imageCompressor = remember { ImageCompressor(contentResolver) }
 
-    val searchCampsitesModel = remember { SearchCampsitesModel(campsiteRepo, campsiteOwnerProfileRepo, lotteryRepo, user, coroutineScope, SearchCampsitesViewMode.ENTRANT) }
+    val searchCampsitesModel = remember { SearchCampsitesModel(campsiteRepo, campsiteOwnerProfileRepo, lotteryRepo, imageRepo, user, coroutineScope, SearchCampsitesViewMode.ENTRANT) }
     val searchCampsitesController = remember { SearchCampsitesController(searchCampsitesModel) }
     val searchCampsitesView = remember { SearchCampsitesView(searchCampsitesController) }
     searchCampsitesModel.addObserver(searchCampsitesView)
 
     // Same screen as above, but in campsite owner mode it only shows the user's own campsites and has the Add Campsite button
-    val ownerSearchCampsitesModel = remember { SearchCampsitesModel(campsiteRepo, campsiteOwnerProfileRepo, lotteryRepo, user, coroutineScope, SearchCampsitesViewMode.CAMPSITE_OWNER) }
+    val ownerSearchCampsitesModel = remember { SearchCampsitesModel(campsiteRepo, campsiteOwnerProfileRepo, lotteryRepo, imageRepo, user, coroutineScope, SearchCampsitesViewMode.CAMPSITE_OWNER) }
     val ownerSearchCampsitesController = remember { SearchCampsitesController(ownerSearchCampsitesModel) }
     val ownerSearchCampsitesView = remember { SearchCampsitesView(ownerSearchCampsitesController) }
     ownerSearchCampsitesModel.addObserver(ownerSearchCampsitesView)
 
-    val formCampsitesModel = remember { FormCampsitesModel(campsiteRepo, campsiteOwnerProfileRepo, user, coroutineScope) }
+    val formCampsitesModel = remember { FormCampsitesModel(campsiteRepo, campsiteOwnerProfileRepo, imageRepo, imageCompressor, user, coroutineScope) }
     val formCampsitesController = remember { FormCampsitesController(formCampsitesModel) }
     val formCampsitesView = remember { FormCampsitesView(formCampsitesController) }
     formCampsitesModel.addObserver((formCampsitesView))
@@ -100,7 +105,7 @@ fun SignedInApp(user: User) {
     val formLotteriesView = remember { FormLotteriesView(formLotteriesController) }
     formLotteriesModel.addObserver(formLotteriesView)
 
-    val campsiteDetailsModel = remember { CampsiteDetailsModel(campsiteRepo, lotteryRepo, campsiteOwnerProfileRepo, reservationRepo, user, coroutineScope) }
+    val campsiteDetailsModel = remember { CampsiteDetailsModel(campsiteRepo, lotteryRepo, campsiteOwnerProfileRepo, reservationRepo, imageRepo, user, coroutineScope) }
     val campsiteDetailsController = remember { CampsiteDetailsController(campsiteDetailsModel) }
     val campsiteDetailsView = remember { CampsiteDetailsView(campsiteDetailsController) }
     campsiteDetailsModel.addObserver(campsiteDetailsView)

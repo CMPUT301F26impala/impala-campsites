@@ -32,6 +32,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.impala.campala.ImageDisplay
 import com.impala.campala.ViewObserver
 import com.google.firebase.Timestamp
 import com.impala.campala.model.LotteryModel
@@ -53,6 +54,7 @@ class CampsiteDetailsView(val controller: CampsiteDetailsController): ViewObserv
     private var description by mutableStateOf("")
     private var maxOccupancy by mutableIntStateOf(0)
     private var averageRating by mutableStateOf<Double?>(null)
+    private var imageBytes by mutableStateOf<ByteArray?>(null)
     private var tags = mutableStateListOf<String>()
     private var joinStatus by mutableStateOf<LotteryModel.ProspectiveJoinStatus?>(null)
     private var reservedDates = mutableStateListOf<ReservationModel>()
@@ -63,6 +65,7 @@ class CampsiteDetailsView(val controller: CampsiteDetailsController): ViewObserv
         this.description = model.description
         this.maxOccupancy = model.maxOccupancy
         this.averageRating = model.averageRating
+        this.imageBytes = model.imageBytes
         this.tags.clear()
         this.tags.addAll(model.tags)
         this.isOwner = model.userIsOwner
@@ -88,12 +91,12 @@ class CampsiteDetailsView(val controller: CampsiteDetailsController): ViewObserv
             controller.onOpen(campsiteId)
         }
         Column(modifier = Modifier.fillMaxHeight()) {
-            Box(
+            ImageDisplay(
+                imageBytes = imageBytes,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(color = MaterialTheme.colorScheme.primary)
                     .height(192.dp)
-            ) {}
+            )
             Row(
                 modifier = Modifier.padding(horizontal = 10.dp).fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
