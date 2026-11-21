@@ -23,8 +23,6 @@ import kotlinx.coroutines.launch
  * @property chosenRole The role chosen by the user
  */
 class ChooseRoleModel(
-    val entrantProfileRepo: EntrantProfileRepository,
-    val campsiteOwnerProfileRepo: CampsiteOwnerProfileRepository,
     val scope: CoroutineScope
 ) : ObservableModel<ChooseRoleModel>() {
     // true while the profile is being created, so the buttons can't be pressed twice
@@ -47,10 +45,10 @@ class ChooseRoleModel(
             try {
                 when (role) {
                     UserViewMode.ENTRANT -> if (!user.getHasCreatedEntrantProfile()) {
-                        entrantProfileRepo.createEntrantProfile(user, EntrantProfileModel())
+                        EntrantProfileRepository.createEntrantProfile(user, EntrantProfileModel())
                     }
                     UserViewMode.CAMPSITE_OWNER -> if (!user.getHasCreatedCampsiteOwnerProfile()) {
-                        campsiteOwnerProfileRepo.createCampsiteOwnerProfile(user, CampsiteOwnerProfileModel())
+                        CampsiteOwnerProfileRepository.createCampsiteOwnerProfile(user, CampsiteOwnerProfileModel())
                     }
                     // Admin has no profile object to create, so we just switch the role
                     UserViewMode.ADMIN -> {}

@@ -13,7 +13,7 @@ import kotlinx.coroutines.tasks.await
  * Model for anything in the app that wants to access any
  * reservation info, with filtering by owner or entrant
  */
-class ReservationRepository {
+object ReservationRepository {
     private val collection by lazy { Firebase.firestore.collection("reservations") }
 
     /**

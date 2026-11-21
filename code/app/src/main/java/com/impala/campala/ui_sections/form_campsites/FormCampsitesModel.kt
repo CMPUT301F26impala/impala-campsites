@@ -12,11 +12,11 @@ import kotlinx.coroutines.launch
  * Model for the create and edit version of Campsite form.
  *
  * Stores information entered into the form, and notifies view about the changes.
- * Saves campsites after creation and editing, as well as loading them to display values to the user.
+ * Saves campsites after creation and editing, as well as loading them to display values to the User.
  *
  * @param repo CampsiteRepository consisting of all campsites
- * @param campsiteOwnerProfileRepo Repository of campsite owner profiles. Used for saving new campsites to a user's profile
- * @param user the authorized user editing the form
+ * @param campsiteOwnerProfileRepo Repository of campsite owner profiles. Used for saving new campsites to a User's profile
+ * @param User the authorized User editing the form
  * @param scope the CoroutineScope used for Firebase operations
  * @param campsite campsite whose data will be edited, passed as null in creation mode
  *
@@ -28,9 +28,6 @@ import kotlinx.coroutines.launch
  * @property wasCampsiteSavedSuccessfully True if the new campsite was saved to the database successfully
  */
 class FormCampsitesModel(
-    val repo: CampsiteRepository,
-    val campsiteOwnerProfileRepo: CampsiteOwnerProfileRepository,
-    val user: User,
     val scope: CoroutineScope,
     var campsite: CampsiteModel? = null
 ): ObservableModel<FormCampsitesModel>() {
@@ -121,7 +118,7 @@ class FormCampsitesModel(
      * @param campsiteId ID of the campsite being edited
      */
     suspend fun loadCampsite(campsiteId: String) {
-        setFields(repo.getCampsiteById(campsiteId))
+        setFields(CampsiteRepository.getCampsiteById(campsiteId))
     }
 
     // Updated the fields in the form with the data that was passed, and set to null for clearing them
@@ -139,7 +136,7 @@ class FormCampsitesModel(
 
     /**
      * Create or update a campsite using the form's values.
-     * Adds the campsite Id to the user's campsite owner profile, then notifies the view
+     * Adds the campsite Id to the User's campsite owner profile, then notifies the view
      */
     fun saveCampsite() {
         // convert maximum occupancy to integer (its a string right now in the input box)
@@ -167,17 +164,17 @@ class FormCampsitesModel(
                 description = description,
                 maxOccupancy = occupancy,
                 tags = tags.toMutableList(),
-                ownerId = user.getUID()
+                ownerId = User.getUID()
             )
         }
 
         //save to firebase
         scope.launch {
-            repo.saveCampsite(updatedCampsite)
+            CampsiteRepository.saveCampsite(updatedCampsite)
             // If this is a new campsite, make sure to actually add it to the campsite owner profile too
             if (existingCampsite == null) {
-                campsiteOwnerProfileRepo.getCampsiteOwnerProfileById(user.getUID())?.let {
-                    campsiteOwnerProfileRepo.addOwnedCampsite(it, updatedCampsite.id)
+                CampsiteOwnerProfileRepository.getCampsiteOwnerProfileById(User.getUID())?.let {
+                    CampsiteOwnerProfileRepository.addOwnedCampsite(it, updatedCampsite.id)
                 }
             }
             wasCampsiteSavedSuccessfully = true
@@ -191,7 +188,7 @@ class FormCampsitesModel(
      */
     fun changeSaveFLagFalse() {
         // set the "saved succesful flag" to false
-        // after user is popped back in the stack (the popbackstack thing in nav)
+        // after User is popped back in the stack (the popbackstack thing in nav)
         // to prevent the flag from staying true across multiple form usage
         wasCampsiteSavedSuccessfully = false
         notifyObservers(this)

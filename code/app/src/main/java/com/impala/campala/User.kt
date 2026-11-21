@@ -24,7 +24,7 @@ enum class UserViewMode { ENTRANT, CAMPSITE_OWNER, ADMIN }
  * Details of the Entrant Profile or Campsite Owner Profile are contained in their own classes and pointed to by User's ID
  */
 
-class User() {
+object User {
 
     private val auth = FirebaseAuth.getInstance()
     private val db = Firebase.firestore // TODO: figure out if this and auth can be sourced from outside the user class. It feels... dumb, having them inside.

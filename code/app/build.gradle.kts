@@ -8,8 +8,8 @@ plugins {
 android {
     namespace = "com.impala.campala"
     compileSdk {
-        version = release(37){
-            minorApiLevel=1
+        version = release(37) {
+            minorApiLevel = 1
         }
     }
 
@@ -76,4 +76,5 @@ dependencies {
     implementation(libs.kotlinx.coroutines.play.services)
     testImplementation(libs.kotlinx.coroutines.test)
     implementation(libs.androidx.compose.foundation.layout)
+    implementation(libs.firebase.messaging)
 }

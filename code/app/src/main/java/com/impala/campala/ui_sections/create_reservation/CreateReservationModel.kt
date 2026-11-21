@@ -9,7 +9,6 @@ import com.impala.campala.model.LotteryRepository
 import com.impala.campala.model.ReservationModel
 import com.impala.campala.model.ReservationRepository
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.launch
@@ -29,20 +28,22 @@ enum class CURRENT_RESERVATION_STAGE {
  * @param lotteryRepo The repository to pull relevant lottery data from
  * @param campsiteRepo The repository to pull relevant campsite data from
  * @param reservationRepo The repository to pull relevant reservation data from
- * @param user The user making the reservation
+ * @param User The User making the reservation
  *
  * @property currentStage The current stage of the reservation process
  * @property availableCampsites A list of campsites that can be reserved
- * @property selectedCampsite The campsite the user has selected
+ * @property selectedCampsite The campsite the User has selected
  * @property dateRangeStart The start of the reservation (inclusive)
  * @property dateRangeEnd The end of the reservation (inclusive)
  * @property alreadyReservedDatesForSelectedCampsite A list of dates already reserved for the selected campsite
- * @property selectedStartDate The start date selected by the user
- * @property selectedEndDate The end date selected by the user
+ * @property selectedStartDate The start date selected by the User
+ * @property selectedEndDate The end date selected by the User
  * @property isDateRangeValid A flag indicating if the selected date range can be reserved
  * @property canConfirm A flag to indicate if the current selection would constitute a valid reservation
  */
-class CreateReservationModel(val scope: CoroutineScope, val lotteryRepo: LotteryRepository, val campsiteRepo: CampsiteRepository, val reservationRepo: ReservationRepository, val user: User): ObservableModel<CreateReservationModel>() {
+class CreateReservationModel(
+    val scope: CoroutineScope,
+) : ObservableModel<CreateReservationModel>() {
     var currentStage: CURRENT_RESERVATION_STAGE = CURRENT_RESERVATION_STAGE.TERMS_ACCEPT
 
     var availableCampsites: List<CampsiteModel> = emptyList()
@@ -90,7 +91,7 @@ class CreateReservationModel(val scope: CoroutineScope, val lotteryRepo: Lottery
         canConfirm = false
         this.notifyObservers(this)
         scope.launch {
-            val lottery = lotteryRepo.getLotteryById(lotteryId)
+            val lottery = LotteryRepository.getLotteryById(lotteryId)
             if (lottery == null) {
                 // THIS SHOULD NEVER HAPPEN
                 return@launch
@@ -102,7 +103,7 @@ class CreateReservationModel(val scope: CoroutineScope, val lotteryRepo: Lottery
             // I used Claude Opus 5.5 with the prompt "How can I do promise.all() in Kotlin"
             // I know how to write this kind of parralel async code in Javascript and so I described what I wanted and it helped me with this Kotlin
             availableCampsites = lottery.campsiteIds.map { campsiteId ->
-                async { campsiteRepo.getCampsiteById(campsiteId) }
+                async { CampsiteRepository.getCampsiteById(campsiteId) }
             }.awaitAll().filterNotNull()
 
             if (availableCampsites.size == 1) {
@@ -134,7 +135,7 @@ class CreateReservationModel(val scope: CoroutineScope, val lotteryRepo: Lottery
 
         scope.launch {
             val reservedDates = mutableSetOf<LocalDate>()
-            for (reservation in reservationRepo.getReservationsByCampsite(campsiteId)) {
+            for (reservation in ReservationRepository.getReservationsByCampsite(campsiteId)) {
                 // Cancelled reservations don't block dates
                 if (reservation.hasBeenCancelled) continue
                 // Every day of the reservation counts as reserved, including its end date
@@ -153,7 +154,7 @@ class CreateReservationModel(val scope: CoroutineScope, val lotteryRepo: Lottery
     }
 
     /**
-     * Allow the user to proceed pick campsites and reservation dates after accepting the terms and conditions
+     * Allow the User to proceed pick campsites and reservation dates after accepting the terms and conditions
      */
     fun acceptTerms() {
         currentStage = CURRENT_RESERVATION_STAGE.PICK_CAMPSITE_AND_DATES
@@ -162,7 +163,7 @@ class CreateReservationModel(val scope: CoroutineScope, val lotteryRepo: Lottery
     }
 
     /**
-     * Sets the first day of the user's chosen stay
+     * Sets the first day of the User's chosen stay
      *
      * @param date the start date, null if it's been cleared or isn't a full date yet
      */
@@ -173,7 +174,7 @@ class CreateReservationModel(val scope: CoroutineScope, val lotteryRepo: Lottery
     }
 
     /**
-     * Sets the last day of the user's chosen stay, this day is included in the stay
+     * Sets the last day of the User's chosen stay, this day is included in the stay
      *
      * @param date the end date, null if it's been cleared or isn't a full date yet
      */
@@ -194,11 +195,11 @@ class CreateReservationModel(val scope: CoroutineScope, val lotteryRepo: Lottery
         val end = selectedEndDate ?: return
         isSaving = true
         scope.launch {
-            reservationRepo.saveReservation(
+            ReservationRepository.saveReservation(
                 ReservationModel(
                     campsiteId = campsite.id,
                     ownerId = lotteryOwnerId,
-                    entrantId = user.getUID(),
+                    entrantId = User.getUID(),
                     startDate = localDateToTimestamp(start),
                     endDate = localDateToTimestamp(end),
                     lotteryId = lotteryId
@@ -211,19 +212,19 @@ class CreateReservationModel(val scope: CoroutineScope, val lotteryRepo: Lottery
     }
 
     /**
-     * Can be called anytime, and will irreversibly decline the reservation such that this user can't reserve from this lottery any more
+     * Can be called anytime, and will irreversibly decline the reservation such that this User can't reserve from this lottery any more
      */
     fun declineReservation() {
         if (isSaving) return;
         isSaving = true;
         scope.launch {
-            lotteryRepo.declineWin(lotteryId, user.getUID())
+            LotteryRepository.declineWin(lotteryId, User.getUID())
             isSaving = false
         }
     }
 
-     // A helper function that recalculates isDateRangeValid and canConfirm whenever anything they depend on changes
-     // It has to be called from anything that changes the dates or the campsite
+    // A helper function that recalculates isDateRangeValid and canConfirm whenever anything they depend on changes
+    // It has to be called from anything that changes the dates or the campsite
     private fun recalculateValidity() {
         val start = selectedStartDate
         val end = selectedEndDate
@@ -233,12 +234,17 @@ class CreateReservationModel(val scope: CoroutineScope, val lotteryRepo: Lottery
         // Ensure the range is inside the available dates
         // Ensure none of the dates in the range are taken
         isDateRangeValid = selectedCampsite != null &&
-            start != null && end != null &&
-            !end.isBefore(start) &&
-            !start.isBefore(dateRangeStart) && !end.isAfter(dateRangeEnd) &&
-            alreadyReservedDatesForSelectedCampsite.none { reserved -> !reserved.isBefore(start) && !reserved.isAfter(end) }
+                start != null && end != null &&
+                !end.isBefore(start) &&
+                !start.isBefore(dateRangeStart) && !end.isAfter(dateRangeEnd) &&
+                alreadyReservedDatesForSelectedCampsite.none { reserved ->
+                    !reserved.isBefore(start) && !reserved.isAfter(
+                        end
+                    )
+                }
 
-        canConfirm = currentStage != CURRENT_RESERVATION_STAGE.TERMS_ACCEPT && selectedCampsite != null && isDateRangeValid
+        canConfirm =
+            currentStage != CURRENT_RESERVATION_STAGE.TERMS_ACCEPT && selectedCampsite != null && isDateRangeValid
     }
 
     private fun localDateToTimestamp(date: LocalDate): Timestamp {
