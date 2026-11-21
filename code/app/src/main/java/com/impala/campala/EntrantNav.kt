@@ -45,6 +45,7 @@ import com.impala.campala.ui_sections.create_reservation.CreateReservationView
 import com.impala.campala.ui_sections.see_reservation.SeeReservationsView
 import com.impala.campala.ui_sections.search_campsites.SearchCampsitesView
 import com.impala.campala.ui_sections.view_lotteries.ViewLotteriesView
+import com.impala.campala.ui_sections.view_profile.ViewProfileView
 
 /**
  * Composable class that sets up the navigation for a user signed in as a Campsite Owner
@@ -54,6 +55,7 @@ import com.impala.campala.ui_sections.view_lotteries.ViewLotteriesView
  * @param seeReservationsScreen The View where the user can see the details of their reservation
  * @param viewLotteriesScreen The View where the user can see details of a lottery
  * @param createReservationScreen The View where the user can make a reservation from
+ * @param viewProfileScreen The View where the user can see their entrant profile
  * @param onSwitchRole a function to be executed when the user clicks the button to switch roles
  */
 @Composable
@@ -63,6 +65,7 @@ fun EntrantNavigationRoot(
     seeReservationsScreen: SeeReservationsView,
     viewLotteriesScreen: ViewLotteriesView,
     createReservationScreen: CreateReservationView,
+    viewProfileScreen: ViewProfileView,
     onSwitchRole: () -> Unit
 ) {
     val navController = rememberNavController()
@@ -70,7 +73,7 @@ fun EntrantNavigationRoot(
     NavHost(navController = navController, startDestination = "home") {
         // "home" is the tab navigation, the 4 tabs inside of home are controlled by the EntrantHomeScreen function
         // Any screens that aren't part of the tabs and are 'fullscreen' should be declared here
-        composable("home") { EntrantHomeScreen(navController, searchCampsitesScreen, seeReservationsScreen, viewLotteriesScreen, onSwitchRole) }
+        composable("home") { EntrantHomeScreen(navController, searchCampsitesScreen, seeReservationsScreen, viewLotteriesScreen, viewProfileScreen, onSwitchRole) }
         composable("campsite/{campsiteId}") { backStackEntry ->
             val campsiteId = backStackEntry.arguments?.getString("campsiteId") ?: ""
             // Scaffold is just here so the screen respects the status bar / nav bar insets
@@ -102,6 +105,7 @@ enum class EntrantTab(val label: String, val icon: ImageVector) {
  * @param navController The navigation controller for the campsite owners section of the app
  * @param searchCampsitesScreen The View where the user can search for campsites
  * @param viewLotteriesScreen The View where the user can see details of a lottery
+ * @param viewProfileScreen The View where the user can see their entrant profile
  * @param onSwitchRole a function to be executed when the user clicks the button to switch roles
  */
 // In researching how this is normally done, I did use AI
@@ -110,7 +114,7 @@ enum class EntrantTab(val label: String, val icon: ImageVector) {
 // This may change in the future into a 100% human-derived solution, but I'm just disclosing this for transaprency
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun EntrantHomeScreen(navController: NavController, searchCampsitesScreen: SearchCampsitesView, seeReservationsScreen: SeeReservationsView, viewLotteriesScreen: ViewLotteriesView, onSwitchRole: () -> Unit) {
+fun EntrantHomeScreen(navController: NavController, searchCampsitesScreen: SearchCampsitesView, seeReservationsScreen: SeeReservationsView, viewLotteriesScreen: ViewLotteriesView, viewProfileScreen: ViewProfileView, onSwitchRole: () -> Unit) {
     var selected by rememberSaveable { mutableStateOf(EntrantTab.Search) }
     val tabState = rememberSaveableStateHolder() // keeps each tab's scroll/state
     Scaffold(
@@ -152,22 +156,10 @@ fun EntrantHomeScreen(navController: NavController, searchCampsitesScreen: Searc
                     EntrantTab.Search -> searchCampsitesScreen.Render(navController)
                     EntrantTab.Lotteries -> viewLotteriesScreen.Render(navController)
                     EntrantTab.Reservations -> seeReservationsScreen.Render(navController)
-                    EntrantTab.Profile -> ProfileTab(navController)
+                    EntrantTab.Profile -> viewProfileScreen.Render(navController)
                 }
             }
         }
-    }
-}
-
-/**
- * A temporary class while the actual View is being made
- *
- * @param navController The navigation controller for the campsite owner section
- */
-@Composable
-fun ProfileTab(navController: NavController) {
-    Column() {
-        Text("Profile Screen!!!!")
     }
 }
 
