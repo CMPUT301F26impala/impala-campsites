@@ -17,7 +17,7 @@ import kotlin.uuid.Uuid
  *
  * How the dates work is outlined below
  *  1. Entrants join form [lotteryStartTime] and up until [lotteryEndTime]. At that time winners are drawn
- *  // TODO: AT THIS POINT THERE IS NO AUTO-DRAW, JUST A MANUAL OPTION FOR THAT
+ *     Winners are drawn automatically by scripts/draw-lotteries, which GitHub Actions runs at :15 past every hour
  *  2. Winners have from [registrationStartTime] until [registrationEndTime] to reserve their campsite dates
  *  3. The dates they can reserve fall between [reservationStartDate] and [reservationEndDate]
  *

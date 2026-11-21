@@ -32,3 +32,8 @@ google-services.json
 
 # Android Profiling
 *.hprof
+
+# Since the github action is a JS script, we need to exclude node modules
+node_modules/
+*service-account*.json
+*firebase-adminsdk*.json
