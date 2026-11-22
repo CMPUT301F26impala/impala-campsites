@@ -40,6 +40,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.impala.campala.model.CampsiteModel
+import com.impala.campala.ui_sections.app_policies.AppPoliciesView
 import com.impala.campala.ui_sections.campsite_details.CampsiteDetailsView
 import com.impala.campala.ui_sections.create_reservation.CreateReservationView
 import com.impala.campala.ui_sections.edit_profile.EditProfileView
@@ -96,6 +97,13 @@ fun EntrantNavigationRoot(
             Scaffold { padding ->
                 Box(Modifier.padding(padding)) {
                     editProfileScreen.Render(navController)
+                }
+            }
+        }
+        composable("appPolicies") {
+            Scaffold { padding ->
+                Box(Modifier.padding(padding)) {
+                    AppPoliciesView(navController)
                 }
             }
         }

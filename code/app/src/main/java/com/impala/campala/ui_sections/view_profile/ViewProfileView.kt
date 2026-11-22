@@ -92,8 +92,7 @@ class ViewProfileView(val controller: ViewProfileController) : ViewObserver<View
                 DrawContactRow(Icons.Default.Phone, phoneNumber.ifBlank { "No phone number set" })
 
                 Spacer(modifier = Modifier.height(40.dp))
-                // TODO: App policies screen
-                DrawActionButton(Icons.AutoMirrored.Filled.List, "View App Policies", MaterialTheme.colorScheme.primary, onClick = {})
+                DrawActionButton(Icons.AutoMirrored.Filled.List, "View App Policies", MaterialTheme.colorScheme.primary, onClick = { controller.onViewAppPoliciesPress(navController) })
                 Spacer(modifier = Modifier.height(8.dp))
                 // TODO: Deleting profiles
                 DrawActionButton(Icons.Default.Delete, "Delete Profile", MaterialTheme.colorScheme.tertiary, onClick = {})

@@ -24,4 +24,13 @@ class ViewProfileController(val model: ViewProfileModel) : Controller {
     fun onEditProfilePress(navController: NavController) {
         navController.navigate("editProfile")
     }
+
+    /**
+     * Takes the user to the app policies screen
+     *
+     * @param navController the root NavController, assumes 'appPolicies' is on this nav stack
+     */
+    fun onViewAppPoliciesPress(navController: NavController) {
+        navController.navigate("appPolicies")
+    }
 }
