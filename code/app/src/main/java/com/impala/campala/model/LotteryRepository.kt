@@ -15,7 +15,7 @@ import java.time.ZoneOffset
  *
  * Everything here is a suspend fun, see the comment in CampsiteRepository for how to call these
  */
-class LotteryRepository {
+object LotteryRepository {
     private val db: FirebaseFirestore by lazy { Firebase.firestore }
 
     /**

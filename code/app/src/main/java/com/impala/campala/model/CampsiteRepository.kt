@@ -14,7 +14,7 @@ import kotlinx.coroutines.tasks.await
  * Model for anything in the app that wants to access the campsite info
  * including add/update/delete functionality
  */
-class CampsiteRepository {
+object CampsiteRepository {
     private val db: FirebaseFirestore by lazy { Firebase.firestore }
 
     // Things that use Task.await() can't run on the main thread

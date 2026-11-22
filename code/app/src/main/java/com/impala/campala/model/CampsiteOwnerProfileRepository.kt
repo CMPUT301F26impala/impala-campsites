@@ -14,7 +14,7 @@ import kotlinx.coroutines.tasks.await
  * Campsite owner profiles are stored under the same ID as the User they belong to
  * So you can search for a campsite owner profile with the User ID
  */
-class CampsiteOwnerProfileRepository {
+object CampsiteOwnerProfileRepository {
     private val db: FirebaseFirestore by lazy { Firebase.firestore }
 
     /**

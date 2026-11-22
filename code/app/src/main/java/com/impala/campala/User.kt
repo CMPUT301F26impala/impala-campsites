@@ -10,6 +10,7 @@ import com.google.firebase.firestore.firestore
 import android.util.Log // Recommended for keeping track of bugs and flags and such. Click "Logcat" in the bottom left of Android Studio to view logs. I have placed logs throughout this class for debugging purposes.
 import com.google.firebase.Timestamp // Useful for figuring out when a user profile was created
 import com.google.firebase.auth.AuthResult
+import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
 
 /**
@@ -24,11 +25,9 @@ enum class UserViewMode { ENTRANT, CAMPSITE_OWNER, ADMIN }
  * Details of the Entrant Profile or Campsite Owner Profile are contained in their own classes and pointed to by User's ID
  */
 
-class User() {
+object User {
 
     private val auth = FirebaseAuth.getInstance()
-    private val db = Firebase.firestore // TODO: figure out if this and auth can be sourced from outside the user class. It feels... dumb, having them inside.
-
     private var uid : String = "" // TODO: See if we can pass this directly instead of having it be an argument for each blithering function
     private var isAdmin = true      // TODO: On first sign-in, these are all true, but once first role is picked, then some may become false depending on which role is selected. Otherwise, these booleans should be figured out during initialization, once the UID is nabbed.
     private var isOwner = true
@@ -116,7 +115,7 @@ class User() {
 
     private suspend fun checkServerForUser(uid: String) : Boolean {
 
-        val foundUser = db.collection("users").document(uid).get().await()
+        val foundUser = Firebase.firestore.collection("users").document(uid).get().await()
 
         return foundUser.exists()
     }
@@ -127,7 +126,7 @@ class User() {
      * @param uid The ID of the user whose details to update this class's to match
      */
     suspend fun updateLocalDetails(uid: String) {
-        val document = db.collection("users").document(uid).get().await()
+        val document = Firebase.firestore.collection("users").document(uid).get().await()
 
         require(document.exists()) {
             "Error: User details unable to be updated by the server.".also{ message ->
@@ -164,7 +163,7 @@ class User() {
             "currentRole" to currentRole?.name
         )
 
-        db.collection("users").document(uid)
+        Firebase.firestore.collection("users").document(uid)
             .set(userData)
             .addOnSuccessListener {
                 Log.i(TAG, "Successfully created brand new user profile in Firestore.")
