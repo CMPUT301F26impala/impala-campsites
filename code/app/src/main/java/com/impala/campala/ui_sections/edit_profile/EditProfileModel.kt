@@ -75,6 +75,7 @@ class EditProfileModel(
      */
     fun changeSaveFlagFalse() {
         wasProfileSavedSuccessfully = false
+        notifyObservers(this)
     }
 
     /**
