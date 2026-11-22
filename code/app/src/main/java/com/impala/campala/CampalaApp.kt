@@ -1,6 +1,7 @@
 package com.impala.campala
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
@@ -44,10 +45,17 @@ import com.impala.campala.ui_sections.create_reservation.CreateReservationView
  */
 @Composable
 fun CampalaApp() {
+    var isInitialized by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
         User.initialize()
+        isInitialized = true
     }
-    SignedInApp()
+    if (isInitialized) {
+        SignedInApp()
+    } else {
+        // TODO: loading screen
+        Box(modifier = Modifier.fillMaxSize())
+    }
 }
 
 /**
