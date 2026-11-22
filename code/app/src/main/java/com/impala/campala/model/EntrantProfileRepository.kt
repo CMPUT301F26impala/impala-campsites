@@ -16,7 +16,7 @@ import kotlinx.coroutines.tasks.await
  * Deletion/Banning behaviour is TBD, but what I'm thinking is that we never DELETE the EntrantProfileRecord,
  * we just set hasActiveEntrantProfile to false on the user and then maybe add a flag to prevent it from being displayed in results
  */
-class EntrantProfileRepository {
+object EntrantProfileRepository {
     private val db: FirebaseFirestore by lazy { Firebase.firestore }
 
     /**

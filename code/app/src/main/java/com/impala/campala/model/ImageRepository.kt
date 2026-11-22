@@ -12,7 +12,7 @@ import kotlinx.coroutines.tasks.await
  *
  * Images should already be compressed (see ImageCompressor) before they're saved
  */
-class ImageRepository {
+object ImageRepository {
     private val db: FirebaseFirestore by lazy { Firebase.firestore }
 
     /**

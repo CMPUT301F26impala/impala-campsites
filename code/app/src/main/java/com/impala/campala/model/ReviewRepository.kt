@@ -9,7 +9,7 @@ import kotlinx.coroutines.tasks.await
  *
  * Model for anything in the app that wants to post or show reviews
  */
-class ReviewRepository {
+object ReviewRepository {
     private val collection by lazy { Firebase.firestore.collection("reviews") }
 
     /**
