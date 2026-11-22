@@ -1,5 +1,6 @@
 package com.impala.campala.ui_sections.view_profile
 
+import androidx.navigation.NavController
 import com.impala.campala.Controller
 
 /**
@@ -13,5 +14,14 @@ class ViewProfileController(val model: ViewProfileModel) : Controller {
      */
     fun onFirstRender() {
         model.loadProfile()
+    }
+
+    /**
+     * Takes the user to the edit profile form
+     *
+     * @param navController the root NavController, assumes 'editProfile' is on this nav stack
+     */
+    fun onEditProfilePress(navController: NavController) {
+        navController.navigate("editProfile")
     }
 }

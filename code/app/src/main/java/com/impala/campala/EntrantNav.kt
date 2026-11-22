@@ -42,6 +42,7 @@ import androidx.navigation.compose.rememberNavController
 import com.impala.campala.model.CampsiteModel
 import com.impala.campala.ui_sections.campsite_details.CampsiteDetailsView
 import com.impala.campala.ui_sections.create_reservation.CreateReservationView
+import com.impala.campala.ui_sections.edit_profile.EditProfileView
 import com.impala.campala.ui_sections.see_reservation.SeeReservationsView
 import com.impala.campala.ui_sections.search_campsites.SearchCampsitesView
 import com.impala.campala.ui_sections.view_lotteries.ViewLotteriesView
@@ -56,6 +57,7 @@ import com.impala.campala.ui_sections.view_profile.ViewProfileView
  * @param viewLotteriesScreen The View where the user can see details of a lottery
  * @param createReservationScreen The View where the user can make a reservation from
  * @param viewProfileScreen The View where the user can see their entrant profile
+ * @param editProfileScreen The View where the user can edit their entrant profile
  * @param onSwitchRole a function to be executed when the user clicks the button to switch roles
  */
 @Composable
@@ -66,6 +68,7 @@ fun EntrantNavigationRoot(
     viewLotteriesScreen: ViewLotteriesView,
     createReservationScreen: CreateReservationView,
     viewProfileScreen: ViewProfileView,
+    editProfileScreen: EditProfileView,
     onSwitchRole: () -> Unit
 ) {
     val navController = rememberNavController()
@@ -87,6 +90,14 @@ fun EntrantNavigationRoot(
         composable("createReservation/{lotteryId}") { backStackEntry ->
             val lotteryId = backStackEntry.arguments?.getString("lotteryId") ?: ""
             createReservationScreen.Render(navController, lotteryId)
+        }
+        composable("editProfile") {
+            // Scaffold is just here so the screen respects the status bar / nav bar insets
+            Scaffold { padding ->
+                Box(Modifier.padding(padding)) {
+                    editProfileScreen.Render(navController)
+                }
+            }
         }
     }
 }

@@ -103,8 +103,7 @@ class ViewProfileView(val controller: ViewProfileController) : ViewObserver<View
             }
 
             ExtendedFloatingActionButton(
-                // TODO: Editing profiles
-                onClick = {},
+                onClick = { controller.onEditProfilePress(navController) },
                 icon = { Icon(Icons.Default.Edit, contentDescription = null) },
                 text = { Text("Edit Profile") },
                 modifier = Modifier

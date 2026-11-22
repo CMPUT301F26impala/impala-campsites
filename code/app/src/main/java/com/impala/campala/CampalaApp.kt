@@ -44,6 +44,9 @@ import com.impala.campala.ui_sections.view_lotteries.ViewLotteriesView
 import com.impala.campala.ui_sections.create_reservation.CreateReservationController
 import com.impala.campala.ui_sections.create_reservation.CreateReservationModel
 import com.impala.campala.ui_sections.create_reservation.CreateReservationView
+import com.impala.campala.ui_sections.edit_profile.EditProfileController
+import com.impala.campala.ui_sections.edit_profile.EditProfileModel
+import com.impala.campala.ui_sections.edit_profile.EditProfileView
 import com.impala.campala.ui_sections.view_profile.ViewProfileController
 import com.impala.campala.ui_sections.view_profile.ViewProfileModel
 import com.impala.campala.ui_sections.view_profile.ViewProfileView
@@ -140,6 +143,11 @@ fun SignedInApp(user: User) {
     val viewProfileController = remember { ViewProfileController(viewProfileModel) }
     val viewProfileView = remember { ViewProfileView(viewProfileController) }
     viewProfileModel.addObserver(viewProfileView)
+
+    val editProfileModel = remember { EditProfileModel(entrantProfileRepo, user, coroutineScope) }
+    val editProfileController = remember { EditProfileController(editProfileModel) }
+    val editProfileView = remember { EditProfileView(editProfileController) }
+    editProfileModel.addObserver(editProfileView)
     
     if (needsRoleChoice) {
         // Scaffold is just here so the screen respects the status bar / nav bar insets
@@ -153,14 +161,14 @@ fun SignedInApp(user: User) {
         }
     } else {
         when (currentRole) {
-            UserViewMode.ENTRANT -> EntrantNavigationRoot(searchCampsitesScreen=searchCampsitesView, campsiteDetailsScreen=campsiteDetailsView, seeReservationsScreen=seeReservationsView, viewLotteriesScreen=viewLotteriesView, createReservationScreen=createReservationView, viewProfileScreen=viewProfileView, onSwitchRole={ needsRoleChoice = true })
+            UserViewMode.ENTRANT -> EntrantNavigationRoot(searchCampsitesScreen=searchCampsitesView, campsiteDetailsScreen=campsiteDetailsView, seeReservationsScreen=seeReservationsView, viewLotteriesScreen=viewLotteriesView, createReservationScreen=createReservationView, viewProfileScreen=viewProfileView, editProfileScreen=editProfileView, onSwitchRole={ needsRoleChoice = true })
             UserViewMode.CAMPSITE_OWNER -> CampsiteOwnerNavigationRoot(searchCampsitesScreen=ownerSearchCampsitesView, campsiteDetailsScreen=campsiteDetailsView, formCampsitesScreen=formCampsitesView, formLotteriesScreen = formLotteriesView, viewLotteriesScreen = viewLotteriesView, seeReservationsScreen = seeReservationsView, onSwitchRole={ needsRoleChoice = true })
 
             UserViewMode.ADMIN -> AdminNavigationRoot(onSwitchRole={ needsRoleChoice = true })
 
             null -> {
                 // They have a profile but no role saved, so just send them to the entrant UI so the app is still usable
-                EntrantNavigationRoot(searchCampsitesScreen=searchCampsitesView, campsiteDetailsScreen=campsiteDetailsView, seeReservationsScreen=seeReservationsView, viewLotteriesScreen=viewLotteriesView, createReservationScreen=createReservationView, viewProfileScreen=viewProfileView, onSwitchRole={ needsRoleChoice = true })
+                EntrantNavigationRoot(searchCampsitesScreen=searchCampsitesView, campsiteDetailsScreen=campsiteDetailsView, seeReservationsScreen=seeReservationsView, viewLotteriesScreen=viewLotteriesView, createReservationScreen=createReservationView, viewProfileScreen=viewProfileView, editProfileScreen=editProfileView, onSwitchRole={ needsRoleChoice = true })
             }
         }
     }
