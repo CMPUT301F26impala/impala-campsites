@@ -14,10 +14,11 @@ class MessagesRepository {
      *
      * @return the created/existing message thread
      */
-    suspend fun getThreadByReservation(reservationId: String): MessagesModel{
+    suspend fun getOrCreateThreadByReservation(reservationId: String): MessagesModel{
         try {
-            return MessagesModel.load(collection.document(reservationId).get().await())
-        } catch (e: NullPointerException) {
+            return collection.whereEqualTo("reservationID", reservationId).get().await()
+                .map { MessagesModel.load(it) }[0]
+        } catch (e: IndexOutOfBoundsException) {
             val repo = ReservationRepository()
             return MessagesModel(
                 ownerId = repo.getReservationById(reservationId)!!.ownerId,
@@ -29,5 +30,17 @@ class MessagesRepository {
         }
     }
 
-    
+
+    /**
+     * Sends an inputted message by adding to the end of the message thread and returning updated
+     *
+     * @param message Text that user/owner is sending
+     * @param isFromOwner Flag to tell who is sending
+     * @param model MessagesModel to use for chat
+     */
+    suspend fun sendMessage(message: String,isFromOwner: Boolean,model: MessagesModel): Unit{
+        model.messageThread.addLast(MessageModel(message,isFromOwner))
+        model.save()
+    }
+
 }
