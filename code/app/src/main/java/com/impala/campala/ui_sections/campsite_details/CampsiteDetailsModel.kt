@@ -11,6 +11,8 @@ import com.impala.campala.model.LotteryModel
 import com.impala.campala.model.LotteryRepository
 import com.impala.campala.model.ReservationModel
 import com.impala.campala.model.ReservationRepository
+import com.impala.campala.model.ReviewModel
+import com.impala.campala.model.ReviewRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlin.uuid.Uuid
@@ -42,6 +44,7 @@ import kotlin.uuid.Uuid
  * @property userIsOwner flag for if the current user owns the campsite
  * @property lotteryExists flag indicating if there is a lottery for the selected campsite
  * @property reservedDates the campsite's upcoming, non-cancelled reservations sorted by start date, only loaded for the owner
+ * @property reviews the reviews entrants have left on the campsite
  */
 class CampsiteDetailsModel(
     val campsiteRepo: CampsiteRepository,
@@ -49,6 +52,7 @@ class CampsiteDetailsModel(
     val campsiteOwnerProfileRepo: CampsiteOwnerProfileRepository,
     val reservationRepo: ReservationRepository,
     val imageRepo: ImageRepository,
+    val reviewRepo: ReviewRepository,
     val user: User,
     val scope: CoroutineScope
 ) : ObservableModel<CampsiteDetailsModel>() {
@@ -65,6 +69,7 @@ class CampsiteDetailsModel(
     var userIsOwner: Boolean = false
     var lotteryExists: Boolean = false
     var reservedDates: List<ReservationModel> = emptyList()
+    var reviews: List<ReviewModel> = emptyList()
 
     /**
      * Called every time the screen is rendered.
@@ -99,6 +104,9 @@ class CampsiteDetailsModel(
             emptyList()
         }
 
+        // Everyone sees the reviews, owner or entrant
+        reviews = reviewRepo.getReviewsByCampsite(campsiteId)
+
         lottery = lotteryRepo.getLotteryByCampsiteId(campsiteId)
 
         // This model is shared between campsites, so clear the last campsite's lottery state
@@ -116,19 +124,23 @@ class CampsiteDetailsModel(
 
     /**
      * Called when the entrant tries to join the lottery or waitlist
+     * Then reloads the campsite so the button shows the new join status
      */
     fun joinLottery() {
         this.scope.launch {
             lotteryRepo.joinLottery(lottery!!.id, user.getUID())
+            campsite?.let { loadCampsite(it.id) }
         }
     }
 
     /**
      * Called when the entrant tries to leave the waitlist
+     * Then reloads the campsite so the button shows the new join status
      */
     fun leaveWaitlist() {
         this.scope.launch {
             lotteryRepo.leaveLottery(lottery!!.id, user.getUID())
+            campsite?.let { loadCampsite(it.id) }
         }
     }
 }

@@ -244,6 +244,30 @@ service cloud.firestore {
       allow delete: if isSelf(resource.data.ownerId) || isAdmin();
     }
 
+    // ---------------------------------------------------------------- reviews
+
+    // Same 1 to 5 range (with margin) as addsOneRating, since they come from the same slider
+    function validReview(d) {
+      return d.keys().hasOnly(['posterId', 'campsiteId', 'rating', 'reviewText', 'id'])
+        && d.posterId is string
+        && d.campsiteId is string
+        && d.rating is number && d.rating >= 0.99 && d.rating <= 5.01
+        && d.reviewText is string && d.reviewText.size() <= 2000;
+    }
+
+    match /reviews/{reviewId} {
+      // Anyone using the app can see a campsite's reviews
+      allow read: if signedIn();
+
+      // A review must be posted as yourself (ReviewRepository.saveReview)
+      allow create: if isSelf(request.resource.data.posterId)
+        && request.resource.data.id == reviewId
+        && validReview(request.resource.data);
+
+      // Reviews can't be edited, only removed by whoever posted them (ReviewRepository.deleteReview)
+      allow delete: if isSelf(resource.data.posterId) || isAdmin();
+    }
+
     // ----------------------------------------------------------- reservations
 
     // If a reservation comes from a lottery, the caller must have won it (and not

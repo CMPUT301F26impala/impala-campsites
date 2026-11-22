@@ -2,9 +2,7 @@ package com.impala.campala
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -27,6 +25,7 @@ import com.impala.campala.model.EntrantProfileRepository
 import com.impala.campala.model.ImageRepository
 import com.impala.campala.model.LotteryRepository
 import com.impala.campala.model.ReservationRepository
+import com.impala.campala.model.ReviewRepository
 import com.impala.campala.ui_sections.campsite_details.CampsiteDetailsController
 import com.impala.campala.ui_sections.campsite_details.CampsiteDetailsModel
 import com.impala.campala.ui_sections.campsite_details.CampsiteDetailsView
@@ -128,7 +127,7 @@ fun SignedInApp(user: User) {
     val createReservationView = remember { CreateReservationView(createReservationController) }
     createReservationModel.addObserver(createReservationView)
 
-    val seeReservationsModel = remember { SeeReservationsModel(reservationRepo, campsiteRepo, entrantProfileRepo, user, coroutineScope) }
+    val seeReservationsModel = remember { SeeReservationsModel(reservationRepo, campsiteRepo, entrantProfileRepo, reviewRepo, user, coroutineScope) }
     val seeReservationsController = remember { SeeReservationsController(seeReservationsModel) }
     val seeReservationsView = remember { SeeReservationsView(seeReservationsController) }
     seeReservationsModel.addObserver(seeReservationsView)
@@ -148,12 +147,7 @@ fun SignedInApp(user: User) {
             UserViewMode.ENTRANT -> EntrantNavigationRoot(searchCampsitesScreen=searchCampsitesView, campsiteDetailsScreen=campsiteDetailsView, seeReservationsScreen=seeReservationsView, viewLotteriesScreen=viewLotteriesView, createReservationScreen=createReservationView, onSwitchRole={ needsRoleChoice = true })
             UserViewMode.CAMPSITE_OWNER -> CampsiteOwnerNavigationRoot(searchCampsitesScreen=ownerSearchCampsitesView, campsiteDetailsScreen=campsiteDetailsView, formCampsitesScreen=formCampsitesView, formLotteriesScreen = formLotteriesView, viewLotteriesScreen = viewLotteriesView, seeReservationsScreen = seeReservationsView, onSwitchRole={ needsRoleChoice = true })
 
-            UserViewMode.ADMIN -> {
-                Button(onClick = { needsRoleChoice = true}) {
-                    Text("Go Back, Not Done Yet")
-                }
-                // TODO: ADMIN UI
-            }
+            UserViewMode.ADMIN -> AdminNavigationRoot(onSwitchRole={ needsRoleChoice = true })
 
             null -> {
                 // They have a profile but no role saved, so just send them to the entrant UI so the app is still usable

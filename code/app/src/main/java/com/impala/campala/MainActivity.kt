@@ -6,6 +6,10 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import com.impala.campala.ui.theme.AppTheme
 
+/**
+ * The entrypoint of our app, this is what Android starts when the app opens
+ * We use this just to initialize our theme and then handle the rest of the logic in CampalaApp
+ */
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

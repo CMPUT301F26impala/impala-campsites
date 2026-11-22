@@ -29,6 +29,15 @@ class ChooseRoleController(val model: ChooseRoleModel) : Controller {
     }
 
     /**
+     * Fire when the user selects admin as their role
+     *
+     * @param user The user's object
+     */
+    fun useAsAdmin(user: User) {
+        model.chooseRole(user, UserViewMode.ADMIN)
+    }
+
+    /**
      * Fires when the user's role changes
      */
     fun onRoleChosenHandled() {
