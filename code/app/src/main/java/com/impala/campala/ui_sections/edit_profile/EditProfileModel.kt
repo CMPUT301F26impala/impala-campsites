@@ -17,10 +17,7 @@ import kotlinx.coroutines.launch
  *
  * Stores the interim values for the Text Fields, and also eventually handles saving if save is pressed
  *
- * @param entrantDB the EntrantProfileRepository to load and save the user's entrant profile with
- * @param imageRepo Repository of images. Used for loading the profile's current picture, and saving a new one when it's picked
  * @param imageCompressor Used to shrink the picked image before it's saved
- * @param user the user editing their profile
  * @param scope the CoroutineScope used for Firebase operations
  *
  * @property profile The entrant profile being edited, null until it has loaded
@@ -32,10 +29,7 @@ import kotlinx.coroutines.launch
  * @property wasProfileSavedSuccessfully True once the profile has finished saving to the database
  */
 class EditProfileModel(
-    val entrantDB: EntrantProfileRepository,
-    val imageRepo: ImageRepository,
     val imageCompressor: ImageCompressor,
-    val user: User,
     val scope: CoroutineScope
 ) : ObservableModel<EditProfileModel>() {
     var profile: EntrantProfileModel? = null
@@ -50,12 +44,12 @@ class EditProfileModel(
      * Fills in the form's fields with the user's current entrant profile
      */
     suspend fun loadProfile() {
-        profile =entrantDB.getEntrantProfileById(user.getUID())
+        profile =EntrantProfileRepository.getEntrantProfileById(User.getUID())
         name = profile?.name ?: ""
         email = profile?.email ?: ""
         phoneNumber = profile?.phoneNumber ?: ""
         val imageId = profile?.imageId ?: ""
-        existingImageBytes = if (imageId.isNotEmpty()) imageRepo.getImageById(imageId)?.data?.toBytes() else null
+        existingImageBytes = if (imageId.isNotEmpty()) ImageRepository.getImageById(imageId)?.data?.toBytes() else null
         unsavedImage = null
         notifyObservers(this)
     }
@@ -114,7 +108,7 @@ class EditProfileModel(
      */
     fun saveProfile() {
         // If the profile somehow couldn't be loaded, a new one is made under the user's ID so the edit isn't lost
-        val updatedProfile = (profile ?: EntrantProfileModel(userId = user.getUID())).copy(
+        val updatedProfile = (profile ?: EntrantProfileModel(userId = User.getUID())).copy(
             name = name.trim(),
             email = email.trim(),
             phoneNumber = phoneNumber.trim()
@@ -125,16 +119,16 @@ class EditProfileModel(
             val oldImageId = profile?.imageId ?: ""
             if (imageUri != null) {
                 val image = ImageModel(data = Blob.fromBytes(imageCompressor.compress(imageUri)))
-                imageRepo.saveImage(image)
+                ImageRepository.saveImage(image)
                 updatedProfile.imageId = image.id
             }
 
-            entrantDB.saveEntrantProfile(updatedProfile)
+            EntrantProfileRepository.saveEntrantProfile(updatedProfile)
             profile = updatedProfile
 
             // Delete the old image
             if (imageUri != null && oldImageId.isNotEmpty()) {
-                imageRepo.deleteImage(oldImageId)
+                ImageRepository.deleteImage(oldImageId)
             }
 
             wasProfileSavedSuccessfully = true
