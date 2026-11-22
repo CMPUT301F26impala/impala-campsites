@@ -20,6 +20,7 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Phone
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
@@ -52,11 +53,13 @@ class ViewProfileView(val controller: ViewProfileController) : ViewObserver<View
     private var name by mutableStateOf("")
     private var email by mutableStateOf("")
     private var phoneNumber by mutableStateOf("")
+    private var showingDeleteConfirmation by mutableStateOf(false)
 
     override fun update(model: ViewProfileModel) {
         this.name = model.profile?.name ?: ""
         this.email = model.profile?.email ?: ""
         this.phoneNumber = model.profile?.phoneNumber ?: ""
+        this.showingDeleteConfirmation = model.showingDeleteConfirmation
     }
 
     /**
@@ -94,8 +97,7 @@ class ViewProfileView(val controller: ViewProfileController) : ViewObserver<View
                 Spacer(modifier = Modifier.height(40.dp))
                 DrawActionButton(Icons.AutoMirrored.Filled.List, "View App Policies", MaterialTheme.colorScheme.primary, onClick = { controller.onViewAppPoliciesPress(navController) })
                 Spacer(modifier = Modifier.height(8.dp))
-                // TODO: Deleting profiles
-                DrawActionButton(Icons.Default.Delete, "Delete Profile", MaterialTheme.colorScheme.tertiary, onClick = {})
+                DrawActionButton(Icons.Default.Delete, "Delete Profile", MaterialTheme.colorScheme.tertiary, onClick = { controller.onDeleteProfilePress() })
 
                 // Extra room for the edit FAB
                 Spacer(modifier = Modifier.height(96.dp))
@@ -110,6 +112,31 @@ class ViewProfileView(val controller: ViewProfileController) : ViewObserver<View
                     .padding(bottom = 16.dp)
             )
         }
+
+        if (showingDeleteConfirmation) {
+            DrawDeleteConfirmation()
+        }
+    }
+
+    @Composable
+    private fun DrawDeleteConfirmation() {
+        AlertDialog(
+            onDismissRequest = { controller.onDeleteCancel() },
+            title = { Text("Confirm Deletion") },
+            text = {
+                Text("Are you sure you want to delete your profile? You will lose any in-progress reservations and will not be able to see your previous data.")
+            },
+            dismissButton = {
+                TextButton(onClick = { controller.onDeleteCancel() }) {
+                    Text("Go Back")
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { controller.onDeleteConfirm() }) {
+                    Text("Confirm")
+                }
+            }
+        )
     }
 
     @Composable

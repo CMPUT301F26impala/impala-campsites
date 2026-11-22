@@ -15,9 +15,11 @@ import kotlinx.coroutines.launch
  * @param scope the CoroutineScope that the suspend fetches run in
  *
  * @property profile The user's entrant profile or null if it's not loaded
+ * @property showingDeleteConfirmation Whether the 'Confirm Deletion' dialog is open
  */
 class ViewProfileModel(val entrantDB: EntrantProfileRepository, val user: User, val scope: CoroutineScope) : ObservableModel<ViewProfileModel>() {
     var profile: EntrantProfileModel? = null
+    var showingDeleteConfirmation = false
 
     /**
      * Called on opening the page, gets the profile and updates observers
@@ -27,5 +29,21 @@ class ViewProfileModel(val entrantDB: EntrantProfileRepository, val user: User, 
             profile = entrantDB.getEntrantProfileById(user.getUID())
             notifyObservers(this@ViewProfileModel)
         }
+    }
+
+    /**
+     * Opens the 'Confirm Deletion' dialog
+     */
+    fun openDeleteConfirmation() {
+        showingDeleteConfirmation = true
+        notifyObservers(this)
+    }
+
+    /**
+     * Closes the 'Confirm Deletion' dialog
+     */
+    fun closeDeleteConfirmation() {
+        showingDeleteConfirmation = false
+        notifyObservers(this)
     }
 }

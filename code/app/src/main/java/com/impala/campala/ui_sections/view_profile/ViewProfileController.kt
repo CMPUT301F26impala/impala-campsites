@@ -33,4 +33,26 @@ class ViewProfileController(val model: ViewProfileModel) : Controller {
     fun onViewAppPoliciesPress(navController: NavController) {
         navController.navigate("appPolicies")
     }
+
+    /**
+     * Opens the delete confirm modal
+     */
+    fun onDeleteProfilePress() {
+        model.openDeleteConfirmation()
+    }
+
+    /**
+     * Closes the delete confirm modal without doing anything
+     */
+    fun onDeleteCancel() {
+        model.closeDeleteConfirmation()
+    }
+
+    /**
+     * Deletes the user's profile
+     */
+    fun onDeleteConfirm() {
+        // TODO: Actually delete the profile, for now this just closes the dialog
+        model.closeDeleteConfirmation()
+    }
 }
