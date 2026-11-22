@@ -15,7 +15,6 @@ import androidx.compose.ui.platform.LocalContext
 import com.impala.campala.ui_sections.search_campsites.SearchCampsitesController
 import com.impala.campala.ui_sections.search_campsites.SearchCampsitesModel
 import com.impala.campala.ui_sections.search_campsites.SearchCampsitesView
-import com.impala.campala.ui_sections.search_campsites.SearchCampsitesViewMode
 import com.impala.campala.ui_sections.form_campsites.FormCampsitesModel
 import com.impala.campala.ui_sections.form_campsites.FormCampsitesController
 import com.impala.campala.ui_sections.form_campsites.FormCampsitesView
@@ -68,16 +67,11 @@ fun SignedInApp() {
     val contentResolver = LocalContext.current.contentResolver
     val imageCompressor = remember { ImageCompressor(contentResolver) }
 
-    val searchCampsitesModel = remember { SearchCampsitesModel(coroutineScope, SearchCampsitesViewMode.ENTRANT) }
+    // Shared by all three navs, it checks User.getCurrentRole() to decide between the entrant, campsite owner, and admin UI
+    val searchCampsitesModel = remember { SearchCampsitesModel(coroutineScope) }
     val searchCampsitesController = remember { SearchCampsitesController(searchCampsitesModel) }
     val searchCampsitesView = remember { SearchCampsitesView(searchCampsitesController) }
     searchCampsitesModel.addObserver(searchCampsitesView)
-
-    // Same screen as above, but in campsite owner mode it only shows the User's own campsites and has the Add Campsite button
-    val ownerSearchCampsitesModel = remember { SearchCampsitesModel( coroutineScope, SearchCampsitesViewMode.CAMPSITE_OWNER) }
-    val ownerSearchCampsitesController = remember { SearchCampsitesController(ownerSearchCampsitesModel) }
-    val ownerSearchCampsitesView = remember { SearchCampsitesView(ownerSearchCampsitesController) }
-    ownerSearchCampsitesModel.addObserver(ownerSearchCampsitesView)
 
     val formCampsitesModel = remember { FormCampsitesModel(imageCompressor, coroutineScope) }
     val formCampsitesController = remember { FormCampsitesController(formCampsitesModel) }
@@ -128,9 +122,9 @@ fun SignedInApp() {
     } else {
         when (currentRole) {
             UserViewMode.ENTRANT -> EntrantNavigationRoot(searchCampsitesScreen=searchCampsitesView, campsiteDetailsScreen=campsiteDetailsView, seeReservationsScreen=seeReservationsView, viewLotteriesScreen=viewLotteriesView, createReservationScreen=createReservationView, onSwitchRole={ needsRoleChoice = true })
-            UserViewMode.CAMPSITE_OWNER -> CampsiteOwnerNavigationRoot(searchCampsitesScreen=ownerSearchCampsitesView, campsiteDetailsScreen=campsiteDetailsView, formCampsitesScreen=formCampsitesView, formLotteriesScreen = formLotteriesView, viewLotteriesScreen = viewLotteriesView, seeReservationsScreen = seeReservationsView, onSwitchRole={ needsRoleChoice = true })
+            UserViewMode.CAMPSITE_OWNER -> CampsiteOwnerNavigationRoot(searchCampsitesScreen=searchCampsitesView, campsiteDetailsScreen=campsiteDetailsView, formCampsitesScreen=formCampsitesView, formLotteriesScreen = formLotteriesView, viewLotteriesScreen = viewLotteriesView, seeReservationsScreen = seeReservationsView, onSwitchRole={ needsRoleChoice = true })
 
-            UserViewMode.ADMIN -> AdminNavigationRoot(onSwitchRole={ needsRoleChoice = true })
+            UserViewMode.ADMIN -> AdminNavigationRoot(searchCampsitesScreen=searchCampsitesView, campsiteDetailsScreen=campsiteDetailsView, onSwitchRole={ needsRoleChoice = true })
 
             null -> {
                 // They have a profile but no role saved, so just send them to the entrant UI so the app is still usable

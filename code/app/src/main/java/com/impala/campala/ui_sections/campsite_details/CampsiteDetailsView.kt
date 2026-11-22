@@ -3,6 +3,7 @@ package com.impala.campala.ui_sections.campsite_details
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -15,22 +16,28 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -53,6 +60,7 @@ import java.time.format.DateTimeFormatter
  */
 class CampsiteDetailsView(val controller: CampsiteDetailsController): ViewObserver<CampsiteDetailsModel> {
     private var isOwner by mutableStateOf(false)
+    private var isAdmin by mutableStateOf(false)
     private var lotteryExists by mutableStateOf(false)
     private var name by mutableStateOf("")
     private var location by mutableStateOf("")
@@ -75,6 +83,7 @@ class CampsiteDetailsView(val controller: CampsiteDetailsController): ViewObserv
         this.tags.clear()
         this.tags.addAll(model.tags)
         this.isOwner = model.userIsOwner
+        this.isAdmin = model.userIsAdmin
         this.lotteryExists = model.lotteryExists
         this.joinStatus = model.joinStatus
         this.reservedDates.clear()
@@ -201,7 +210,10 @@ class CampsiteDetailsView(val controller: CampsiteDetailsController): ViewObserv
             horizontalAlignment = Alignment.End,
             verticalArrangement = Arrangement.Bottom
         ) {
-            if(isOwner) {
+            if(isAdmin) {
+                RenderAdminButtons()
+            }
+            else if(isOwner) {
                 Button(onClick = { controller.generateQRCode() }) { Text("Generate QR") }
             }
             // Show a different button based on whether the lottery exists and is full
@@ -239,6 +251,76 @@ class CampsiteDetailsView(val controller: CampsiteDetailsController): ViewObserv
             IconButton(onClick = { controller.moveToBrowse(navController) }) {
                 Icon(Icons.Default.Close, contentDescription = "Back Icon", tint = MaterialTheme.colorScheme.onSurfaceVariant)
             }
+        }
+    }
+
+    // The admin's moderation buttons, each one asks for confirmation in a dialog before doing anything
+    @Composable
+    private fun RenderAdminButtons() {
+        var banDialogOpen by remember { mutableStateOf(false) }
+        var deleteDialogOpen by remember { mutableStateOf(false) }
+
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Button(
+                onClick = { banDialogOpen = true },
+                // Smaller side padding than default so both buttons fit side by side on a phone
+                contentPadding = PaddingValues(horizontal = 12.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onTertiaryContainer
+                )
+            ) {
+                Icon(Icons.Default.AccountCircle, contentDescription = null, modifier = Modifier.size(18.dp))
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Ban Campsite Owner")
+            }
+            Button(
+                onClick = { deleteDialogOpen = true },
+                // Smaller side padding than default so both buttons fit side by side on a phone
+                contentPadding = PaddingValues(horizontal = 12.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.tertiary,
+                    contentColor = MaterialTheme.colorScheme.onTertiary
+                )
+            ) {
+                Icon(Icons.Default.Delete, contentDescription = null, modifier = Modifier.size(18.dp))
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Delete Campsite")
+            }
+        }
+
+        if (banDialogOpen) {
+            AlertDialog(
+                onDismissRequest = { banDialogOpen = false },
+                title = { Text("Confirm Campsite Owner Profile Deletion") },
+                text = { Text("Are you sure you want to ban the profile that owns this campsite? All of their campsites will be deleted and this cannot be undone.") },
+                dismissButton = {
+                    TextButton(onClick = { banDialogOpen = false }) { Text("Go Back") }
+                },
+                confirmButton = {
+                    TextButton(onClick = {
+                        banDialogOpen = false
+                        controller.banOwner()
+                    }) { Text("Ban") }
+                }
+            )
+        }
+
+        if (deleteDialogOpen) {
+            AlertDialog(
+                onDismissRequest = { deleteDialogOpen = false },
+                title = { Text("Confirm Campsite Deletion") },
+                text = { Text("Are you sure you want to delete this campsite? This cannot be undone.") },
+                dismissButton = {
+                    TextButton(onClick = { deleteDialogOpen = false }) { Text("Go Back") }
+                },
+                confirmButton = {
+                    TextButton(onClick = {
+                        deleteDialogOpen = false
+                        controller.deleteCampsite()
+                    }) { Text("Delete") }
+                }
+            )
         }
     }
 }

@@ -56,4 +56,18 @@ class CampsiteDetailsController(val model: CampsiteDetailsModel) : Controller {
     fun leaveWaitlist() {
         model.leaveWaitlist()
     }
+
+    /**
+     * Called when an admin confirms deleting the campsite
+     */
+    fun deleteCampsite() {
+        model.deleteCampsite()
+    }
+
+    /**
+     * Called when an admin confirms banning the campsite's owner
+     */
+    fun banOwner() {
+        model.banOwner()
+    }
 }

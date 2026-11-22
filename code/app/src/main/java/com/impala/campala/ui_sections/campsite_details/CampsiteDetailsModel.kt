@@ -43,6 +43,7 @@ import kotlin.uuid.Uuid
  * @property lottery the Lottery for the Campsite, if it exists
  * @property joinStatus indicates whether a User can join a lottery or the reason they cannot
  * @property UserIsOwner flag for if the current User owns the campsite
+ * @property userIsAdmin flag for if the current User is viewing as an admin, which shows the delete and ban buttons
  * @property lotteryExists flag indicating if there is a lottery for the selected campsite
  * @property reservedDates the campsite's upcoming, non-cancelled reservations sorted by start date, only loaded for the owner
  * @property reviews the reviews entrants have left on the campsite
@@ -61,6 +62,7 @@ class CampsiteDetailsModel(
     var lottery: LotteryModel? = null
     var joinStatus: LotteryModel.ProspectiveJoinStatus? = null
     var userIsOwner: Boolean = false
+    var userIsAdmin: Boolean = false
     var lotteryExists: Boolean = false
     var reservedDates: List<ReservationModel> = emptyList()
     var reviews: List<ReviewModel> = emptyList()
@@ -88,6 +90,8 @@ class CampsiteDetailsModel(
 
         userIsOwner = User.getCurrentRole() == UserViewMode.CAMPSITE_OWNER &&
                 CampsiteOwnerProfileRepository.getCampsiteOwnerProfileById(User.getUID())?.ownedCampsites?.contains(campsiteId) == true
+
+        userIsAdmin = User.getCurrentRole() == UserViewMode.ADMIN
 
         // Only the owner sees the reserved dates, cancelled and past reservations are left out
         reservedDates = if (userIsOwner) {
@@ -136,5 +140,19 @@ class CampsiteDetailsModel(
             LotteryRepository.leaveLottery(lottery!!.id, User.getUID())
             campsite?.let { loadCampsite(it.id) }
         }
+    }
+
+    /**
+     * Called when an admin confirms deleting the campsite
+     */
+    fun deleteCampsite() {
+        // TODO: Delete the campsite
+    }
+
+    /**
+     * Called when an admin confirms banning the campsite's owner
+     */
+    fun banOwner() {
+        // TODO: Ban the campsite owner
     }
 }

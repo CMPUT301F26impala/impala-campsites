@@ -50,6 +50,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.impala.campala.ImageDisplay
+import com.impala.campala.UserViewMode
 import com.impala.campala.ViewObserver
 import com.impala.campala.model.CampsiteModel
 import java.time.LocalDate
@@ -60,6 +61,7 @@ import java.time.format.DateTimeFormatter
  *
  * This renders for an entrant and allows them to search through campsites
  * For a campsite owner it only shows their own campsites, hides the filters, and has an Add Campsite button
+ * For an admin it shows every campsite and hides the filters, tapping one opens the details screen where they can moderate it
  *
  * @param controller the SearchCampsitesController instance that is connected to the model
  */
@@ -72,7 +74,7 @@ class SearchCampsitesView(val controller: SearchCampsitesController): ViewObserv
     private var results by mutableStateOf<List<CampsiteModel>>(mutableListOf())
     private var locations by mutableStateOf<List<String>>(emptyList())
     private var images by mutableStateOf<Map<String, ByteArray>>(emptyMap())
-    private var viewMode by mutableStateOf(SearchCampsitesViewMode.ENTRANT)
+    private var viewMode by mutableStateOf(UserViewMode.ENTRANT)
 
     // No KDoc because that's described in the ViewObserver contract
     override fun update(model: SearchCampsitesModel) {
@@ -123,7 +125,7 @@ class SearchCampsitesView(val controller: SearchCampsitesController): ViewObserv
                     }
                 ) {}
                 // Campsite owners only see their own campsites, so they don't need the filters
-                if (viewMode == SearchCampsitesViewMode.ENTRANT) {
+                if (viewMode == UserViewMode.ENTRANT) {
                     Row(modifier=Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         DateFilter(modifier=Modifier.weight(1f))
                         LocationFilter(modifier = Modifier.weight(1f))
@@ -135,7 +137,7 @@ class SearchCampsitesView(val controller: SearchCampsitesController): ViewObserv
                 CampsiteRenderItem(campsite, navController)
             }
         }
-        if (viewMode == SearchCampsitesViewMode.CAMPSITE_OWNER) {
+        if (viewMode == UserViewMode.CAMPSITE_OWNER) {
             ExtendedFloatingActionButton(
                 onClick = { controller.onAddCampsitePress(navController) },
                 icon = { Icon(Icons.Default.Add, contentDescription = null) },
