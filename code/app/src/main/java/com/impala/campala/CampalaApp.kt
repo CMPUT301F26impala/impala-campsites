@@ -139,12 +139,12 @@ fun SignedInApp(user: User) {
     val seeReservationsView = remember { SeeReservationsView(seeReservationsController) }
     seeReservationsModel.addObserver(seeReservationsView)
 
-    val viewProfileModel = remember { ViewProfileModel(entrantProfileRepo, user, coroutineScope) }
+    val viewProfileModel = remember { ViewProfileModel(entrantProfileRepo, imageRepo, user, coroutineScope) }
     val viewProfileController = remember { ViewProfileController(viewProfileModel) }
     val viewProfileView = remember { ViewProfileView(viewProfileController) }
     viewProfileModel.addObserver(viewProfileView)
 
-    val editProfileModel = remember { EditProfileModel(entrantProfileRepo, user, coroutineScope) }
+    val editProfileModel = remember { EditProfileModel(entrantProfileRepo, imageRepo, imageCompressor, user, coroutineScope) }
     val editProfileController = remember { EditProfileController(editProfileModel) }
     val editProfileView = remember { EditProfileView(editProfileController) }
     editProfileModel.addObserver(editProfileView)

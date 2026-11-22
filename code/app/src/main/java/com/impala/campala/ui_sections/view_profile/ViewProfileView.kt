@@ -41,6 +41,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.impala.campala.ImageDisplay
 import com.impala.campala.ViewObserver
 
 /**
@@ -53,12 +54,14 @@ class ViewProfileView(val controller: ViewProfileController) : ViewObserver<View
     private var name by mutableStateOf("")
     private var email by mutableStateOf("")
     private var phoneNumber by mutableStateOf("")
+    private var imageBytes by mutableStateOf<ByteArray?>(null)
     private var showingDeleteConfirmation by mutableStateOf(false)
 
     override fun update(model: ViewProfileModel) {
         this.name = model.profile?.name ?: ""
         this.email = model.profile?.email ?: ""
         this.phoneNumber = model.profile?.phoneNumber ?: ""
+        this.imageBytes = model.imageBytes
         this.showingDeleteConfirmation = model.showingDeleteConfirmation
     }
 
@@ -141,13 +144,15 @@ class ViewProfileView(val controller: ViewProfileController) : ViewObserver<View
 
     @Composable
     private fun DrawProfilePicture() {
-        // TODO: Profile pictures, this gradient is just a placeholder until those exist
-        Box(
-            modifier = Modifier
-                .size(232.dp)
-                .clip(RoundedCornerShape(percent = 28))
-                .background(Brush.verticalGradient(listOf(Color.White, Color(0xFF9E9E9E))))
-        )
+        val imageModifier = Modifier
+            .size(232.dp)
+            .clip(RoundedCornerShape(percent = 28))
+        if (imageBytes != null) {
+            ImageDisplay(imageBytes = imageBytes, modifier = imageModifier)
+        } else {
+            // Placeholder gradient for profiles without a picture
+            Box(modifier = imageModifier.background(Brush.verticalGradient(listOf(Color.White, Color(0xFF9E9E9E)))))
+        }
     }
 
     @Composable

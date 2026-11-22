@@ -1,6 +1,6 @@
 package com.impala.campala.ui_sections.edit_profile
 
-import androidx.navigation.NavController
+import android.net.Uri
 import com.impala.campala.Controller
 
 /**
@@ -44,12 +44,26 @@ class EditProfileController(val model: EditProfileModel) : Controller {
     }
 
     /**
-     * Called when the user presses save, tells the model to save the profile and goes back
+     * Called by the image picker dialog after an image is chosen, stores the image Uri until upload (doesn't upload immediately)
      *
-     * @param navController the root NavController, used to go back to the profile tab
+     * @param imageUri content Uri of the image the user picked
      */
-    fun onSaveClick(navController: NavController) {
+    fun onUploadImage(imageUri: Uri) {
+        model.updateUnsavedImage(imageUri)
+    }
+
+    /**
+     * Called when the user presses save, tells the model to save the profile
+     * The view goes back once the model says the save has finished
+     */
+    fun onSaveClick() {
         model.saveProfile()
-        navController.popBackStack()
+    }
+
+    /**
+     * Called after navigating back after a save to reset the state of the model for next time
+     */
+    fun onSaveNavigationBecomesFalse() {
+        model.changeSaveFlagFalse()
     }
 }
