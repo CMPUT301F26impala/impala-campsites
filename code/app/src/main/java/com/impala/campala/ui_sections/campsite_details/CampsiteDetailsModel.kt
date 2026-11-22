@@ -6,6 +6,7 @@ import com.impala.campala.UserViewMode
 import com.impala.campala.model.CampsiteModel
 import com.impala.campala.model.CampsiteOwnerProfileRepository
 import com.impala.campala.model.CampsiteRepository
+import com.impala.campala.model.ImageRepository
 import com.impala.campala.model.LotteryModel
 import com.impala.campala.model.LotteryRepository
 import com.impala.campala.model.ReservationModel
@@ -26,7 +27,7 @@ import kotlin.uuid.Uuid
  * @param lotteryRepo the repo to fetch the campsite lottery from
  * @param campsiteOwnerProfileRepo the repo to check which campsites the user owns
  * @param reservationRepo the repo to fetch the campsite's reservations from
- * @param reviewRepo the repo to fetch the campsite's reviews from
+ * @param imageRepo the repo to fetch the campsite's image from
  * @param user the object which contains the current user's information
  * @param scope the CoroutineScope that the suspend fetches run in
  *
@@ -36,6 +37,7 @@ import kotlin.uuid.Uuid
  * @property maxOccupancy the Campsite occupancy limit
  * @property tags the set of tags the Campsite has
  * @property averageRating the Campsite's average rating out of 5, null if nobody has rated it yet
+ * @property imageBytes the Campsite's compressed image, null if it has no image
  * @property campsite the Campsite object whose details are displayed
  * @property lottery the Lottery for the Campsite, if it exists
  * @property joinStatus indicates whether a user can join a lottery or the reason they cannot
@@ -49,6 +51,7 @@ class CampsiteDetailsModel(
     val lotteryRepo: LotteryRepository,
     val campsiteOwnerProfileRepo: CampsiteOwnerProfileRepository,
     val reservationRepo: ReservationRepository,
+    val imageRepo: ImageRepository,
     val reviewRepo: ReviewRepository,
     val user: User,
     val scope: CoroutineScope
@@ -59,6 +62,7 @@ class CampsiteDetailsModel(
     var maxOccupancy: Int = 0
     var tags: MutableList<String> = mutableListOf()
     var averageRating: Double? = null
+    var imageBytes: ByteArray? = null
     var campsite: CampsiteModel? = null
     var lottery: LotteryModel? = null
     var joinStatus: LotteryModel.ProspectiveJoinStatus? = null
@@ -84,6 +88,9 @@ class CampsiteDetailsModel(
         this.maxOccupancy = campsite?.maxOccupancy ?: 0
         this.tags = campsite?.tags ?: mutableListOf()
         this.averageRating = campsite?.averageRating
+
+        val imageId = campsite?.imageId ?: ""
+        this.imageBytes = if (imageId.isNotEmpty()) imageRepo.getImageById(imageId)?.data?.toBytes() else null
 
         userIsOwner = user.getCurrentRole() == UserViewMode.CAMPSITE_OWNER &&
             campsiteOwnerProfileRepo.getCampsiteOwnerProfileById(user.getUID())?.ownedCampsites?.contains(campsiteId) == true

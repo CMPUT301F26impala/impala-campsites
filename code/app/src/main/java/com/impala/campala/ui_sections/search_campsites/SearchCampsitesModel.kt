@@ -5,6 +5,7 @@ import com.impala.campala.User
 import com.impala.campala.model.CampsiteModel
 import com.impala.campala.model.CampsiteOwnerProfileRepository
 import com.impala.campala.model.CampsiteRepository
+import com.impala.campala.model.ImageRepository
 import com.impala.campala.model.LotteryRepository
 import com.google.firebase.Timestamp
 import kotlinx.coroutines.CoroutineScope
@@ -30,6 +31,7 @@ enum class SearchCampsitesViewMode { ENTRANT, CAMPSITE_OWNER }
  * @param repo the CampsiteRepository to fetch campsites from
  * @param campsiteOwnerProfileRepo used in campsite owner mode to find which campsites the user owns
  * @param lotteryRepo used by the date filter to find which campsites have a lottery with that date available
+ * @param imageRepo used to load the images of the campsites in results
  * @param user the signed in User so that, if it's campsite owner mode, it can show only their campsites
  * @param scope the CoroutineScope that the suspend fetches run in
  * @param viewMode whether this screen is for an entrant or a campsite owner
@@ -40,11 +42,13 @@ enum class SearchCampsitesViewMode { ENTRANT, CAMPSITE_OWNER }
  * @property dateFilter the date the entrant wants to camp on, null for any. Only campsites in a lottery whose available dates include it are shown
  * @property results campsites matching the current filters
  * @property locations every location that has a campsite, these are the options for the location filter
+ * @property images the loaded campsite images, keyed by image ID. Campsites with no image, or whose image hasn't loaded yet, aren't in it
  */
 class SearchCampsitesModel(
     val repo: CampsiteRepository,
     val campsiteOwnerProfileRepo: CampsiteOwnerProfileRepository,
     val lotteryRepo: LotteryRepository,
+    val imageRepo: ImageRepository,
     val user: User,
     val scope: CoroutineScope,
     val viewMode: SearchCampsitesViewMode
@@ -58,6 +62,9 @@ class SearchCampsitesModel(
         private set
 
     var locations: List<String> = emptyList()
+        private set
+
+    var images: Map<String, ByteArray> = emptyMap()
         private set
 
     private var resultsJob: Job? = null
@@ -87,6 +94,17 @@ class SearchCampsitesModel(
             }
             results = campsites
             notifyObservers(this@SearchCampsitesModel)
+
+            // Since images aren't actually attached to campsites, but instead just an id link
+            // We have to fetch them separately
+            val newImageIds = campsites.map { it.imageId }.filter { it.isNotEmpty() && it !in images }.distinct()
+            for (imageId in newImageIds) {
+                val bytes = imageRepo.getImageById(imageId)?.data?.toBytes() ?: continue
+                images = images + (imageId to bytes)
+            }
+            if (newImageIds.isNotEmpty()) {
+                notifyObservers(this@SearchCampsitesModel)
+            }
         }
     }
     /**
