@@ -49,6 +49,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.impala.campala.ImageDisplay
 import com.impala.campala.ViewObserver
 import com.impala.campala.model.CampsiteModel
 import java.time.LocalDate
@@ -70,6 +71,7 @@ class SearchCampsitesView(val controller: SearchCampsitesController): ViewObserv
 
     private var results by mutableStateOf<List<CampsiteModel>>(mutableListOf())
     private var locations by mutableStateOf<List<String>>(emptyList())
+    private var images by mutableStateOf<Map<String, ByteArray>>(emptyMap())
     private var viewMode by mutableStateOf(SearchCampsitesViewMode.ENTRANT)
 
     // No KDoc because that's described in the ViewObserver contract
@@ -80,6 +82,7 @@ class SearchCampsitesView(val controller: SearchCampsitesController): ViewObserv
         this.dateFilter = model.dateFilter
         this.results = model.results
         this.locations = model.locations
+        this.images = model.images
         this.viewMode = model.viewMode
     }
 
@@ -274,11 +277,13 @@ class SearchCampsitesView(val controller: SearchCampsitesController): ViewObserv
         Column(modifier = Modifier.clickable {
             this.controller.onCampsitePress(campsite, navController)
         }) {
-            Box(modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(16.dp))
-                .background(color= MaterialTheme.colorScheme.primary)
-                .height(192.dp)) {}
+            ImageDisplay(
+                imageBytes = images[campsite.imageId],
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(16.dp))
+                    .height(192.dp)
+            )
             Column(modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)) {
                 Text(campsite.name, style = MaterialTheme.typography.headlineMedium)
                 Row() {
