@@ -28,6 +28,7 @@ import kotlin.uuid.Uuid
  * @param campsiteOwnerProfileRepo the repo to check which campsites the user owns
  * @param reservationRepo the repo to fetch the campsite's reservations from
  * @param imageRepo the repo to fetch the campsite's image from
+ * @param reviewRepo the repo to fetch the campsite's reviews from
  * @param user the object which contains the current user's information
  * @param scope the CoroutineScope that the suspend fetches run in
  *

@@ -98,24 +98,26 @@ class CampsiteDetailsView(val controller: CampsiteDetailsController): ViewObserv
         LaunchedEffect(campsiteId) {
             controller.onOpen(campsiteId)
         }
-        Column(modifier = Modifier.fillMaxHeight()) {
-            ImageDisplay(
-                imageBytes = imageBytes,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(192.dp)
-            )
-            Row(
-                modifier = Modifier.padding(horizontal = 10.dp).fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween,
-            ) {
-                Text(name, style = MaterialTheme.typography.headlineMedium)
-                if(isOwner) {
-                    IconButton(
-                        onClick = { controller.moveToEdit(navController, campsiteId) }
-                    ) {
-                        Icon(Icons.Default.Edit, contentDescription = "Edit Icon", tint = MaterialTheme.colorScheme.onSurfaceVariant)
+        Box(modifier = Modifier.fillMaxSize()) {
+            Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
+                ImageDisplay(
+                    imageBytes = imageBytes,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(192.dp)
+                )
+                Row(
+                    modifier = Modifier.padding(horizontal = 10.dp).fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                ) {
+                    Text(name, style = MaterialTheme.typography.headlineMedium)
+                    if(isOwner) {
+                        IconButton(
+                            onClick = { controller.moveToEdit(navController, campsiteId) }
+                        ) {
+                            Icon(Icons.Default.Edit, contentDescription = "Edit Icon", tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
                     }
                 }
                 Spacer(modifier = Modifier.height(16.dp))

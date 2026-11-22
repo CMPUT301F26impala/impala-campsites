@@ -81,6 +81,7 @@ fun SignedInApp(user: User) {
     val campsiteOwnerProfileRepo = remember { CampsiteOwnerProfileRepository() }
     val lotteryRepo = remember { LotteryRepository() }
     val reservationRepo = remember { ReservationRepository() }
+    val reviewRepo = remember { ReviewRepository() }
     val imageRepo = remember { ImageRepository() }
     val contentResolver = LocalContext.current.contentResolver
     val imageCompressor = remember { ImageCompressor(contentResolver) }
@@ -106,7 +107,7 @@ fun SignedInApp(user: User) {
     val formLotteriesView = remember { FormLotteriesView(formLotteriesController) }
     formLotteriesModel.addObserver(formLotteriesView)
 
-    val campsiteDetailsModel = remember { CampsiteDetailsModel(campsiteRepo, lotteryRepo, campsiteOwnerProfileRepo, reservationRepo, imageRepo, user, coroutineScope) }
+    val campsiteDetailsModel = remember { CampsiteDetailsModel(campsiteRepo, lotteryRepo, campsiteOwnerProfileRepo, reservationRepo, imageRepo, reviewRepo, user, coroutineScope) }
     val campsiteDetailsController = remember { CampsiteDetailsController(campsiteDetailsModel) }
     val campsiteDetailsView = remember { CampsiteDetailsView(campsiteDetailsController) }
     campsiteDetailsModel.addObserver(campsiteDetailsView)
