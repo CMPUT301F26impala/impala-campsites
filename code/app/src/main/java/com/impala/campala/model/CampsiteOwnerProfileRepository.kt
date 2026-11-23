@@ -103,6 +103,7 @@ object CampsiteOwnerProfileRepository {
      *
      * @throws FirebaseFirestoreException if the write fails
      */
+    suspend fun removeOwnedCampsite(profile: CampsiteOwnerProfileModel, campsiteId: String) {
         profile.ownedCampsites.remove(campsiteId)
         this.saveCampsiteOwnerProfile(profile)
     }
