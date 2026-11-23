@@ -22,7 +22,8 @@ data class EntrantProfileModel(
     var userId: String = "",
     var name: String = "",  // TODO: These aren't really being used in the app just yet
     var email: String = "",  // TODO: These aren't really being used in the app just yet
-    var phoneNumber: String = "" // TODO: These aren't really being used in the app just yet
+    var phoneNumber: String = "", // TODO: These aren't really being used in the app just yet
+    var notificationId: String=""
 ) {
     companion object {
         fun load(doc: DocumentSnapshot): EntrantProfileModel {
@@ -38,6 +39,7 @@ data class EntrantProfileModel(
      * @return A reference to the Firebase document of this entrant profile model
      */
     fun save(): Task<Void> {
+        require(userId.isNotBlank()) { "EntrantProfileModel userId cannot be blank" }
         doc = Firebase.firestore.document("entrants/" + userId)
         return doc!!.set(this)
     }

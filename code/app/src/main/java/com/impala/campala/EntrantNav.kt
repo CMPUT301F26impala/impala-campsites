@@ -1,10 +1,15 @@
 package com.impala.campala
 
+import android.Manifest
+import android.content.Context
+import android.content.pm.PackageManager
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
@@ -12,7 +17,7 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.MailOutline
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.Button
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.FloatingActionButton
@@ -22,28 +27,34 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
+import androidx.core.content.edit
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.impala.campala.model.CampsiteModel
+import com.google.firebase.Firebase
+import com.google.firebase.messaging.messaging
 import com.impala.campala.ui_sections.campsite_details.CampsiteDetailsView
 import com.impala.campala.ui_sections.create_reservation.CreateReservationView
-import com.impala.campala.ui_sections.see_reservation.SeeReservationsView
 import com.impala.campala.ui_sections.search_campsites.SearchCampsitesView
+import com.impala.campala.ui_sections.see_reservation.SeeReservationsView
 import com.impala.campala.ui_sections.view_lotteries.ViewLotteriesView
 
 /**
@@ -56,6 +67,7 @@ import com.impala.campala.ui_sections.view_lotteries.ViewLotteriesView
  * @param createReservationScreen The View where the user can make a reservation from
  * @param onSwitchRole a function to be executed when the user clicks the button to switch roles
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EntrantNavigationRoot(
     searchCampsitesScreen: SearchCampsitesView,
@@ -65,12 +77,57 @@ fun EntrantNavigationRoot(
     createReservationScreen: CreateReservationView,
     onSwitchRole: () -> Unit
 ) {
+    Firebase.messaging.register()
+
+    val context = LocalContext.current
+    val preferences = context.getSharedPreferences(
+        "campala",
+        Context.MODE_PRIVATE
+    )
+    var showNotifPermAlert by remember { mutableStateOf(false) }
+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        showNotifPermAlert = !isGranted && !preferences.getBoolean("requested_notif", false)
+        preferences.edit { putBoolean("requested_notif", true) }
+    }
+    LaunchedEffect(Unit) {
+        if (!preferences.getBoolean("requested_notif", false) && ContextCompat.checkSelfPermission(
+                context, Manifest.permission.POST_NOTIFICATIONS
+            ) != PackageManager.PERMISSION_GRANTED
+        ) permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+    }
+
+    if (showNotifPermAlert) {
+        AlertDialog(
+            onDismissRequest = { showNotifPermAlert = false },
+            title = { Text("Notification Permission") },
+            text = {
+                Text("You won't be shown notifications. Enable in device settings")
+            },
+            confirmButton = {
+                TextButton(onClick = { showNotifPermAlert = false }) {
+                    Text("OK")
+                }
+            }
+        )
+    }
+
     val navController = rememberNavController()
 
     NavHost(navController = navController, startDestination = "home") {
         // "home" is the tab navigation, the 4 tabs inside of home are controlled by the EntrantHomeScreen function
         // Any screens that aren't part of the tabs and are 'fullscreen' should be declared here
-        composable("home") { EntrantHomeScreen(navController, searchCampsitesScreen, seeReservationsScreen, viewLotteriesScreen, onSwitchRole) }
+        composable("home") {
+            EntrantHomeScreen(
+                navController,
+                searchCampsitesScreen,
+                seeReservationsScreen,
+                viewLotteriesScreen,
+                onSwitchRole
+            )
+        }
         composable("campsite/{campsiteId}") { backStackEntry ->
             val campsiteId = backStackEntry.arguments?.getString("campsiteId") ?: ""
             // Scaffold is just here so the screen respects the status bar / nav bar insets
@@ -110,7 +167,13 @@ enum class EntrantTab(val label: String, val icon: ImageVector) {
 // This may change in the future into a 100% human-derived solution, but I'm just disclosing this for transaprency
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun EntrantHomeScreen(navController: NavController, searchCampsitesScreen: SearchCampsitesView, seeReservationsScreen: SeeReservationsView, viewLotteriesScreen: ViewLotteriesView, onSwitchRole: () -> Unit) {
+fun EntrantHomeScreen(
+    navController: NavController,
+    searchCampsitesScreen: SearchCampsitesView,
+    seeReservationsScreen: SeeReservationsView,
+    viewLotteriesScreen: ViewLotteriesView,
+    onSwitchRole: () -> Unit
+) {
     var selected by rememberSaveable { mutableStateOf(EntrantTab.Search) }
     val tabState = rememberSaveableStateHolder() // keeps each tab's scroll/state
     Scaffold(
@@ -126,7 +189,10 @@ fun EntrantHomeScreen(navController: NavController, searchCampsitesScreen: Searc
                 },
                 actions = {
                     // Takes you back to the choose role screen, CampalaApp.kt does the work for that
-                    FilledIconButton(onClick = onSwitchRole, modifier = Modifier.padding(end = 8.dp)) {
+                    FilledIconButton(
+                        onClick = onSwitchRole,
+                        modifier = Modifier.padding(end = 8.dp)
+                    ) {
                         Icon(Icons.Default.Person, contentDescription = "Switch user mode")
                     }
                 }
@@ -139,14 +205,19 @@ fun EntrantHomeScreen(navController: NavController, searchCampsitesScreen: Searc
                         selected = tab == selected,
                         onClick = { selected = tab },
                         icon = { Icon(tab.icon, contentDescription = null) },
-                        label = { Text(tab.label) },)
+                        label = { Text(tab.label) },
+                    )
                 }
             }
         }
     ) { padding ->
         // The first padding is the padding required for like the top of the screen and stuff
         // The 16.dp one is to make it so text doesn't touch the very edge pixels, but sits inside a little
-        Box(Modifier.padding(padding).padding(horizontal = 16.dp)) {
+        Box(
+            Modifier
+                .padding(padding)
+                .padding(horizontal = 16.dp)
+        ) {
             tabState.SaveableStateProvider(selected.name) {
                 when (selected) {
                     EntrantTab.Search -> searchCampsitesScreen.Render(navController)
@@ -184,7 +255,11 @@ fun ExampleScreenOne(navController: NavController) {
                 containerColor = MaterialTheme.colorScheme.primaryContainer,
                 contentColor = MaterialTheme.colorScheme.onPrimaryContainer
             ) {
-                Row(modifier = Modifier.padding(horizontal=16.dp), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     Icon(
                         Icons.Filled.Delete,
                         contentDescription = "Delete Icon",
@@ -194,7 +269,11 @@ fun ExampleScreenOne(navController: NavController) {
             }
         }
     ) { innerPadding ->
-        Column(Modifier.padding(innerPadding).padding(horizontal=16.dp)) {
+        Column(
+            Modifier
+                .padding(innerPadding)
+                .padding(horizontal = 16.dp)
+        ) {
             UiExamples()
         }
     }

@@ -9,7 +9,7 @@ on:
 
 # Never let two runs overlap
 concurrency:
-  group: draw-lotteries
+  group: backend-cron
   cancel-in-progress: false
 
 permissions:
@@ -21,7 +21,7 @@ jobs:
     timeout-minutes: 10
     defaults:
       run:
-        working-directory: scripts/draw-lotteries
+        working-directory: scripts/
     steps:
       - uses: actions/checkout@v4
 
@@ -30,7 +30,8 @@ jobs:
           node-version: 22
 
       # By just doing this here I didn't have to make a package.json
-      - run: npm install --no-save firebase-admin@14
+      # 2026-11-23: I (Minh) added a package.json anyway
+      - run: npm install --no-save
 
       - run: node index.js
         env:

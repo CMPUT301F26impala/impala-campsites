@@ -65,6 +65,4 @@ data class CampsiteModel @OptIn(ExperimentalUuidApi::class) constructor(
         doc = Firebase.firestore.document("campsites/" + id)
         return doc!!.set(this)
     }
-
-
 }
