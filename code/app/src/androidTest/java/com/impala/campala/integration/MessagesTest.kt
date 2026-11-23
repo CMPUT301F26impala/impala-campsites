@@ -4,6 +4,8 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.android.gms.tasks.Tasks
 import com.google.firebase.firestore.FirebaseFirestore
 import com.impala.campala.model.MessagesRepository
+import com.impala.campala.model.ReservationModel
+import com.impala.campala.model.ReservationRepository
 import junit.framework.TestCase.assertEquals
 import junit.framework.TestCase.assertNotNull
 import kotlinx.coroutines.runBlocking
@@ -13,8 +15,6 @@ import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
 class MessagesTest {
-    val repo = MessagesRepository()
-
     @Before
     fun setUp(){
         val db = FirebaseFirestore.getInstance()
@@ -33,19 +33,35 @@ class MessagesTest {
 
     @Test
     fun createAndLookUpThread(): Unit = runBlocking {
-        val stored = repo.getOrCreateThreadByReservation("resoID")
+        val reso = ReservationModel(ownerId = "Own1", entrantId = "enter1")
+        reso.save()
+        val stored = MessagesRepository.getOrCreateThreadByReservation(reso.id)
         assertNotNull("Thread should exist after creating", stored)
-        val sameAsStored = repo.getOrCreateThreadByReservation("resoID")
+        val sameAsStored = MessagesRepository.getOrCreateThreadByReservation(reso.id)
         assertEquals("Should return the one already created when called again",sameAsStored,stored)
     }
 
     @Test
     fun sendMessage():Unit = runBlocking {
-        var stored = repo.getOrCreateThreadByReservation("resoID")
+        val reso = ReservationModel(ownerId = "Own2", entrantId = "enter2")
+        reso.save()
+        val stored = MessagesRepository.getOrCreateThreadByReservation(reso.id)
         assertNotNull("Thread should exist after creating", stored)
 
-        repo.sendMessage("Hello tenet, welcome to the lodge",true,stored)
-        stored = repo.getOrCreateThreadByReservation("resoID")
+        MessagesRepository.sendMessage("Hello tenet, welcome to the lodge",true,stored)
         assertEquals("Hello tenet, welcome to the lodge",stored.messageThread[0].body)
+    }
+
+    @Test
+    fun sendMessageReload():Unit = runBlocking {
+        val reso = ReservationModel(ownerId = "Own2", entrantId = "enter2")
+        reso.save()
+        val stored = MessagesRepository.getOrCreateThreadByReservation(reso.id)
+        assertNotNull("Thread should exist after creating", stored)
+
+        MessagesRepository.sendMessage("Hello tenet, welcome to the lodge",true,stored)
+        assertEquals("Hello tenet, welcome to the lodge",stored.messageThread[0].body)
+        val storedMessaged = MessagesRepository.getOrCreateThreadByReservation(reso.id)
+        assertEquals("Hello tenet, welcome to the lodge",storedMessaged.messageThread[0].body)
     }
 }

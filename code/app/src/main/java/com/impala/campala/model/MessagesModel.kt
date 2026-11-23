@@ -7,7 +7,6 @@ import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.Exclude
 import com.google.firebase.firestore.firestore
 import kotlin.uuid.ExperimentalUuidApi
-import kotlin.uuid.Uuid
 
 /**
  * This shares the same User ID as the associated User and EntrantProfile objects, but this tracks specifically the campsite owner details
@@ -15,8 +14,7 @@ import kotlin.uuid.Uuid
  *
  * @param ownerId The ID of the owner
  * @param entrantId The ID of the entrant reserving
- * @param reservationId The ID of the reservation spawning the chat
- * @param id The ID that the object has in the database
+ * @param reservationId The ID of the reservation spawning the chat, also used as primary ID
  */
 
 data class MessagesModel @OptIn(ExperimentalUuidApi::class) constructor(
@@ -24,7 +22,6 @@ data class MessagesModel @OptIn(ExperimentalUuidApi::class) constructor(
     val entrantId: String = "",
     val reservationId: String = "",
     var messageThread: MutableList<MessageModel> = mutableListOf(),
-    val id: String = Uuid.random().toString()
 ) {
     companion object {
         fun load(doc: DocumentSnapshot): MessagesModel {
@@ -40,7 +37,7 @@ data class MessagesModel @OptIn(ExperimentalUuidApi::class) constructor(
      * @return A reference to the Firebase document of this messages model
      */
     fun save(): Task<Void> {
-        doc = Firebase.firestore.document("messages/" + id)
+        doc = Firebase.firestore.document("messages/$reservationId")
         return doc!!.set(this)
     }
 }

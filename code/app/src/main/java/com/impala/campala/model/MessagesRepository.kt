@@ -2,9 +2,10 @@ package com.impala.campala.model
 
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.tasks.await
 
-class MessagesRepository {
+object MessagesRepository {
     private val collection by lazy { Firebase.firestore.collection("messages") }
 
     /**
@@ -15,18 +16,24 @@ class MessagesRepository {
      * @return the created/existing message thread
      */
     suspend fun getOrCreateThreadByReservation(reservationId: String): MessagesModel{
-        try {
-            return collection.whereEqualTo("reservationID", reservationId).get().await()
-                .map { MessagesModel.load(it) }[0]
-        } catch (e: IndexOutOfBoundsException) {
-            val repo = ReservationRepository()
-            return MessagesModel(
-                ownerId = repo.getReservationById(reservationId)!!.ownerId,
-                entrantId = repo.getReservationById(reservationId)!!.entrantId,
-                reservationId = reservationId
-            )
-        } catch (e: Exception) {
+        val messages = getThreadByReservation(reservationId)
+        if(messages != null)
+            return messages
+        return MessagesModel(
+            ownerId = ReservationRepository.getReservationById(reservationId)!!.ownerId,
+            entrantId = ReservationRepository.getReservationById(reservationId)!!.entrantId,
+            reservationId = reservationId
+        )
+    }
+
+    private suspend fun getThreadByReservation(reservationId: String): MessagesModel?{
+        return try {
+            val snapshot = collection.document(reservationId).get().await()
+            snapshot.toObject(MessagesModel::class.java) // null if the document doesn't exist
+        } catch (e: CancellationException) {
             throw e
+        } catch (e: Exception) {
+            return null
         }
     }
 
@@ -38,8 +45,8 @@ class MessagesRepository {
      * @param isFromOwner Flag to tell who is sending
      * @param model MessagesModel to use for chat
      */
-    fun sendMessage(message: String,isFromOwner: Boolean,model: MessagesModel): Unit{
+    suspend fun sendMessage(message: String,isFromOwner: Boolean,model: MessagesModel): Unit{
         model.messageThread.addLast(MessageModel(message,isFromOwner))
-        model.save()
+        model.save().await()
     }
 }
