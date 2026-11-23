@@ -115,8 +115,8 @@ data class LotteryModel @OptIn(ExperimentalUuidApi::class) constructor(
         require(campsiteIds.isNotEmpty()) { "A lottery must be linked to at least one campsite" }
         require(lotteryEndTime <= registrationEndTime) { "Registration can't end before winners are drawn" }
         require(reservationStartDate <= reservationEndDate) { "Reservation range can't end before it starts" }
-        require(lotteryStartTime <= lotteryEndTime) {"Lottery can't end before it starts."}
-        require(registrationStartTime <= registrationEndTime) {"Booking can't start before it ends"}
+        require(lotteryStartTime <= lotteryEndTime) { "Lottery can't end before it starts." }
+        require(registrationStartTime <= registrationEndTime) { "Booking can't start before it ends" }
         require(lotteryCapacity > 0) { "Lottery capacity must be at least 1" }
         require(waitlistCapacity >= 0) { "Waitlist capacity can't be negative" }
         require(entrantIds.size <= lotteryCapacity) { "More entrants than the lottery capacity" }
@@ -210,5 +210,17 @@ data class LotteryModel @OptIn(ExperimentalUuidApi::class) constructor(
             return true
         }
         return waitlistIds.remove(entrantId)
+    }
+
+
+    @Exclude
+    suspend fun getDisplayName(maxLength: Int=20): String {
+        // this will break with arabic characters, but we dont care
+        var name=campsiteIds.map { CampsiteRepository.getCampsiteById(it)!!.name }.joinToString(", ")
+        val remaining=maxLength-3
+        if (name.length > maxLength){
+            name=name.take((remaining+1)/2)+"..."+name.takeLast(remaining/2)
+        }
+        return name
     }
 }

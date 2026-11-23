@@ -95,7 +95,7 @@ class CreateReservationFlowTest {
         compose.waitForText("You're All Set!")
 
         // Make sure the flow actually saved what the user picked
-        val saved = runBlocking { ReservationRepository().getReservationsByUser(uid) }
+        val saved = runBlocking { ReservationRepository.getReservationsByUser(uid) }
         assertEquals(1, saved.size)
         assertEquals(campsite.id, saved[0].campsiteId)
         assertEquals(toTimestamp(start), saved[0].startDate)
