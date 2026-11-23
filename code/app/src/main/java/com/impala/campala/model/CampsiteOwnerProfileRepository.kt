@@ -94,4 +94,16 @@ object CampsiteOwnerProfileRepository {
         profile.ownedLotteries.add(lotteryId)
         this.saveCampsiteOwnerProfile(profile)
     }
+
+    /**
+     * Records that a campsite owner no longer owns a campsite
+     *
+     * @param profile CampsiteOwnerProfileModel to be saved
+     * @param campsiteId ID of the campsite the owner no longer owns
+     *
+     * @throws FirebaseFirestoreException if the write fails
+     */
+        profile.ownedCampsites.remove(campsiteId)
+        this.saveCampsiteOwnerProfile(profile)
+    }
 }

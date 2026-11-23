@@ -1,5 +1,6 @@
 package com.impala.campala.ui_sections.campsite_details
 
+import android.util.Log
 import com.impala.campala.ObservableModel
 import com.impala.campala.User
 import com.impala.campala.UserViewMode
@@ -13,6 +14,7 @@ import com.impala.campala.model.ReservationModel
 import com.impala.campala.model.ReservationRepository
 import com.impala.campala.model.ReviewModel
 import com.impala.campala.model.ReviewRepository
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlin.uuid.Uuid
@@ -144,9 +146,21 @@ class CampsiteDetailsModel(
 
     /**
      * Called when an admin confirms deleting the campsite
+     *
+     * @param onDeleted called once the campsite is deleted, used to leave the screen
      */
-    fun deleteCampsite() {
-        // TODO: Delete the campsite
+    fun deleteCampsite(onDeleted: () -> Unit) {
+        val campsite = campsite ?: return
+        this.scope.launch {
+            try {
+                CampsiteRepository.softDeleteCampsite(campsite)
+                onDeleted()
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Log.e("CampsiteDetailsModel", "Failed to delete campsite", e)
+            }
+        }
     }
 
     /**

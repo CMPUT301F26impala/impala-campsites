@@ -1,7 +1,9 @@
 package com.impala.campala.model
 
 import com.google.firebase.Firebase
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.FirebaseFirestoreException
 import com.google.firebase.firestore.firestore
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.tasks.await
@@ -52,6 +54,32 @@ object LotteryRepository {
         } catch (e: Exception) {
             return null
         }
+    }
+
+    /**
+     * Gets every lottery a campsite is in, finished or not
+     *
+     * @param campsiteId ID of the campsite
+     *
+     * @return List of lotteries that include the campsite
+     *
+     * @throws FirebaseFirestoreException if the fetch fails
+     */
+    suspend fun getLotteriesByCampsiteId(campsiteId: String): List<LotteryModel> {
+        val snapshot = db.collection("lotteries").whereArrayContains("campsiteIds", campsiteId).get().await()
+        return snapshot.toObjects(LotteryModel::class.java)
+    }
+
+    /**
+     * Removes a campsite from a lottery, the lottery must have other campsites since it needs at least one
+     *
+     * @param lotteryId ID of the lottery
+     * @param campsiteId ID of the campsite to remove
+     *
+     * @throws FirebaseFirestoreException if the write fails
+     */
+    suspend fun removeCampsiteFromLottery(lotteryId: String, campsiteId: String): Unit {
+        db.collection("lotteries").document(lotteryId).update("campsiteIds", FieldValue.arrayRemove(campsiteId)).await()
     }
 
     /**

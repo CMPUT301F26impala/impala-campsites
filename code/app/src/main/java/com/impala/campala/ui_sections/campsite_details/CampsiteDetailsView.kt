@@ -211,7 +211,7 @@ class CampsiteDetailsView(val controller: CampsiteDetailsController): ViewObserv
             verticalArrangement = Arrangement.Bottom
         ) {
             if(isAdmin) {
-                RenderAdminButtons()
+                RenderAdminButtons(navController)
             }
             else if(isOwner) {
                 Button(onClick = { controller.generateQRCode() }) { Text("Generate QR") }
@@ -256,7 +256,7 @@ class CampsiteDetailsView(val controller: CampsiteDetailsController): ViewObserv
 
     // The admin's moderation buttons, each one asks for confirmation in a dialog before doing anything
     @Composable
-    private fun RenderAdminButtons() {
+    private fun RenderAdminButtons(navController: NavController) {
         var banDialogOpen by remember { mutableStateOf(false) }
         var deleteDialogOpen by remember { mutableStateOf(false) }
 
@@ -317,7 +317,7 @@ class CampsiteDetailsView(val controller: CampsiteDetailsController): ViewObserv
                 confirmButton = {
                     TextButton(onClick = {
                         deleteDialogOpen = false
-                        controller.deleteCampsite()
+                        controller.deleteCampsite(navController)
                     }) { Text("Delete") }
                 }
             )

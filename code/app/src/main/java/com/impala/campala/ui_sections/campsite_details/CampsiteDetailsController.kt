@@ -58,10 +58,12 @@ class CampsiteDetailsController(val model: CampsiteDetailsModel) : Controller {
     }
 
     /**
-     * Called when an admin confirms deleting the campsite
+     * Called when an admin confirms deleting the campsite, goes back to the Browse Campsite screen once it's deleted
+     *
+     * @param navController the navController object used for navigation
      */
-    fun deleteCampsite() {
-        model.deleteCampsite()
+    fun deleteCampsite(navController: NavController) {
+        model.deleteCampsite(onDeleted = { navController.popBackStack() })
     }
 
     /**

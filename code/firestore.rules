@@ -133,8 +133,11 @@ service cloud.firestore {
         && validCampsite(request.resource.data);
 
       // Only the owner can edit it, and they can't hand it to someone else
+      // Only an admin can delete it, and the owner can't edit it after
       allow update: if (
-          (isSelf(resource.data.ownerId) || isAdmin())
+          (isAdmin() || (isSelf(resource.data.ownerId)
+            && !resource.data.get('hasBeenDeleted', false)
+            && !request.resource.data.get('hasBeenDeleted', false)))
           && unchanged('ownerId')
           && unchanged('id')
           && validCampsite(request.resource.data)
@@ -182,6 +185,11 @@ service cloud.firestore {
         && d.lotteryEndTime <= d.registrationEndTime
         && d.registrationStartTime <= d.registrationEndTime
         && d.reservationStartDate <= d.reservationEndDate;
+    }
+
+    function onlyRemovesCampsites() {
+      return request.resource.data.campsiteIds.toSet()
+        .difference(resource.data.campsiteIds.toSet()).size() == 0;
     }
 
     function participants(d) {
@@ -237,6 +245,8 @@ service cloud.firestore {
           && unchanged('ownerId')
           && (unchanged('campsiteIds') || ownsAllCampsites(request.resource.data.campsiteIds))
         )
+        // An admin can remove a deleted campsite from a lottery
+        || (isAdmin() && unchanged('ownerId') && onlyRemovesCampsites())
         // Everyone else can only add or remove themselves, or decline their own win
         || (signedIn() && (onlyJoinsOrLeavesSelf() || onlyDeclinesOwnWin()))
       );
@@ -303,6 +313,7 @@ service cloud.firestore {
         && request.resource.data.hasBeenCancelled == false
         // ownerId has to really be the owner, so it shows up on their reservations screen
         && campsiteData(request.resource.data.campsiteId).get('ownerId', '') == request.resource.data.ownerId
+        && !campsiteData(request.resource.data.campsiteId).get('hasBeenDeleted', false)
         && (request.resource.data.get('lotteryId', null) == null
             || wonLotteryFor(request.resource.data.lotteryId, request.resource.data.campsiteId));
 
