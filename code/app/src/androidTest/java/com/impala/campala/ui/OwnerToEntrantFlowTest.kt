@@ -125,13 +125,13 @@ class OwnerToEntrantFlowTest {
         compose.switchToEntrant()
         compose.clickText("Hogsmeade Meadow")
         compose.clickText("Join Lottery")
-        compose.waitForDatabase { LotteryRepository().getLotteriesByEntrantId(uid).isNotEmpty() }
+        compose.waitForDatabase { LotteryRepository.getLotteriesByEntrantId(uid).isNotEmpty() }
         compose.clickContentDescription("Back Icon")
         compose.clickText("Lotteries")
         compose.waitForText("Hogsmeade Meadow")
         compose.waitForText("Draws on " + joinEnd.format(DateTimeFormatter.ofPattern("MMM d, yyyy")))
 
-        val joined = runBlocking { LotteryRepository().getLotteriesByEntrantId(uid) }
+        val joined = runBlocking { LotteryRepository.getLotteriesByEntrantId(uid) }
         assertEquals(1, joined.size)
         assertEquals(1, joined[0].campsiteIds.size)
         assertEquals(10, joined[0].lotteryCapacity)
