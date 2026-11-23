@@ -61,8 +61,8 @@ object MessagesRepository {
      * @param ownerId Owner's ID
      */
     suspend fun getThreadByOwner(ownerId: String): List<MessagesModel> {
-        return collection.whereEqualTo("ownerId", ownerId).get().await()
-            .toObjects(MessagesModel::class.java)
+        val threads = collection.whereEqualTo("ownerId", ownerId).get().await()
+        return threads.toObjects(MessagesModel::class.java)
     }
 
     /**
@@ -71,15 +71,16 @@ object MessagesRepository {
      * @param entrantId Entrant's ID
      */
     suspend fun getThreadByEntrant(entrantId: String): List<MessagesModel> {
-        return collection.whereEqualTo("entrantId", entrantId).get().await()
-            .toObjects(MessagesModel::class.java)
+        val threads = collection.whereEqualTo("entrantId", entrantId).get().await()
+        return threads.toObjects(MessagesModel::class.java)
     }
 
     /**
      * Gets all threads for admins
      */
     suspend fun getAllThreads(): List<MessagesModel> {
-        return collection.get().await().toObjects(MessagesModel::class.java)
+        val threads = collection.get().await()
+        return threads.toObjects(MessagesModel::class.java)
     }
 
     /**

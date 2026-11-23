@@ -20,9 +20,19 @@ class MessagesTest {
         val db = FirebaseFirestore.getInstance()
 
         // Tasks.await() blocks the thread synchronously until the query finishes
-        val snapshot = Tasks.await(db.collection("messages").get())
+        var snapshot = Tasks.await(db.collection("messages").get())
 
-        val batch = db.batch()
+        var batch = db.batch()
+        for (document in snapshot.documents) {
+            batch.delete(document.reference)
+        }
+
+        // Commit the batch synchronously too
+        Tasks.await(batch.commit())
+
+        snapshot = Tasks.await(db.collection("reservations").get())
+
+        batch = db.batch()
         for (document in snapshot.documents) {
             batch.delete(document.reference)
         }
@@ -50,6 +60,7 @@ class MessagesTest {
 
         MessagesRepository.sendMessage("Hello tenet, welcome to the lodge",true,stored)
         assertEquals("Hello tenet, welcome to the lodge",stored.messageThread[0].body)
+        assert(stored.messageThread[0].FromOwner)
     }
 
     @Test
@@ -63,5 +74,39 @@ class MessagesTest {
         assertEquals("Hello tenet, welcome to the lodge",stored.messageThread[0].body)
         val storedMessaged = MessagesRepository.getOrCreateThreadByReservation(reso.id)
         assertEquals("Hello tenet, welcome to the lodge",storedMessaged.messageThread[0].body)
+    }
+
+    @Test
+    fun gettingThreads():Unit = runBlocking {
+        assertEquals(0, MessagesRepository.getAllThreads().size)
+        val reso1 = ReservationModel(ownerId = "Own1", entrantId = "enter1")
+        reso1.save()
+        val reso2 = ReservationModel(ownerId = "Own2", entrantId = "enter2")
+        reso2.save()
+        val reso3 = ReservationModel(ownerId = "Own2", entrantId = "enter3")
+        reso3.save()
+        MessagesRepository.getOrCreateThreadByReservation(reso1.id).save()
+        MessagesRepository.getOrCreateThreadByReservation(reso2.id).save()
+        MessagesRepository.getOrCreateThreadByReservation(reso3.id).save()
+        assertEquals(3, MessagesRepository.getAllThreads().size)
+        assertEquals(2, MessagesRepository.getThreadByOwner("Own2").size)
+        assertEquals(1, MessagesRepository.getThreadByOwner("Own1").size)
+        assertEquals(1, MessagesRepository.getThreadByEntrant("enter1").size)
+    }
+
+    @Test
+    fun sendMessageDelete():Unit = runBlocking {
+        val reso = ReservationModel(ownerId = "Own2", entrantId = "enter2")
+        reso.save()
+        val stored = MessagesRepository.getOrCreateThreadByReservation(reso.id)
+        assertNotNull("Thread should exist after creating", stored)
+
+        MessagesRepository.sendMessage("Hello tenet, welcome to the lodge",true,stored)
+        assertEquals("Hello tenet, welcome to the lodge",stored.messageThread[0].body)
+        var storedMessaged = MessagesRepository.getOrCreateThreadByReservation(reso.id)
+        assertEquals("Hello tenet, welcome to the lodge",storedMessaged.messageThread[0].body)
+        MessagesRepository.deleteThread(reso.id)
+        storedMessaged = MessagesRepository.getOrCreateThreadByReservation(reso.id)
+        assertEquals(0,storedMessaged.messageThread.size)
     }
 }
