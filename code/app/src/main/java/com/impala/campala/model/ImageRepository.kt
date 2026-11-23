@@ -64,20 +64,18 @@ object ImageRepository {
     }
 
     /**
-     * Deletes an image and removes it from any campsites or entrant profiles that use it
+     * Deletes an image and removes it from any campsites or entrant profile pictures that use it
      *
      * @param id ID of the image to delete
      *
      * @throws FirebaseFirestoreException if any of the reads or writes fail
      */
     suspend fun deleteImageAndReferences(id: String): Unit {
-        // TODO: Add profiles in here bcus profile images arent merged
-        // This does some pretty cool stuff where it finds basically ALL references to this image in the provided tables and null's them out
-        for (collection in listOf("campsites", "entrants")) {
-            val snapshot = db.collection(collection).whereEqualTo("imageId", id).get().await()
-            for (document in snapshot.documents) {
-                document.reference.update("imageId", "").await()
-            }
+        for (campsite in CampsiteRepository.getCampsitesByImageId(id)) {
+            CampsiteRepository.saveCampsite(campsite.copy(imageId = ""))
+        }
+        for (profile in EntrantProfileRepository.getEntrantProfilesByImageId(id)) {
+            EntrantProfileRepository.saveEntrantProfile(profile.copy(imageId = ""))
         }
         deleteImage(id)
     }

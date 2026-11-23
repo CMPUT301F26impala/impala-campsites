@@ -112,6 +112,20 @@ object CampsiteRepository {
     }
 
     /**
+     * Gets every campsite that uses an image, used when an admin deletes that image
+     *
+     * @param imageId ID of the image
+     *
+     * @return List of campsites whose imageId matches
+     *
+     * @throws FirebaseFirestoreException if the fetch fails
+     */
+    suspend fun getCampsitesByImageId(imageId: String): List<CampsiteModel> {
+        val snapshot = db.collection("campsites").whereEqualTo("imageId", imageId).get().await()
+        return snapshot.toObjects(CampsiteModel::class.java)
+    }
+
+    /**
      * Saves a campsite to the database
      *
      *  When a screen updates a campsite, it's controller will end up calling this method
