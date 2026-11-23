@@ -87,7 +87,7 @@ object MessagesRepository {
      *
      * @param reservationId messageModel to delete
      */
-    suspend fun deleteLottery(reservationId: String): Unit {
+    suspend fun deleteThread(reservationId: String): Unit {
         collection.document(reservationId).delete().await()
     }
 }
