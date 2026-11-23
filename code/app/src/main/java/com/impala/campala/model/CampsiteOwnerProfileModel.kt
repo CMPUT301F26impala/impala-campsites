@@ -34,6 +34,7 @@ data class CampsiteOwnerProfileModel(
     @get:Exclude
     var doc: DocumentReference? = null
     fun save(): Task<Void> {
+        require(userId.isNotBlank()) { "CampsiteOwnerProfileModel userId cannot be blank" }
         doc = Firebase.firestore.document("campsiteOwners/" + userId)
         return doc!!.set(this)
     }

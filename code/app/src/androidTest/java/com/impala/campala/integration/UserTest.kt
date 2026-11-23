@@ -31,7 +31,7 @@ class UserTest {
     fun signedInUserWithNoUserDocumentGetsOneMade(): Unit = runBlocking {
         val uid = Firebase.auth.signInAnonymously().await().user!!.uid
 
-        val buddy = User()
+        val buddy = User
         buddy.initialize()
 
         assertEquals(uid, buddy.getUID())
@@ -53,13 +53,13 @@ class UserTest {
 
     @Test
     fun newSignIn() = runTest {
-        val buddy = User()
+        val buddy = User
         buddy.initialize()
     }
 
     @Test
     fun changeValuesServerUpdate() = runTest {
-        val buddy = User()
+        val buddy = User
         buddy.initialize()
 
         val entrant = buddy.getIsEntrant()

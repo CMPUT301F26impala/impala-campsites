@@ -27,7 +27,6 @@ class CampsiteRepositoryTest {
         "",
         mutableListOf("slytherins welcome")
     )
-    val repo = CampsiteRepository()
 
     @Before
     fun setUp() {
@@ -46,46 +45,46 @@ class CampsiteRepositoryTest {
 
     @Test
     fun createCampsite(): Unit = runBlocking {
-        repo.saveCampsite(campsite)
+        CampsiteRepository.saveCampsite(campsite)
 
-        val stored = repo.getCampsiteById(campsite.id)
+        val stored = CampsiteRepository.getCampsiteById(campsite.id)
         assertNotNull("Campsite should exist after saving", stored)
         assertEquals(campsite, stored)
     }
 
     @Test
     fun getCampsiteByIdMissing(): Unit = runBlocking {
-        assertNull("Getting a campsite that was never saved should return null", repo.getCampsiteById("does-not-exist"))
+        assertNull("Getting a campsite that was never saved should return null", CampsiteRepository.getCampsiteById("does-not-exist"))
     }
 
     @Test
     fun getCampsiteByIdPicksCorrectCampsite(): Unit = runBlocking {
         val other = campsite.copy(name = "hogwarts", id = "other-campsite")
-        repo.saveCampsite(campsite)
-        repo.saveCampsite(other)
+        CampsiteRepository.saveCampsite(campsite)
+        CampsiteRepository.saveCampsite(other)
 
-        assertEquals(campsite, repo.getCampsiteById(campsite.id))
-        assertEquals(other, repo.getCampsiteById(other.id))
+        assertEquals(campsite, CampsiteRepository.getCampsiteById(campsite.id))
+        assertEquals(other, CampsiteRepository.getCampsiteById(other.id))
     }
 
     @Test
     fun updateCampsite_savingWithSameIdOverwritesInsteadOfCreatingDuplicate(): Unit = runBlocking {
-        repo.saveCampsite(campsite)
+        CampsiteRepository.saveCampsite(campsite)
 
         val updated = campsite.copy(name = "azkaban 2", maxOccupancy = 5, tags = mutableListOf("dementors"))
-        repo.saveCampsite(updated)
+        CampsiteRepository.saveCampsite(updated)
 
-        assertEquals(updated, repo.getCampsiteById(campsite.id))
-        assertEquals(1, repo.getFilteredCampsites().size)
+        assertEquals(updated, CampsiteRepository.getCampsiteById(campsite.id))
+        assertEquals(1, CampsiteRepository.getFilteredCampsites().size)
     }
 
     @Test
     fun deleteCampsite(): Unit = runBlocking {
-        repo.saveCampsite(campsite)
-        assertNotNull("Campsite should exist before deleting", repo.getCampsiteById(campsite.id))
+        CampsiteRepository.saveCampsite(campsite)
+        assertNotNull("Campsite should exist before deleting", CampsiteRepository.getCampsiteById(campsite.id))
 
-        repo.deleteCampsite(campsite)
-        assertNull("Campsite should not exist after deleting", repo.getCampsiteById(campsite.id))
+        CampsiteRepository.deleteCampsite(campsite)
+        assertNull("Campsite should not exist after deleting", CampsiteRepository.getCampsiteById(campsite.id))
     }
 
     // Moved here from the old androidTest CampsiteModelTest, since these go through Firestore
@@ -105,23 +104,23 @@ class CampsiteRepositoryTest {
 
     @Test
     fun repositorySearchString(): Unit = runBlocking {
-        repo.saveCampsite(campsite)
-        var campsites = repo.getFilteredCampsites("No match",null,null,null)
+        CampsiteRepository.saveCampsite(campsite)
+        var campsites = CampsiteRepository.getFilteredCampsites("No match",null,null,null)
         assertEquals(0,campsites.size)
-        campsites = repo.getFilteredCampsites("azkaban",null,null,null)
+        campsites = CampsiteRepository.getFilteredCampsites("azkaban",null,null,null)
         assertEquals(1,campsites.size)
-        campsites = repo.getFilteredCampsites("slytherins welcome",null,null,null)
+        campsites = CampsiteRepository.getFilteredCampsites("slytherins welcome",null,null,null)
         assertEquals(1,campsites.size)
     }
 
     @Test
     fun repositoryCapacity(): Unit = runBlocking {
-        repo.saveCampsite(campsite)
-        var campsites = repo.getFilteredCampsites(null,null,null,69420)
+        CampsiteRepository.saveCampsite(campsite)
+        var campsites = CampsiteRepository.getFilteredCampsites(null,null,null,69420)
         assertEquals(1,campsites.size)
-        campsites = repo.getFilteredCampsites(null,null,null,1)
+        campsites = CampsiteRepository.getFilteredCampsites(null,null,null,1)
         assertEquals(1,campsites.size)
-        campsites = repo.getFilteredCampsites(null,null,null,69421)
+        campsites = CampsiteRepository.getFilteredCampsites(null,null,null,69421)
         assertEquals(0,campsites.size)
     }
 }

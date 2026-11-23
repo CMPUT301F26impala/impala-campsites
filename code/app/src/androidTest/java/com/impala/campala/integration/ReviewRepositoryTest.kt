@@ -17,7 +17,6 @@ class ReviewRepositoryTest {
     val otherReview = ReviewModel("other.entrant.id", "campsite.id", 2.0, "")
     val otherCampsiteReview = ReviewModel("entrant.id", "other.campsite.id", 3.0, "Fine")
 
-    val repo = ReviewRepository()
 
     @Before
     fun setUp() {
@@ -36,21 +35,21 @@ class ReviewRepositoryTest {
 
     @Test
     fun getReviewsForCampsite(): Unit = runBlocking {
-        assertEquals(0, repo.getReviewsByCampsite("campsite.id").size)
+        assertEquals(0, ReviewRepository.getReviewsByCampsite("campsite.id").size)
 
-        repo.saveReview(review)
-        repo.saveReview(otherReview)
-        repo.saveReview(otherCampsiteReview)
+        ReviewRepository.saveReview(review)
+        ReviewRepository.saveReview(otherReview)
+        ReviewRepository.saveReview(otherCampsiteReview)
 
-        val stored = repo.getReviewsByCampsite("campsite.id")
+        val stored = ReviewRepository.getReviewsByCampsite("campsite.id")
         assertEquals(setOf(review, otherReview), stored.toSet())
     }
 
     @Test
     fun deleteReview(): Unit = runBlocking {
-        repo.saveReview(review)
-        repo.deleteReview(review)
+        ReviewRepository.saveReview(review)
+        ReviewRepository.deleteReview(review)
 
-        assertEquals(0, repo.getReviewsByCampsite("campsite.id").size)
+        assertEquals(0, ReviewRepository.getReviewsByCampsite("campsite.id").size)
     }
 }

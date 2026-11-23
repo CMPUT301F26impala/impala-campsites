@@ -15,14 +15,17 @@ import com.google.firebase.firestore.firestore
  * @param name Entrant's name
  * @param email Entrant's email
  * @param phoneNumber Entrant's phone number
+ * @param imageId ID of the entrant's profile picture in the images collection, empty if they have no picture
  *
  * @property doc The reference to the Firebase document containing this object
  */
 data class EntrantProfileModel(
     var userId: String = "",
-    var name: String = "",  // TODO: These aren't really being used in the app just yet
-    var email: String = "",  // TODO: These aren't really being used in the app just yet
-    var phoneNumber: String = "" // TODO: These aren't really being used in the app just yet
+    var name: String = "",
+    var email: String = "",
+    var phoneNumber: String = "",
+    var imageId: String = "",
+    var notificationId: String=""
 ) {
     companion object {
         fun load(doc: DocumentSnapshot): EntrantProfileModel {
@@ -38,6 +41,7 @@ data class EntrantProfileModel(
      * @return A reference to the Firebase document of this entrant profile model
      */
     fun save(): Task<Void> {
+        require(userId.isNotBlank()) { "EntrantProfileModel userId cannot be blank" }
         doc = Firebase.firestore.document("entrants/" + userId)
         return doc!!.set(this)
     }
