@@ -34,6 +34,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.impala.campala.ui_sections.admin_images.AdminImagesView
 import com.impala.campala.ui_sections.campsite_details.CampsiteDetailsView
 import com.impala.campala.ui_sections.search_campsites.SearchCampsitesView
 
@@ -42,12 +43,14 @@ import com.impala.campala.ui_sections.search_campsites.SearchCampsitesView
  *
  * @param searchCampsitesScreen The View where the admin can search for campsites to moderate
  * @param campsiteDetailsScreen The View where the admin can see details of a campsite, delete it, or ban its owner
+ * @param adminImagesScreen The View where the admin can see and delete every image
  * @param onSwitchRole a function to be executed when the user clicks the button to switch roles
  */
 @Composable
 fun AdminNavigationRoot(
     searchCampsitesScreen: SearchCampsitesView,
     campsiteDetailsScreen: CampsiteDetailsView,
+    adminImagesScreen: AdminImagesView,
     onSwitchRole: () -> Unit
 ) {
     val navController = rememberNavController()
@@ -55,7 +58,7 @@ fun AdminNavigationRoot(
     NavHost(navController = navController, startDestination = "home") {
         // "home" is the tab navigation, the 4 tabs inside of home are controlled by the AdminHomeScreen function
         // Any screens that aren't part of the tabs and are 'fullscreen' should be declared here
-        composable("home") { AdminHomeScreen(navController, searchCampsitesScreen, onSwitchRole) }
+        composable("home") { AdminHomeScreen(navController, searchCampsitesScreen, adminImagesScreen, onSwitchRole) }
         composable("campsite/{campsiteId}") { backStackEntry ->
             val campsiteId = backStackEntry.arguments?.getString("campsiteId") ?: ""
             Scaffold { padding ->
@@ -80,11 +83,12 @@ enum class AdminTab(val label: String, val icon: ImageVector) {
  *
  * @param navController The navigation controller for the admin section of the app
  * @param searchCampsitesScreen The View where the admin can search for campsites to moderate
+ * @param adminImagesScreen The View where the admin can see and delete every image
  * @param onSwitchRole a function to be executed when the user clicks the button to switch roles
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AdminHomeScreen(navController: NavController, searchCampsitesScreen: SearchCampsitesView, onSwitchRole: () -> Unit) {
+fun AdminHomeScreen(navController: NavController, searchCampsitesScreen: SearchCampsitesView, adminImagesScreen: AdminImagesView, onSwitchRole: () -> Unit) {
     var selected by rememberSaveable { mutableStateOf(AdminTab.Campsites) }
     val tabState = rememberSaveableStateHolder() // keeps each tab's scroll/state
     Scaffold(
@@ -125,7 +129,7 @@ fun AdminHomeScreen(navController: NavController, searchCampsitesScreen: SearchC
                 when (selected) {
                     AdminTab.Campsites -> searchCampsitesScreen.Render(navController)
                     AdminTab.Profiles -> AdminProfilesTab(navController)
-                    AdminTab.Images -> AdminImagesTab(navController)
+                    AdminTab.Images -> adminImagesScreen.Render()
                     AdminTab.Notifs -> AdminNotifsTab(navController)
                     AdminTab.Reviews -> AdminReviewsTab(navController)
                 }
@@ -136,12 +140,6 @@ fun AdminHomeScreen(navController: NavController, searchCampsitesScreen: SearchC
 
 @Composable
 fun AdminProfilesTab(navController: NavController) {
-    Column() {
-    }
-}
-
-@Composable
-fun AdminImagesTab(navController: NavController) {
     Column() {
     }
 }

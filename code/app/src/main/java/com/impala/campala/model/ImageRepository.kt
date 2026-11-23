@@ -16,6 +16,18 @@ object ImageRepository {
     private val db: FirebaseFirestore by lazy { Firebase.firestore }
 
     /**
+     * Gets every image, used by the admin's Images tab
+     *
+     * @return List of all images
+     *
+     * @throws FirebaseFirestoreException if the fetch fails
+     */
+    suspend fun getImages(): List<ImageModel> {
+        val snapshot = db.collection("images").get().await()
+        return snapshot.toObjects(ImageModel::class.java)
+    }
+
+    /**
      * Gets a single image by its ID
      *
      * @param id ID of the image to fetch
@@ -49,5 +61,24 @@ object ImageRepository {
      */
     suspend fun deleteImage(id: String): Unit {
         db.collection("images").document(id).delete().await()
+    }
+
+    /**
+     * Deletes an image and removes it from any campsites or entrant profiles that use it
+     *
+     * @param id ID of the image to delete
+     *
+     * @throws FirebaseFirestoreException if any of the reads or writes fail
+     */
+    suspend fun deleteImageAndReferences(id: String): Unit {
+        // TODO: Add profiles in here bcus profile images arent merged
+        // This does some pretty cool stuff where it finds basically ALL references to this image in the provided tables and null's them out
+        for (collection in listOf("campsites", "entrants")) {
+            val snapshot = db.collection(collection).whereEqualTo("imageId", id).get().await()
+            for (document in snapshot.documents) {
+                document.reference.update("imageId", "").await()
+            }
+        }
+        deleteImage(id)
     }
 }
