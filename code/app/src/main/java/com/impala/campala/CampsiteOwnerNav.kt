@@ -36,9 +36,12 @@ import androidx.navigation.compose.rememberNavController
 import com.impala.campala.ui_sections.campsite_details.CampsiteDetailsView
 import com.impala.campala.ui_sections.form_campsites.FormCampsitesView
 import com.impala.campala.ui_sections.form_lotteries.FormLotteriesView
+import com.impala.campala.ui_sections.lottery_details.LotteryDetailsView
+import com.impala.campala.ui_sections.owner_notifs.OwnerNotifsView
 import com.impala.campala.ui_sections.search_campsites.SearchCampsitesView
 import com.impala.campala.ui_sections.see_reservation.SeeReservationsView
 import com.impala.campala.ui_sections.view_lotteries.ViewLotteriesView
+import com.impala.campala.ui_sections.waitlist.WaitlistView
 
 /**
  * Composable class that sets up the navigation for a user signed in as a Campsite Owner
@@ -58,6 +61,9 @@ fun CampsiteOwnerNavigationRoot(
     formLotteriesScreen: FormLotteriesView,
     viewLotteriesScreen: ViewLotteriesView,
     seeReservationsScreen: SeeReservationsView,
+    lotteryDetailsView: LotteryDetailsView,
+    waitlistView: WaitlistView,
+    ownerNotifsView: OwnerNotifsView,
     onSwitchRole: () -> Unit
 ) {
     val navController = rememberNavController()
@@ -65,13 +71,40 @@ fun CampsiteOwnerNavigationRoot(
     NavHost(navController = navController, startDestination = "home") {
         // "home" is the tab navigation, the 4 tabs inside of home are controlled by the CampsiteOwnerHomeScreen function
         // Any screens that aren't part of the tabs and are 'fullscreen' should be declared here
-        composable("home") { CampsiteOwnerHomeScreen(navController, searchCampsitesScreen, viewLotteriesScreen, seeReservationsScreen, onSwitchRole) }
+        composable("home") {
+            CampsiteOwnerHomeScreen(
+                navController,
+                searchCampsitesScreen,
+                viewLotteriesScreen,
+                seeReservationsScreen,
+                ownerNotifsView,
+                onSwitchRole
+            )
+        }
         composable("campsite/{campsiteId}") { backStackEntry ->
             val campsiteId = backStackEntry.arguments?.getString("campsiteId") ?: ""
             // Scaffold is just here so the screen respects the status bar / nav bar insets
             Scaffold { padding ->
                 Box(Modifier.padding(padding)) {
                     campsiteDetailsScreen.Render(navController, campsiteId)
+                }
+            }
+        }
+        composable("lottery/{lotteryId}") { backStackEntry ->
+            val lotteryId = backStackEntry.arguments?.getString("lotteryId") ?: ""
+            // Scaffold is just here so the screen respects the status bar / nav bar insets
+            Scaffold { padding ->
+                Box(Modifier.padding(padding)) {
+                    lotteryDetailsView.Render(navController, lotteryId)
+                }
+            }
+        }
+        composable("waitlist/{lotteryId}") { backStackEntry ->
+            val lotteryId = backStackEntry.arguments?.getString("lotteryId") ?: ""
+            // Scaffold is just here so the screen respects the status bar / nav bar insets
+            Scaffold { padding ->
+                Box(Modifier.padding(padding)) {
+                    waitlistView.Render(navController, lotteryId)
                 }
             }
         }
@@ -127,7 +160,14 @@ enum class CampsiteOwnerTab(val label: String, val icon: ImageVector) {
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CampsiteOwnerHomeScreen(navController: NavController, searchCampsitesScreen: SearchCampsitesView, viewLotteriesScreen: ViewLotteriesView, seeReservationsScreen: SeeReservationsView, onSwitchRole: () -> Unit) {
+fun CampsiteOwnerHomeScreen(
+    navController: NavController,
+    searchCampsitesScreen: SearchCampsitesView,
+    viewLotteriesScreen: ViewLotteriesView,
+    seeReservationsScreen: SeeReservationsView,
+    ownerNotifsView: OwnerNotifsView,
+    onSwitchRole: () -> Unit
+) {
     var selected by rememberSaveable { mutableStateOf(CampsiteOwnerTab.Campsites) }
     val tabState = rememberSaveableStateHolder() // keeps each tab's scroll/state
     Scaffold(
@@ -143,7 +183,10 @@ fun CampsiteOwnerHomeScreen(navController: NavController, searchCampsitesScreen:
                 },
                 actions = {
                     // Takes you back to the choose role screen, CampalaApp.kt does the work for that
-                    FilledIconButton(onClick = onSwitchRole, modifier = Modifier.padding(end = 8.dp)) {
+                    FilledIconButton(
+                        onClick = onSwitchRole,
+                        modifier = Modifier.padding(end = 8.dp)
+                    ) {
                         Icon(Icons.Default.Person, contentDescription = "Switch user mode")
                     }
                 }
@@ -156,20 +199,25 @@ fun CampsiteOwnerHomeScreen(navController: NavController, searchCampsitesScreen:
                         selected = tab == selected,
                         onClick = { selected = tab },
                         icon = { Icon(tab.icon, contentDescription = null) },
-                        label = { Text(tab.label) },)
+                        label = { Text(tab.label) },
+                    )
                 }
             }
         }
     ) { padding ->
         // The first padding is the padding required for like the top of the screen and stuff
         // The 16.dp one is to make it so text doesn't touch the very edge pixels, but sits inside a little
-        Box(Modifier.padding(padding).padding(horizontal = 16.dp)) {
+        Box(
+            Modifier
+                .padding(padding)
+                .padding(horizontal = 16.dp)
+        ) {
             tabState.SaveableStateProvider(selected.name) {
                 when (selected) {
                     CampsiteOwnerTab.Campsites -> searchCampsitesScreen.Render(navController)
                     CampsiteOwnerTab.Lotteries -> viewLotteriesScreen.Render(navController)
                     CampsiteOwnerTab.Reservations -> seeReservationsScreen.Render(navController)
-                    CampsiteOwnerTab.Notifs -> NotifsTab(navController)
+                    CampsiteOwnerTab.Notifs -> ownerNotifsView.Render()
                 }
             }
         }
