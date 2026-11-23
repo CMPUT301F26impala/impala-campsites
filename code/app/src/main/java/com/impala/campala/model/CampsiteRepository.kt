@@ -144,8 +144,6 @@ object CampsiteRepository {
      * Unfinished lotteries are deleted if this is their only campsite, otherwise it's removed from them
      * Upcoming reservations are cancelled, and reviews are deleted
      *
-     * The campsite is marked as deleted last, so if a step fails the delete can be tried again
-     *
      * This deviates from our existing paradigm because the CampsiteRepository (this) calls other repositories to delete the references there
      * To make it more in line with other code, we could put this logic inside of CampsiteDetialsModel, but I believe it fits here because if we ever had a second place to delete a campsite, we'd have to copy paste it
      * When it lives here, anything can use it
