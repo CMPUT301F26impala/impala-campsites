@@ -22,6 +22,9 @@ import com.impala.campala.ui_sections.choose_role.ChooseRoleView
 import com.impala.campala.ui_sections.create_reservation.CreateReservationController
 import com.impala.campala.ui_sections.create_reservation.CreateReservationModel
 import com.impala.campala.ui_sections.create_reservation.CreateReservationView
+import com.impala.campala.ui_sections.edit_profile.EditProfileController
+import com.impala.campala.ui_sections.edit_profile.EditProfileModel
+import com.impala.campala.ui_sections.edit_profile.EditProfileView
 import com.impala.campala.ui_sections.form_campsites.FormCampsitesController
 import com.impala.campala.ui_sections.form_campsites.FormCampsitesModel
 import com.impala.campala.ui_sections.form_campsites.FormCampsitesView
@@ -42,6 +45,9 @@ import com.impala.campala.ui_sections.see_reservation.SeeReservationsView
 import com.impala.campala.ui_sections.view_lotteries.ViewLotteriesController
 import com.impala.campala.ui_sections.view_lotteries.ViewLotteriesModel
 import com.impala.campala.ui_sections.view_lotteries.ViewLotteriesView
+import com.impala.campala.ui_sections.view_profile.ViewProfileController
+import com.impala.campala.ui_sections.view_profile.ViewProfileModel
+import com.impala.campala.ui_sections.view_profile.ViewProfileView
 import com.impala.campala.ui_sections.waitlist.WaitlistController
 import com.impala.campala.ui_sections.waitlist.WaitlistModel
 import com.impala.campala.ui_sections.waitlist.WaitlistView
@@ -134,6 +140,16 @@ fun SignedInApp() {
     val seeReservationsView = remember { SeeReservationsView(seeReservationsController) }
     seeReservationsModel.addObserver(seeReservationsView)
 
+    val viewProfileModel = remember { ViewProfileModel(coroutineScope) }
+    val viewProfileController = remember { ViewProfileController(viewProfileModel) }
+    val viewProfileView = remember { ViewProfileView(viewProfileController) }
+    viewProfileModel.addObserver(viewProfileView)
+
+    val editProfileModel = remember { EditProfileModel(imageCompressor, coroutineScope) }
+    val editProfileController = remember { EditProfileController(editProfileModel) }
+    val editProfileView = remember { EditProfileView(editProfileController) }
+    editProfileModel.addObserver(editProfileView)
+
     val lotteryDetailsView = remember { LotteryDetailsView() }
 
     val waitlistModel = remember { WaitlistModel() }
@@ -164,6 +180,8 @@ fun SignedInApp() {
                 seeReservationsScreen = seeReservationsView,
                 viewLotteriesScreen = viewLotteriesView,
                 createReservationScreen = createReservationView,
+                viewProfileScreen = viewProfileView,
+                editProfileScreen = editProfileView,
                 onSwitchRole = { needsRoleChoice = true })
 
             UserViewMode.CAMPSITE_OWNER -> CampsiteOwnerNavigationRoot(
@@ -188,6 +206,8 @@ fun SignedInApp() {
                     seeReservationsScreen = seeReservationsView,
                     viewLotteriesScreen = viewLotteriesView,
                     createReservationScreen = createReservationView,
+                    viewProfileScreen = viewProfileView,
+                    editProfileScreen = editProfileView,
                     onSwitchRole = { needsRoleChoice = true })
             }
         }

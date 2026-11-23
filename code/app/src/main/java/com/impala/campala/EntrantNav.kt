@@ -51,11 +51,15 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.google.firebase.Firebase
 import com.google.firebase.messaging.messaging
+import com.impala.campala.model.CampsiteModel
+import com.impala.campala.ui_sections.app_policies.AppPoliciesView
 import com.impala.campala.ui_sections.campsite_details.CampsiteDetailsView
 import com.impala.campala.ui_sections.create_reservation.CreateReservationView
+import com.impala.campala.ui_sections.edit_profile.EditProfileView
 import com.impala.campala.ui_sections.search_campsites.SearchCampsitesView
 import com.impala.campala.ui_sections.see_reservation.SeeReservationsView
 import com.impala.campala.ui_sections.view_lotteries.ViewLotteriesView
+import com.impala.campala.ui_sections.view_profile.ViewProfileView
 
 /**
  * Composable class that sets up the navigation for a user signed in as a Campsite Owner
@@ -65,6 +69,8 @@ import com.impala.campala.ui_sections.view_lotteries.ViewLotteriesView
  * @param seeReservationsScreen The View where the user can see the details of their reservation
  * @param viewLotteriesScreen The View where the user can see details of a lottery
  * @param createReservationScreen The View where the user can make a reservation from
+ * @param viewProfileScreen The View where the user can see their entrant profile
+ * @param editProfileScreen The View where the user can edit their entrant profile
  * @param onSwitchRole a function to be executed when the user clicks the button to switch roles
  */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -75,6 +81,8 @@ fun EntrantNavigationRoot(
     seeReservationsScreen: SeeReservationsView,
     viewLotteriesScreen: ViewLotteriesView,
     createReservationScreen: CreateReservationView,
+    viewProfileScreen: ViewProfileView,
+    editProfileScreen: EditProfileView,
     onSwitchRole: () -> Unit
 ) {
     Firebase.messaging.register()
@@ -125,6 +133,7 @@ fun EntrantNavigationRoot(
                 searchCampsitesScreen,
                 seeReservationsScreen,
                 viewLotteriesScreen,
+                viewProfileScreen,
                 onSwitchRole
             )
         }
@@ -141,6 +150,21 @@ fun EntrantNavigationRoot(
         composable("createReservation/{lotteryId}") { backStackEntry ->
             val lotteryId = backStackEntry.arguments?.getString("lotteryId") ?: ""
             createReservationScreen.Render(navController, lotteryId)
+        }
+        composable("editProfile") {
+            // Scaffold is just here so the screen respects the status bar / nav bar insets
+            Scaffold { padding ->
+                Box(Modifier.padding(padding)) {
+                    editProfileScreen.Render(navController)
+                }
+            }
+        }
+        composable("appPolicies") {
+            Scaffold { padding ->
+                Box(Modifier.padding(padding)) {
+                    AppPoliciesView(navController)
+                }
+            }
         }
     }
 }
@@ -159,6 +183,7 @@ enum class EntrantTab(val label: String, val icon: ImageVector) {
  * @param navController The navigation controller for the campsite owners section of the app
  * @param searchCampsitesScreen The View where the user can search for campsites
  * @param viewLotteriesScreen The View where the user can see details of a lottery
+ * @param viewProfileScreen The View where the user can see their entrant profile
  * @param onSwitchRole a function to be executed when the user clicks the button to switch roles
  */
 // In researching how this is normally done, I did use AI
@@ -172,6 +197,7 @@ fun EntrantHomeScreen(
     searchCampsitesScreen: SearchCampsitesView,
     seeReservationsScreen: SeeReservationsView,
     viewLotteriesScreen: ViewLotteriesView,
+    viewProfileScreen: ViewProfileView,
     onSwitchRole: () -> Unit
 ) {
     var selected by rememberSaveable { mutableStateOf(EntrantTab.Search) }
@@ -223,22 +249,10 @@ fun EntrantHomeScreen(
                     EntrantTab.Search -> searchCampsitesScreen.Render(navController)
                     EntrantTab.Lotteries -> viewLotteriesScreen.Render(navController)
                     EntrantTab.Reservations -> seeReservationsScreen.Render(navController)
-                    EntrantTab.Profile -> ProfileTab(navController)
+                    EntrantTab.Profile -> viewProfileScreen.Render(navController)
                 }
             }
         }
-    }
-}
-
-/**
- * A temporary class while the actual View is being made
- *
- * @param navController The navigation controller for the campsite owner section
- */
-@Composable
-fun ProfileTab(navController: NavController) {
-    Column() {
-        Text("Profile Screen!!!!")
     }
 }
 
