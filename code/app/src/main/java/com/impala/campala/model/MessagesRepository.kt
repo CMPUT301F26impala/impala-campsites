@@ -81,4 +81,13 @@ object MessagesRepository {
     suspend fun getAllThreads(): List<MessagesModel> {
         return collection.get().await().toObjects(MessagesModel::class.java)
     }
+
+    /**
+     * Deletes Thread from database
+     *
+     * @param reservationId messageModel to delete
+     */
+    suspend fun deleteLottery(reservationId: String): Unit {
+        collection.document(reservationId).delete().await()
+    }
 }
