@@ -1,7 +1,10 @@
 package com.impala.campala.ui_sections.create_reservation
 
+import android.content.Context
 import androidx.navigation.NavController
-import com.impala.campala.model.CampsiteModel
+import com.impala.campala.User
+import com.impala.campala.model.NotificationModel
+import com.impala.campala.model.NotificationService
 import java.time.LocalDate
 
 /**
@@ -56,8 +59,19 @@ class CreateReservationController(val model: CreateReservationModel) {
     /**
      * Comes from the confirm modal
      */
-    fun onConfirmPress() {
+    fun onConfirmPress(context: Context) {
         model.completeReservation()
+        // technically, the notification should be sent from the server when it detects a new reservation document
+        // is created. but because of our constraints, that would have latency, so we'll call this "optimistic update"
+        val notif = NotificationModel(
+            title = "Campsite reserved",
+            body = "${model.selectedCampsite!!.name} reserved from ${model.dateRangeStart} to ${model.dateRangeEnd}",
+            User.getUID(),
+            mutableListOf(User.getUID()),
+            true
+        )
+        NotificationService.show(context, notif.title, notif.body)
+        notif.save()
     }
 
     /**
@@ -65,8 +79,17 @@ class CreateReservationController(val model: CreateReservationModel) {
      *
      * @param navController the NavController used to go back
      */
-    fun onDeclinePress(navController: NavController) {
+    fun onDeclinePress(navController: NavController, context: Context) {
         model.declineReservation()
+        val notif = NotificationModel(
+            title = "Campsite cancelled",
+            body = "${model.selectedCampsite!!.name} cancelled",
+            User.getUID(),
+            mutableListOf(User.getUID()),
+            true
+        )
+        NotificationService.show(context, notif.title, notif.body)
+        notif.save()
         navController.popBackStack()
     }
 
