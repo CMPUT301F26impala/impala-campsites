@@ -54,4 +54,31 @@ object MessagesRepository {
         model.messageThread.addLast(MessageModel(message,isFromOwner))
         model.save().await()
     }
+
+    /**
+     * Gets all messages for an Owner
+     *
+     * @param ownerId Owner's ID
+     */
+    suspend fun getThreadByOwner(ownerId: String): List<MessagesModel> {
+        return collection.whereEqualTo("ownerId", ownerId).get().await()
+            .toObjects(MessagesModel::class.java)
+    }
+
+    /**
+     * Gets all messages for an entrant
+     *
+     * @param entrantId Entrant's ID
+     */
+    suspend fun getThreadByEntrant(entrantId: String): List<MessagesModel> {
+        return collection.whereEqualTo("entrantId", entrantId).get().await()
+            .toObjects(MessagesModel::class.java)
+    }
+
+    /**
+     * Gets all threads for admins
+     */
+    suspend fun getAllThreads(): List<MessagesModel> {
+        return collection.get().await().toObjects(MessagesModel::class.java)
+    }
 }
