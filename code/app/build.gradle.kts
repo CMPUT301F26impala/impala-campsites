@@ -15,7 +15,7 @@ android {
 
     defaultConfig {
         applicationId = "com.impala.campala"
-        minSdk = 34
+        minSdk = 35
         targetSdk = 37
         versionCode = 1
         versionName = "1.0"

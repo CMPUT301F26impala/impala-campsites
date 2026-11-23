@@ -44,7 +44,6 @@ class LotteryRepositoryTest {
         ownerId = "dumbledore",
         id = "test-lottery"
     )
-    val repo = LotteryRepository()
 
     @Before
     fun setUp() {
@@ -63,37 +62,37 @@ class LotteryRepositoryTest {
 
     @Test
     fun createLottery(): Unit = runBlocking {
-        repo.saveLottery(lottery)
+        LotteryRepository.saveLottery(lottery)
 
-        val stored = repo.getLotteryById(lottery.id)
+        val stored = LotteryRepository.getLotteryById(lottery.id)
         assertNotNull("Lottery should exist after saving", stored)
         assertEquals(lottery, stored)
     }
 
     @Test
     fun getLotteryByIdMissing(): Unit = runBlocking {
-        assertNull("Getting a lottery that was never saved should return null", repo.getLotteryById("does-not-exist"))
+        assertNull("Getting a lottery that was never saved should return null", LotteryRepository.getLotteryById("does-not-exist"))
     }
 
     @Test
     fun getLotteries(): Unit = runBlocking {
-        assertEquals(0, repo.getLotteries().size)
-        repo.saveLottery(lottery)
-        repo.saveLottery(lottery.copy(campsiteIds = mutableListOf("hogwarts"), id = "other-lottery"))
+        assertEquals(0, LotteryRepository.getLotteries().size)
+        LotteryRepository.saveLottery(lottery)
+        LotteryRepository.saveLottery(lottery.copy(campsiteIds = mutableListOf("hogwarts"), id = "other-lottery"))
 
-        assertEquals(2, repo.getLotteries().size)
+        assertEquals(2, LotteryRepository.getLotteries().size)
     }
 
     @Test
     fun getLotteryByCampsiteId(): Unit = runBlocking {
         val other = lottery.copy(campsiteIds = mutableListOf("hogwarts", "gringotts"), id = "other-lottery")
-        repo.saveLottery(lottery)
-        repo.saveLottery(other)
+        LotteryRepository.saveLottery(lottery)
+        LotteryRepository.saveLottery(other)
 
-        assertEquals(lottery, repo.getLotteryByCampsiteId("azkaban"))
-        assertEquals(other, repo.getLotteryByCampsiteId("hogwarts"))
-        assertEquals(other, repo.getLotteryByCampsiteId("gringotts"))
-        assertNull(repo.getLotteryByCampsiteId("no-match"))
+        assertEquals(lottery, LotteryRepository.getLotteryByCampsiteId("azkaban"))
+        assertEquals(other, LotteryRepository.getLotteryByCampsiteId("hogwarts"))
+        assertEquals(other, LotteryRepository.getLotteryByCampsiteId("gringotts"))
+        assertNull(LotteryRepository.getLotteryByCampsiteId("no-match"))
     }
 
     @Test
@@ -102,57 +101,57 @@ class LotteryRepositoryTest {
         // The new one's booking period ends far in the future, so it's the campsite's current lottery
         val farFuture = Timestamp(250_000_000_000, 0)
         val current = lottery.copy(lotteryEndTime = farFuture, registrationStartTime = farFuture, registrationEndTime = farFuture, id = "current-lottery")
-        repo.saveLottery(lottery)
-        repo.saveLottery(current)
+        LotteryRepository.saveLottery(lottery)
+        LotteryRepository.saveLottery(current)
 
-        assertEquals(current, repo.getLotteryByCampsiteId("azkaban"))
+        assertEquals(current, LotteryRepository.getLotteryByCampsiteId("azkaban"))
     }
 
     @Test
     fun getLotteriesByOwnerId(): Unit = runBlocking {
-        repo.saveLottery(lottery)
-        repo.saveLottery(lottery.copy(id = "other-lottery"))
-        repo.saveLottery(lottery.copy(ownerId = "voldemort", id = "evil-lottery"))
+        LotteryRepository.saveLottery(lottery)
+        LotteryRepository.saveLottery(lottery.copy(id = "other-lottery"))
+        LotteryRepository.saveLottery(lottery.copy(ownerId = "voldemort", id = "evil-lottery"))
 
-        assertEquals(2, repo.getLotteriesByOwnerId("dumbledore").size)
-        assertEquals(listOf("evil-lottery"), repo.getLotteriesByOwnerId("voldemort").map { it.id })
-        assertEquals(0, repo.getLotteriesByOwnerId("no-match").size)
+        assertEquals(2, LotteryRepository.getLotteriesByOwnerId("dumbledore").size)
+        assertEquals(listOf("evil-lottery"), LotteryRepository.getLotteriesByOwnerId("voldemort").map { it.id })
+        assertEquals(0, LotteryRepository.getLotteriesByOwnerId("no-match").size)
     }
 
     @Test
     fun getLotteriesByEntrantId(): Unit = runBlocking {
-        repo.saveLottery(lottery.copy(entrantIds = mutableListOf("harry"), id = "entered-lottery"))
-        repo.saveLottery(lottery.copy(entrantIds = mutableListOf("ron", "hermione"), waitlistIds = mutableListOf("harry"), id = "waitlisted-lottery"))
-        repo.saveLottery(lottery.copy(entrantIds = mutableListOf("ron"), id = "other-lottery"))
+        LotteryRepository.saveLottery(lottery.copy(entrantIds = mutableListOf("harry"), id = "entered-lottery"))
+        LotteryRepository.saveLottery(lottery.copy(entrantIds = mutableListOf("ron", "hermione"), waitlistIds = mutableListOf("harry"), id = "waitlisted-lottery"))
+        LotteryRepository.saveLottery(lottery.copy(entrantIds = mutableListOf("ron"), id = "other-lottery"))
 
         // Shows up whether they're in the lottery or on its waitlist
-        assertEquals(setOf("entered-lottery", "waitlisted-lottery"), repo.getLotteriesByEntrantId("harry").map { it.id }.toSet())
-        assertEquals(setOf("waitlisted-lottery", "other-lottery"), repo.getLotteriesByEntrantId("ron").map { it.id }.toSet())
-        assertEquals(0, repo.getLotteriesByEntrantId("no-match").size)
+        assertEquals(setOf("entered-lottery", "waitlisted-lottery"), LotteryRepository.getLotteriesByEntrantId("harry").map { it.id }.toSet())
+        assertEquals(setOf("waitlisted-lottery", "other-lottery"), LotteryRepository.getLotteriesByEntrantId("ron").map { it.id }.toSet())
+        assertEquals(0, LotteryRepository.getLotteriesByEntrantId("no-match").size)
     }
 
     @Test
     fun deleteLottery(): Unit = runBlocking {
-        repo.saveLottery(lottery)
-        assertNotNull("Lottery should exist before deleting", repo.getLotteryById(lottery.id))
+        LotteryRepository.saveLottery(lottery)
+        assertNotNull("Lottery should exist before deleting", LotteryRepository.getLotteryById(lottery.id))
 
-        repo.deleteLottery(lottery)
-        assertNull("Lottery should not exist after deleting", repo.getLotteryById(lottery.id))
+        LotteryRepository.deleteLottery(lottery)
+        assertNull("Lottery should not exist after deleting", LotteryRepository.getLotteryById(lottery.id))
     }
 
     @Test
     fun saveRejectsInvalidLottery() {
         assertThrows(IllegalArgumentException::class.java) {
-            runBlocking { repo.saveLottery(lottery.copy(ownerId = "")) }
+            runBlocking { LotteryRepository.saveLottery(lottery.copy(ownerId = "")) }
         }
         assertThrows(IllegalArgumentException::class.java) {
-            runBlocking { repo.saveLottery(lottery.copy(campsiteIds = mutableListOf())) }
+            runBlocking { LotteryRepository.saveLottery(lottery.copy(campsiteIds = mutableListOf())) }
         }
         assertThrows(IllegalArgumentException::class.java) {
-            runBlocking { repo.saveLottery(lottery.copy(registrationEndTime = Timestamp(500, 0))) }
+            runBlocking { LotteryRepository.saveLottery(lottery.copy(registrationEndTime = Timestamp(500, 0))) }
         }
         assertThrows(IllegalArgumentException::class.java) {
-            runBlocking { repo.saveLottery(lottery.copy(reservationEndDate = Timestamp(2_500, 0))) }
+            runBlocking { LotteryRepository.saveLottery(lottery.copy(reservationEndDate = Timestamp(2_500, 0))) }
         }
     }
 
@@ -160,16 +159,16 @@ class LotteryRepositoryTest {
     fun joinFillsLotteryThenWaitlist(): Unit = runBlocking {
         // TODO: This was just to make the test pass, should probably rewrite this to have more tests testing that the valid ranges actually work
         val farFuture = Timestamp(250_000_000_000, 0)
-        repo.saveLottery(lottery.copy(lotteryEndTime = farFuture, registrationStartTime = farFuture, registrationEndTime = farFuture))
+        LotteryRepository.saveLottery(lottery.copy(lotteryEndTime = farFuture, registrationStartTime = farFuture, registrationEndTime = farFuture))
 
-        assertEquals(JoinResult.JOINED_LOTTERY, repo.joinLottery(lottery.id, "harry"))
-        assertEquals(JoinResult.ALREADY_JOINED, repo.joinLottery(lottery.id, "harry"))
-        assertEquals(JoinResult.JOINED_LOTTERY, repo.joinLottery(lottery.id, "ron"))
-        assertEquals(JoinResult.JOINED_WAITLIST, repo.joinLottery(lottery.id, "hermione"))
-        assertEquals(JoinResult.ALREADY_JOINED, repo.joinLottery(lottery.id, "hermione"))
-        assertEquals(JoinResult.FULL, repo.joinLottery(lottery.id, "neville"))
+        assertEquals(JoinResult.JOINED_LOTTERY, LotteryRepository.joinLottery(lottery.id, "harry"))
+        assertEquals(JoinResult.ALREADY_JOINED, LotteryRepository.joinLottery(lottery.id, "harry"))
+        assertEquals(JoinResult.JOINED_LOTTERY, LotteryRepository.joinLottery(lottery.id, "ron"))
+        assertEquals(JoinResult.JOINED_WAITLIST, LotteryRepository.joinLottery(lottery.id, "hermione"))
+        assertEquals(JoinResult.ALREADY_JOINED, LotteryRepository.joinLottery(lottery.id, "hermione"))
+        assertEquals(JoinResult.FULL, LotteryRepository.joinLottery(lottery.id, "neville"))
 
-        val stored = repo.getLotteryById(lottery.id)!!
+        val stored = LotteryRepository.getLotteryById(lottery.id)!!
         assertEquals(listOf("harry", "ron"), stored.entrantIds)
         assertEquals(listOf("hermione"), stored.waitlistIds)
     }
@@ -181,11 +180,11 @@ class LotteryRepositoryTest {
             waitlistCapacity = 2,
             waitlistIds = mutableListOf("hermione", "neville")
         )
-        repo.saveLottery(full)
+        LotteryRepository.saveLottery(full)
 
-        assertTrue(repo.leaveLottery(full.id, "harry"))
+        assertTrue(LotteryRepository.leaveLottery(full.id, "harry"))
 
-        val stored = repo.getLotteryById(full.id)!!
+        val stored = LotteryRepository.getLotteryById(full.id)!!
         assertEquals(listOf("ron", "hermione"), stored.entrantIds)
         assertEquals(listOf("neville"), stored.waitlistIds)
     }
@@ -196,12 +195,12 @@ class LotteryRepositoryTest {
             entrantIds = mutableListOf("harry", "ron"),
             waitlistIds = mutableListOf("hermione")
         )
-        repo.saveLottery(full)
+        LotteryRepository.saveLottery(full)
 
-        assertTrue(repo.leaveLottery(full.id, "hermione"))
-        assertFalse(repo.leaveLottery(full.id, "neville"))
+        assertTrue(LotteryRepository.leaveLottery(full.id, "hermione"))
+        assertFalse(LotteryRepository.leaveLottery(full.id, "neville"))
 
-        val stored = repo.getLotteryById(full.id)!!
+        val stored = LotteryRepository.getLotteryById(full.id)!!
         assertEquals(listOf("harry", "ron"), stored.entrantIds)
         assertEquals(listOf<String>(), stored.waitlistIds)
     }
@@ -212,13 +211,13 @@ class LotteryRepositoryTest {
             entrantIds = mutableListOf("harry", "ron"),
             winnerIds = mutableListOf("harry")
         )
-        repo.saveLottery(drawn)
+        LotteryRepository.saveLottery(drawn)
 
         // Declining twice should still only record them once
-        repo.declineWin(drawn.id, "harry")
-        repo.declineWin(drawn.id, "harry")
+        LotteryRepository.declineWin(drawn.id, "harry")
+        LotteryRepository.declineWin(drawn.id, "harry")
 
-        val stored = repo.getLotteryById(drawn.id)!!
+        val stored = LotteryRepository.getLotteryById(drawn.id)!!
         assertEquals(listOf("harry"), stored.declinedIds)
         // They're still kept as a winner so there's a record of who won
         assertEquals(listOf("harry"), stored.winnerIds)
@@ -227,7 +226,7 @@ class LotteryRepositoryTest {
     @Test
     fun declineWinMissingLotteryThrows() {
         assertThrows(IllegalArgumentException::class.java) {
-            runBlocking { repo.declineWin("does-not-exist", "harry") }
+            runBlocking { LotteryRepository.declineWin("does-not-exist", "harry") }
         }
     }
 }
