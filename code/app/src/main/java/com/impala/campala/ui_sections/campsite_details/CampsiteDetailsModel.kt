@@ -6,10 +6,13 @@ import com.impala.campala.UserViewMode
 import com.impala.campala.model.CampsiteModel
 import com.impala.campala.model.CampsiteOwnerProfileRepository
 import com.impala.campala.model.CampsiteRepository
+import com.impala.campala.model.ImageRepository
 import com.impala.campala.model.LotteryModel
 import com.impala.campala.model.LotteryRepository
 import com.impala.campala.model.ReservationModel
 import com.impala.campala.model.ReservationRepository
+import com.impala.campala.model.ReviewModel
+import com.impala.campala.model.ReviewRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlin.uuid.Uuid
@@ -22,9 +25,11 @@ import kotlin.uuid.Uuid
  *
  * @param campsiteRepo the repo to fetch relevant campsite from
  * @param lotteryRepo the repo to fetch the campsite lottery from
- * @param campsiteOwnerProfileRepo the repo to check which campsites the user owns
+ * @param campsiteOwnerProfileRepo the repo to check which campsites the User owns
  * @param reservationRepo the repo to fetch the campsite's reservations from
- * @param user the object which contains the current user's information
+ * @param imageRepo the repo to fetch the campsite's image from
+ * @param reviewRepo the repo to fetch the campsite's reviews from
+ * @param User the object which contains the current User's information
  * @param scope the CoroutineScope that the suspend fetches run in
  *
  * @property name the Campsite name
@@ -33,19 +38,16 @@ import kotlin.uuid.Uuid
  * @property maxOccupancy the Campsite occupancy limit
  * @property tags the set of tags the Campsite has
  * @property averageRating the Campsite's average rating out of 5, null if nobody has rated it yet
+ * @property imageBytes the Campsite's compressed image, null if it has no image
  * @property campsite the Campsite object whose details are displayed
  * @property lottery the Lottery for the Campsite, if it exists
- * @property joinStatus indicates whether a user can join a lottery or the reason they cannot
- * @property userIsOwner flag for if the current user owns the campsite
+ * @property joinStatus indicates whether a User can join a lottery or the reason they cannot
+ * @property UserIsOwner flag for if the current User owns the campsite
  * @property lotteryExists flag indicating if there is a lottery for the selected campsite
  * @property reservedDates the campsite's upcoming, non-cancelled reservations sorted by start date, only loaded for the owner
+ * @property reviews the reviews entrants have left on the campsite
  */
 class CampsiteDetailsModel(
-    val campsiteRepo: CampsiteRepository,
-    val lotteryRepo: LotteryRepository,
-    val campsiteOwnerProfileRepo: CampsiteOwnerProfileRepository,
-    val reservationRepo: ReservationRepository,
-    val user: User,
     val scope: CoroutineScope
 ) : ObservableModel<CampsiteDetailsModel>() {
     var name: String = ""
@@ -54,24 +56,26 @@ class CampsiteDetailsModel(
     var maxOccupancy: Int = 0
     var tags: MutableList<String> = mutableListOf()
     var averageRating: Double? = null
+    var imageBytes: ByteArray? = null
     var campsite: CampsiteModel? = null
     var lottery: LotteryModel? = null
     var joinStatus: LotteryModel.ProspectiveJoinStatus? = null
     var userIsOwner: Boolean = false
     var lotteryExists: Boolean = false
     var reservedDates: List<ReservationModel> = emptyList()
+    var reviews: List<ReviewModel> = emptyList()
 
     /**
      * Called every time the screen is rendered.
      * Gets a campsite object from the repo by ID and uses it to update the properites of this class.
      * Finds a lottery for the campsite if it exists.
-     * Also loads the current user's entrant profile.
+     * Also loads the current User's entrant profile.
      * Will notify the view that a change has been made
      *
      * @param campsiteId the ID of the selected campsite, used to get the campsite from the repo
      */
     suspend fun loadCampsite(campsiteId: String) {
-        campsite = campsiteRepo.getCampsiteById(campsiteId)
+        campsite = CampsiteRepository.getCampsiteById(campsiteId)
         this.name = campsite?.name ?: ""
         this.location = campsite?.location ?: ""
         this.description = campsite?.description ?: ""
@@ -79,19 +83,25 @@ class CampsiteDetailsModel(
         this.tags = campsite?.tags ?: mutableListOf()
         this.averageRating = campsite?.averageRating
 
-        userIsOwner = user.getCurrentRole() == UserViewMode.CAMPSITE_OWNER &&
-            campsiteOwnerProfileRepo.getCampsiteOwnerProfileById(user.getUID())?.ownedCampsites?.contains(campsiteId) == true
+        val imageId = campsite?.imageId ?: ""
+        this.imageBytes = if (imageId.isNotEmpty()) ImageRepository.getImageById(imageId)?.data?.toBytes() else null
+
+        userIsOwner = User.getCurrentRole() == UserViewMode.CAMPSITE_OWNER &&
+                CampsiteOwnerProfileRepository.getCampsiteOwnerProfileById(User.getUID())?.ownedCampsites?.contains(campsiteId) == true
 
         // Only the owner sees the reserved dates, cancelled and past reservations are left out
         reservedDates = if (userIsOwner) {
-            reservationRepo.getReservationsByCampsite(campsiteId)
+            ReservationRepository.getReservationsByCampsite(campsiteId)
                 .filter { !it.hasBeenCancelled && !it.isPast }
                 .sortedBy { it.startDate }
         } else {
             emptyList()
         }
 
-        lottery = lotteryRepo.getLotteryByCampsiteId(campsiteId)
+        // Everyone sees the reviews, owner or entrant
+        reviews = ReviewRepository.getReviewsByCampsite(campsiteId)
+
+        lottery = LotteryRepository.getLotteryByCampsiteId(campsiteId)
 
         // This model is shared between campsites, so clear the last campsite's lottery state
         // Otherwise a campsite with no lottery would still show the previous campsite's join button
@@ -99,7 +109,7 @@ class CampsiteDetailsModel(
         joinStatus = null
 
         lottery?.let {
-            joinStatus = it.evaluateUserAction(user.getUID())
+            joinStatus = it.evaluateUserAction(User.getUID())
             lotteryExists = true
         }
 
@@ -108,19 +118,23 @@ class CampsiteDetailsModel(
 
     /**
      * Called when the entrant tries to join the lottery or waitlist
+     * Then reloads the campsite so the button shows the new join status
      */
     fun joinLottery() {
         this.scope.launch {
-            lotteryRepo.joinLottery(lottery!!.id, user.getUID())
+            LotteryRepository.joinLottery(lottery!!.id, User.getUID())
+            campsite?.let { loadCampsite(it.id) }
         }
     }
 
     /**
      * Called when the entrant tries to leave the waitlist
+     * Then reloads the campsite so the button shows the new join status
      */
     fun leaveWaitlist() {
         this.scope.launch {
-            lotteryRepo.leaveLottery(lottery!!.id, user.getUID())
+            LotteryRepository.leaveLottery(lottery!!.id, User.getUID())
+            campsite?.let { loadCampsite(it.id) }
         }
     }
 }

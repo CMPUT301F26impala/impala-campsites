@@ -23,6 +23,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults.contentPadding
 import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.Slider
@@ -159,8 +160,8 @@ class SeeReservationsView(val controller: SeeReservationsController) : ViewObser
                                 reservationBeingRated = null
                                 currentScreen = UiTarget.SCREEN_B
                             },
-                            onConfirm = { rating ->
-                                controller.rateReservation(res, rating)
+                            onConfirm = { rating, reviewText ->
+                                controller.rateReservation(res, rating, reviewText)
                             }
                         )
                     }
@@ -427,11 +428,12 @@ class SeeReservationsView(val controller: SeeReservationsController) : ViewObser
     // The rate campsite modal, otherwise known as SCREEN_C
     //@param res the past reservation being rated
     // @param onClose called when the modal is closed, whether by Cancel, Confirm, or tapping outside it
-    // @param onConfirm called when a confirmation has happened, and given the chosen rating
+    // @param onConfirm called when a confirmation has happened, and given the chosen rating and the written review
     @Composable
-    private fun DrawRateModal(res: ReservationModel, onClose: () -> Unit, onConfirm: (Double) -> Unit) {
+    private fun DrawRateModal(res: ReservationModel, onClose: () -> Unit, onConfirm: (Double, String) -> Unit) {
         // Starts in the middle each time the modal opens
         var rating by remember { mutableFloatStateOf(3f) }
+        var reviewText by remember { mutableStateOf("") }
         AlertDialog(
             onDismissRequest = onClose,
             title = { Text("Rate ${campsites.find { it.id == res.campsiteId }?.name ?: ""}") },
@@ -449,6 +451,16 @@ class SeeReservationsView(val controller: SeeReservationsController) : ViewObser
                         Spacer(modifier = Modifier.weight(1f))
                         Text("5", style = MaterialTheme.typography.titleLarge)
                     }
+                    Spacer(modifier = Modifier.height(16.dp))
+                    OutlinedTextField(
+                        value = reviewText,
+                        onValueChange = { if (it.length <= 2000) reviewText = it },
+                        label = { Text("Review (optional)") },
+                        // These make sure the textbox is actually a decent size
+                        minLines = 3,
+                        maxLines = 6,
+                        modifier = Modifier.fillMaxWidth()
+                    )
                 }
             },
             dismissButton = {
@@ -458,7 +470,7 @@ class SeeReservationsView(val controller: SeeReservationsController) : ViewObser
             },
             confirmButton = {
                 TextButton(onClick = {
-                    onConfirm(rating.toDouble())
+                    onConfirm(rating.toDouble(), reviewText)
                     onClose()
                 }) {
                     Text("Confirm")

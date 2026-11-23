@@ -6,10 +6,14 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Edit
@@ -32,10 +36,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.impala.campala.ImageDisplay
 import com.impala.campala.ViewObserver
 import com.google.firebase.Timestamp
 import com.impala.campala.model.LotteryModel
 import com.impala.campala.model.ReservationModel
+import com.impala.campala.model.ReviewModel
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 
@@ -53,9 +59,11 @@ class CampsiteDetailsView(val controller: CampsiteDetailsController): ViewObserv
     private var description by mutableStateOf("")
     private var maxOccupancy by mutableIntStateOf(0)
     private var averageRating by mutableStateOf<Double?>(null)
+    private var imageBytes by mutableStateOf<ByteArray?>(null)
     private var tags = mutableStateListOf<String>()
     private var joinStatus by mutableStateOf<LotteryModel.ProspectiveJoinStatus?>(null)
     private var reservedDates = mutableStateListOf<ReservationModel>()
+    private var reviews = mutableStateListOf<ReviewModel>()
 
     override fun update(model: CampsiteDetailsModel) {
         this.name = model.name
@@ -63,6 +71,7 @@ class CampsiteDetailsView(val controller: CampsiteDetailsController): ViewObserv
         this.description = model.description
         this.maxOccupancy = model.maxOccupancy
         this.averageRating = model.averageRating
+        this.imageBytes = model.imageBytes
         this.tags.clear()
         this.tags.addAll(model.tags)
         this.isOwner = model.userIsOwner
@@ -70,6 +79,8 @@ class CampsiteDetailsView(val controller: CampsiteDetailsController): ViewObserv
         this.joinStatus = model.joinStatus
         this.reservedDates.clear()
         this.reservedDates.addAll(model.reservedDates)
+        this.reviews.clear()
+        this.reviews.addAll(model.reviews)
     }
 
     /**
@@ -87,41 +98,46 @@ class CampsiteDetailsView(val controller: CampsiteDetailsController): ViewObserv
         LaunchedEffect(campsiteId) {
             controller.onOpen(campsiteId)
         }
-        Column(modifier = Modifier.fillMaxHeight()) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(color = MaterialTheme.colorScheme.primary)
-                    .height(192.dp)
-            ) {}
-            Row(
-                modifier = Modifier.padding(horizontal = 10.dp).fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween,
-            ) {
-                Text(name, style = MaterialTheme.typography.headlineMedium)
-                if(isOwner) {
-                    IconButton(
-                        onClick = { controller.moveToEdit(navController, campsiteId) }
-                    ) {
-                        Icon(Icons.Default.Edit, contentDescription = "Edit Icon", tint = MaterialTheme.colorScheme.onSurfaceVariant)
+        Box(modifier = Modifier.fillMaxSize()) {
+            Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
+                ImageDisplay(
+                    imageBytes = imageBytes,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(192.dp)
+                )
+                Row(
+                    modifier = Modifier.padding(horizontal = 10.dp).fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                ) {
+                    Text(name, style = MaterialTheme.typography.headlineMedium)
+                    if(isOwner) {
+                        IconButton(
+                            onClick = { controller.moveToEdit(navController, campsiteId) }
+                        ) {
+                            Icon(Icons.Default.Edit, contentDescription = "Edit Icon", tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
                     }
                 }
+                Spacer(modifier = Modifier.height(16.dp))
+                RenderIconText()
+                RenderTextSection("Description", description)
+                RenderTextSection("Tags", tags.joinToString())
+                if(isOwner) {
+                    // TODO: This is not how our storyboard describes this should look, this will need to be polished up in final checkpoint to actually use the calendar renderer
+                    // But for now, I had Claude Opus 5.5 generate this .joinToString call, with the prompt "How can I turn ranges of dates into a range string but still have each range be it's own line"
+                    RenderTextSection(
+                        "Reserved Dates",
+                        reservedDates.joinToString("\n") { "${formatDate(it.startDate)} - ${formatDate(it.endDate)}" }
+                            .ifEmpty { "No upcoming reservations" }
+                    )
+                }
+                RenderReviews()
+                // Room for the floating buttons
+                Spacer(modifier = Modifier.height(128.dp))
             }
-            Spacer(modifier = Modifier.height(16.dp))
-            RenderIconText()
-            RenderTextSection("Description", description)
-            RenderTextSection("Tags", tags.joinToString())
-            if(isOwner) {
-                // TODO: This is not how our storyboard describes this should look, this will need to be polished up in final checkpoint to actually use the calendar renderer
-                // But for now, I had Claude Opus 5.5 generate this .joinToString call, with the prompt "How can I turn ranges of dates into a range string but still have each range be it's own line"
-                RenderTextSection(
-                    "Reserved Dates",
-                    reservedDates.joinToString("\n") { "${formatDate(it.startDate)} - ${formatDate(it.endDate)}" }
-                        .ifEmpty { "No upcoming reservations" }
-                )
-            }
-            RenderBottomButtons(modifier = Modifier.weight(1f), navController)
+            RenderBottomButtons(modifier = Modifier.align(Alignment.BottomEnd), navController)
         }
     }
 
@@ -152,6 +168,27 @@ class CampsiteDetailsView(val controller: CampsiteDetailsController): ViewObserv
         Text(content, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(horizontal = 10.dp))
     }
 
+    @Composable
+    private fun RenderReviews() {
+        Spacer(modifier = Modifier.height(16.dp))
+        Text("Reviews", style = MaterialTheme.typography.headlineMedium, modifier = Modifier.padding(horizontal = 10.dp))
+        if (reviews.isEmpty()) {
+            Text("No reviews yet", style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(horizontal = 10.dp))
+        }
+        reviews.forEach { review ->
+            Column(modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Default.Star, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(18.dp))
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text("%.1f Stars".format(review.rating), style = MaterialTheme.typography.titleMedium)
+                }
+                if (review.reviewText.isNotBlank()) {
+                    Text(review.reviewText, style = MaterialTheme.typography.bodyMedium)
+                }
+            }
+        }
+    }
+
     private fun formatDate(timestamp: Timestamp): String {
         return timestamp.toInstant().atZone(ZoneOffset.UTC).format(DateTimeFormatter.ofPattern("MMM d, yyyy"))
     }
@@ -160,7 +197,7 @@ class CampsiteDetailsView(val controller: CampsiteDetailsController): ViewObserv
     // A function to render the relevant buttons in the bottom right of the screen based on flags
     @Composable
     private fun RenderBottomButtons(modifier: Modifier = Modifier, navController: NavController) {
-        Column(modifier = modifier.padding(all = 10.dp).fillMaxWidth(),
+        Column(modifier = modifier.padding(all = 10.dp),
             horizontalAlignment = Alignment.End,
             verticalArrangement = Arrangement.Bottom
         ) {

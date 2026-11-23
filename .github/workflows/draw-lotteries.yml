@@ -1,0 +1,37 @@
+name: Draw lotteries
+
+# 15 minutes after the hour, every hour, this script runs and will pull all lotteries, find any that need drawing, and draw them
+# Requires us to put the firebase admin service account in secrets
+on:
+  schedule:
+    - cron: "15 * * * *" # 15 minutes after every hour
+  workflow_dispatch:
+
+# Never let two runs overlap
+concurrency:
+  group: draw-lotteries
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  draw:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: scripts/draw-lotteries
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # By just doing this here I didn't have to make a package.json
+      - run: npm install --no-save firebase-admin@14
+
+      - run: node index.js
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}

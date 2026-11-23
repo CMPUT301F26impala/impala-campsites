@@ -5,6 +5,7 @@ import com.impala.campala.User
 import com.impala.campala.model.CampsiteModel
 import com.impala.campala.model.CampsiteOwnerProfileRepository
 import com.impala.campala.model.CampsiteRepository
+import com.impala.campala.model.ImageRepository
 import com.impala.campala.model.LotteryRepository
 import com.google.firebase.Timestamp
 import kotlinx.coroutines.CoroutineScope
@@ -15,7 +16,7 @@ import java.time.ZoneOffset
 import java.util.Date
 
 /**
- * Which user type the 'Browse Campsites' screen is being shown to
+ * Which User type the 'Browse Campsites' screen is being shown to
  *
  * ENTRANT sees every campsite, CAMPSITE_OWNER only sees the campsites they own
  */
@@ -28,24 +29,21 @@ enum class SearchCampsitesViewMode { ENTRANT, CAMPSITE_OWNER }
  * And it also has a results List, which is a List of campsites that actaully match those filters
  *
  * @param repo the CampsiteRepository to fetch campsites from
- * @param campsiteOwnerProfileRepo used in campsite owner mode to find which campsites the user owns
+ * @param campsiteOwnerProfileRepo used in campsite owner mode to find which campsites the User owns
  * @param lotteryRepo used by the date filter to find which campsites have a lottery with that date available
- * @param user the signed in User so that, if it's campsite owner mode, it can show only their campsites
+ * @param User the signed in User so that, if it's campsite owner mode, it can show only their campsites
  * @param scope the CoroutineScope that the suspend fetches run in
  * @param viewMode whether this screen is for an entrant or a campsite owner
  *
  * @property searchString text typed into the search bar
- * @property minimumOccupantsFilter the minimum capacity a user wants, or null for "any is fine"
+ * @property minimumOccupantsFilter the minimum capacity a User wants, or null for "any is fine"
  * @property locationFilter only show campsites at this location, null for any
  * @property dateFilter the date the entrant wants to camp on, null for any. Only campsites in a lottery whose available dates include it are shown
  * @property results campsites matching the current filters
  * @property locations every location that has a campsite, these are the options for the location filter
+ * @property images the loaded campsite images, keyed by image ID. Campsites with no image, or whose image hasn't loaded yet, aren't in it
  */
 class SearchCampsitesModel(
-    val repo: CampsiteRepository,
-    val campsiteOwnerProfileRepo: CampsiteOwnerProfileRepository,
-    val lotteryRepo: LotteryRepository,
-    val user: User,
     val scope: CoroutineScope,
     val viewMode: SearchCampsitesViewMode
 ): ObservableModel<SearchCampsitesModel>() {
@@ -60,6 +58,9 @@ class SearchCampsitesModel(
     var locations: List<String> = emptyList()
         private set
 
+    var images: Map<String, ByteArray> = emptyMap()
+        private set
+
     private var resultsJob: Job? = null
 
     private fun updateResults() {
@@ -67,10 +68,10 @@ class SearchCampsitesModel(
         // We need to cancel the previous one before starting a new one, that way we don't have a bunch going at once
         resultsJob?.cancel()
         resultsJob = this.scope.launch {
-            var campsites = repo.getFilteredCampsites(searchString, locationFilter, null, minimumOccupantsFilter, null)
+            var campsites = CampsiteRepository.getFilteredCampsites(searchString, locationFilter, null, minimumOccupantsFilter, null)
             if (viewMode == SearchCampsitesViewMode.CAMPSITE_OWNER) {
                 // Campsite owners only see the campsites listed in their profile
-                val ownedCampsites = campsiteOwnerProfileRepo.getCampsiteOwnerProfileById(user.getUID())?.ownedCampsites ?: emptyList()
+                val ownedCampsites = CampsiteOwnerProfileRepository.getCampsiteOwnerProfileById(User.getUID())?.ownedCampsites ?: emptyList()
                 campsites = campsites.filter { it.id in ownedCampsites }
             }
             val date = dateFilter
@@ -79,7 +80,7 @@ class SearchCampsitesModel(
                 // It helped with the timezone, but aside from that I did the filtering itself
                 val dayStart = Timestamp(Date.from(date.atStartOfDay(ZoneOffset.UTC).toInstant()))
                 val dayEnd = Timestamp(Date.from(date.plusDays(1).atStartOfDay(ZoneOffset.UTC).toInstant()))
-                val campsiteIdsAvailableOnDate = lotteryRepo.getLotteries()
+                val campsiteIdsAvailableOnDate = LotteryRepository.getLotteries()
                     .filter { it.reservationStartDate < dayEnd && it.reservationEndDate >= dayStart }
                     .flatMap { it.campsiteIds }
                     .toSet()
@@ -87,6 +88,17 @@ class SearchCampsitesModel(
             }
             results = campsites
             notifyObservers(this@SearchCampsitesModel)
+
+            // Since images aren't actually attached to campsites, but instead just an id link
+            // We have to fetch them separately
+            val newImageIds = campsites.map { it.imageId }.filter { it.isNotEmpty() && it !in images }.distinct()
+            for (imageId in newImageIds) {
+                val bytes = ImageRepository.getImageById(imageId)?.data?.toBytes() ?: continue
+                images = images + (imageId to bytes)
+            }
+            if (newImageIds.isNotEmpty()) {
+                notifyObservers(this@SearchCampsitesModel)
+            }
         }
     }
     /**
@@ -95,7 +107,7 @@ class SearchCampsitesModel(
     fun getInitialData() {
         this.updateResults()
         this.scope.launch {
-            locations = repo.getLocations()
+            locations = CampsiteRepository.getLocations()
             notifyObservers(this@SearchCampsitesModel)
         }
     }

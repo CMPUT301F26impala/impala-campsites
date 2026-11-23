@@ -13,7 +13,7 @@ import kotlinx.coroutines.tasks.await
  * Model for anything in the app that wants to access any
  * reservation info, with filtering by owner or entrant
  */
-class ReservationRepository {
+object ReservationRepository {
     private val collection by lazy { Firebase.firestore.collection("reservations") }
 
     /**
@@ -143,7 +143,7 @@ class ReservationRepository {
     /**
      * Marks a past reservation as rated
      *
-     * The rating itself is saved on the campsite, so this just sets hasRating to true
+     * The review itself is saved with ReviewRepository, so this just sets hasRating to true
      *
      * @param reservationId ID of the reservation being rated
      */

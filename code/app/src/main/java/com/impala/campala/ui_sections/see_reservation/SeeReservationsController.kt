@@ -14,13 +14,14 @@ public class SeeReservationsController(val model: SeeReservationsModel) : Contro
     }
 
     /**
-     * Marks a reservation as rated and also adjusts the rating values in the campsite itself
+     * Marks a reservation as rated, posts the review, and also adjusts the rating values in the campsite itself
      *
      * @param res the past reservation being rated
      * @param rating the rating out of 5
+     * @param reviewText the written review, can be empty
      */
-    public fun rateReservation(res: ReservationModel, rating: Double) {
-        model.rateReservation(res, rating)
+    public fun rateReservation(res: ReservationModel, rating: Double, reviewText: String) {
+        model.rateReservation(res, rating, reviewText)
     }
 
     /**

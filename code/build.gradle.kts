@@ -17,6 +17,84 @@ node {
 
 val npmInstall = tasks.named("npmInstall")
 
+val killFirebaseEmulators = tasks.register("killFirebaseEmulators") {
+    group = "firebase"
+    description = "Kills any processes listening on Firebase emulator ports (8080, 9099, 4000)."
+
+    doLast {
+        val ports = listOf(8080, 9099, 4000)
+        val isWindows = System.getProperty("os.name").contains("Windows")
+        val currentPid = ProcessHandle.current().pid()
+
+        for (port in ports) {
+            val pidsToKill = mutableSetOf<Long>()
+            if (isWindows) {
+                try {
+                    val process = ProcessBuilder("cmd.exe", "/c", "netstat -ano").start()
+                    val output = process.inputStream.bufferedReader().readText()
+                    process.waitFor()
+
+                    val regex = Regex("""[:.]$port\s+.*LISTENING\s+(\d+)""", RegexOption.IGNORE_CASE)
+                    regex.findAll(output).forEach { match ->
+                        match.groupValues[1].toLongOrNull()?.let { pid ->
+                            if (pid > 0 && pid != currentPid) {
+                                pidsToKill.add(pid)
+                            }
+                        }
+                    }
+                } catch (e: Exception) {
+                    logger.warn("Could not check netstat for port $port: ${e.message}")
+                }
+            } else {
+                try {
+                    val process = ProcessBuilder("lsof", "-ti", ":$port").start()
+                    val output = process.inputStream.bufferedReader().readText()
+                    process.waitFor()
+
+                    output.lines().forEach { line ->
+                        line.trim().toLongOrNull()?.let { pid ->
+                            if (pid > 0 && pid != currentPid) {
+                                pidsToKill.add(pid)
+                            }
+                        }
+                    }
+                } catch (e: Exception) {
+                    try {
+                        ProcessBuilder("fuser", "-k", "-9", "$port/tcp").start().waitFor()
+                    } catch (_: Exception) {
+                        logger.warn("Could not check lsof/fuser for port $port: ${e.message}")
+                    }
+                }
+            }
+
+            for (pid in pidsToKill) {
+                logger.lifecycle("Killing process $pid listening on port $port...")
+                try {
+                    ProcessHandle.of(pid).ifPresent { it.destroyForcibly() }
+                } catch (_: Exception) {}
+
+                if (isWindows) {
+                    try {
+                        ProcessBuilder("taskkill", "/F", "/T", "/PID", pid.toString())
+                            .redirectOutput(ProcessBuilder.Redirect.DISCARD)
+                            .redirectError(ProcessBuilder.Redirect.DISCARD)
+                            .start()
+                            .waitFor()
+                    } catch (_: Exception) {}
+                } else {
+                    try {
+                        ProcessBuilder("kill", "-9", pid.toString())
+                            .redirectOutput(ProcessBuilder.Redirect.DISCARD)
+                            .redirectError(ProcessBuilder.Redirect.DISCARD)
+                            .start()
+                            .waitFor()
+                    } catch (_: Exception) {}
+                }
+            }
+        }
+    }
+}
+
 tasks.register("startFirebaseEmulators") {
     group = "firebase"
     description = "Starts the Firebase emulators for debug builds."

@@ -1,5 +1,8 @@
 {
   "projects": {
-    "default": "campala-b8671"
-  }
+    "default": "campala-b8671",
+    "campala": "campala-b8671"
+  },
+  "targets": {},
+  "etags": {}
 }

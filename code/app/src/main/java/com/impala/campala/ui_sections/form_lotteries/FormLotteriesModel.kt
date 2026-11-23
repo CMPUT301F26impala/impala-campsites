@@ -40,12 +40,9 @@ import java.time.ZoneOffset
  * @property availableDatesEnd Stores the value currently in the field for the last available reservation date
  */
 class FormLotteriesModel(
-    val repo: LotteryRepository,
     val scope: CoroutineScope,
     var lottery: LotteryModel? = null,
     val ownerId: String,
-    val campsiteRepo: CampsiteRepository,
-    val campsiteOwnerProfileRepo: CampsiteOwnerProfileRepository,
 ): ObservableModel<FormLotteriesModel>() {
 
     var campsiteIds = if (lottery == null) mutableListOf<String>() else lottery!!.campsiteIds.toMutableList()
@@ -94,7 +91,7 @@ class FormLotteriesModel(
      */
     fun initializeEditMode(lotteryId: String) {
         scope.launch {
-            val currentLottery = repo.getLotteryById(lotteryId)
+            val currentLottery = LotteryRepository.getLotteryById(lotteryId)
             if (currentLottery == null) {
                 initializeCreateMode()
             } else {
@@ -128,16 +125,16 @@ class FormLotteriesModel(
         // Remembered so that if a different lottery gets opened while this is loading, this result is thrown away instead of shown
         val editingLotteryId = lottery?.id
         scope.launch{
-            val ownedCampsiteIds = campsiteOwnerProfileRepo.getCampsiteOwnerProfileById(ownerId)?.ownedCampsites ?: emptyList()
+            val ownedCampsiteIds = CampsiteOwnerProfileRepository.getCampsiteOwnerProfileById(ownerId)?.ownedCampsites ?: emptyList()
 
             val today = LocalDate.now()
-            val takenCampsiteIds = repo.getLotteries()
+            val takenCampsiteIds = LotteryRepository.getLotteries()
                 .filter { it.id != editingLotteryId } // The lottery being edited can keep its own campsites
                 .filter { !today.isAfter(it.registrationEndTime.toInstant().atZone(ZoneOffset.UTC).toLocalDate()) }
                 .flatMap { it.campsiteIds }
                 .toSet()
 
-            val availableCampsites = campsiteRepo.getFilteredCampsites()
+            val availableCampsites = CampsiteRepository.getFilteredCampsites()
                 .filter { it.id in ownedCampsiteIds && it.id !in takenCampsiteIds }
 
             if (lottery?.id != editingLotteryId) return@launch
@@ -310,7 +307,7 @@ class FormLotteriesModel(
             )
         }
         scope.launch {
-            repo.saveLottery(updatedLottery)
+            LotteryRepository.saveLottery(updatedLottery)
             wasLotterySavedSuccessfully = true
             notifyObservers(this@FormLotteriesModel)
         }
