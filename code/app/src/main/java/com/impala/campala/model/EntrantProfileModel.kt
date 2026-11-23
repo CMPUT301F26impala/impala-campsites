@@ -23,7 +23,6 @@ data class EntrantProfileModel(
     var name: String = "",  // TODO: These aren't really being used in the app just yet
     var email: String = "",  // TODO: These aren't really being used in the app just yet
     var phoneNumber: String = "", // TODO: These aren't really being used in the app just yet
-    var allowNotification: Boolean=false,
     var notificationId: String=""
 ) {
     companion object {
