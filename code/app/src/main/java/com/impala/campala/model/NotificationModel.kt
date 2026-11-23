@@ -8,22 +8,23 @@ import com.google.firebase.firestore.Exclude
 import com.google.firebase.firestore.firestore
 import kotlin.uuid.Uuid
 
-class NotificationModel(
-    var title: String="",
-    var body: String="",
-    var sender: String="",
+data class NotificationModel(
+    var title: String = "",
+    var body: String = "",
+    var sender: String = "",
     var receivers: MutableList<String> = mutableListOf(),
-    var sent: Boolean=false,
+    var sent: Boolean = false,
     var id: String = Uuid.random().toString()
 ) {
     companion object {
-        fun load(doc: DocumentSnapshot): CampsiteModel {
-            return doc.toObject(CampsiteModel::class.java)!!
+        fun load(doc: DocumentSnapshot): NotificationModel {
+            return doc.toObject(NotificationModel::class.java)!!
         }
     }
 
     @get:Exclude
     var doc: DocumentReference? = null
+
     /**
      * Saves the object in the Firebase collection
      *
@@ -32,5 +33,9 @@ class NotificationModel(
     fun save(): Task<Void> {
         doc = Firebase.firestore.document("notifications/" + id)
         return doc!!.set(this)
+    }
+
+    suspend fun getReceivers(): List<EntrantProfileModel> {
+        return receivers.map { EntrantProfileRepository.getEntrantProfileById(it)!! }
     }
 }

@@ -29,6 +29,8 @@ import com.impala.campala.ui_sections.form_lotteries.FormLotteriesController
 import com.impala.campala.ui_sections.form_lotteries.FormLotteriesModel
 import com.impala.campala.ui_sections.form_lotteries.FormLotteriesView
 import com.impala.campala.ui_sections.lottery_details.LotteryDetailsView
+import com.impala.campala.ui_sections.owner_notifs.OwnerNotifsController
+import com.impala.campala.ui_sections.owner_notifs.OwnerNotifsModel
 import com.impala.campala.ui_sections.owner_notifs.OwnerNotifsView
 import com.impala.campala.ui_sections.search_campsites.SearchCampsitesController
 import com.impala.campala.ui_sections.search_campsites.SearchCampsitesModel
@@ -139,7 +141,10 @@ fun SignedInApp() {
     val waitlistView = remember { WaitlistView(waitlistController) }
     waitlistModel.addObserver(waitlistView)
 
-    val ownerNotifsView = remember { OwnerNotifsView() }
+    val ownerNotifsModel = remember { OwnerNotifsModel() }
+    val ownerNotifsController = remember { OwnerNotifsController(ownerNotifsModel) }
+    val ownerNotifsView = remember { OwnerNotifsView(ownerNotifsController) }
+    ownerNotifsModel.addObserver(ownerNotifsView)
 
     if (needsRoleChoice) {
         // Scaffold is just here so the screen respects the status bar / nav bar insets
