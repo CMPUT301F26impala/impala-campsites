@@ -9,35 +9,40 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import com.impala.campala.ui_sections.search_campsites.SearchCampsitesController
-import com.impala.campala.ui_sections.search_campsites.SearchCampsitesModel
-import com.impala.campala.ui_sections.search_campsites.SearchCampsitesView
-import com.impala.campala.ui_sections.search_campsites.SearchCampsitesViewMode
-import com.impala.campala.ui_sections.form_campsites.FormCampsitesModel
-import com.impala.campala.ui_sections.form_campsites.FormCampsitesController
-import com.impala.campala.ui_sections.form_campsites.FormCampsitesView
 import com.impala.campala.ui_sections.campsite_details.CampsiteDetailsController
 import com.impala.campala.ui_sections.campsite_details.CampsiteDetailsModel
 import com.impala.campala.ui_sections.campsite_details.CampsiteDetailsView
 import com.impala.campala.ui_sections.choose_role.ChooseRoleController
 import com.impala.campala.ui_sections.choose_role.ChooseRoleModel
 import com.impala.campala.ui_sections.choose_role.ChooseRoleView
-import com.impala.campala.ui_sections.see_reservation.SeeReservationsController
-import com.impala.campala.ui_sections.see_reservation.SeeReservationsModel
-import com.impala.campala.ui_sections.see_reservation.SeeReservationsView
-import com.impala.campala.ui_sections.form_lotteries.FormLotteriesController
-import com.impala.campala.ui_sections.form_lotteries.FormLotteriesModel
-import com.impala.campala.ui_sections.form_lotteries.FormLotteriesView
-import com.impala.campala.ui_sections.view_lotteries.ViewLotteriesController
-import com.impala.campala.ui_sections.view_lotteries.ViewLotteriesModel
-import com.impala.campala.ui_sections.view_lotteries.ViewLotteriesView
 import com.impala.campala.ui_sections.create_reservation.CreateReservationController
 import com.impala.campala.ui_sections.create_reservation.CreateReservationModel
 import com.impala.campala.ui_sections.create_reservation.CreateReservationView
+import com.impala.campala.ui_sections.form_campsites.FormCampsitesController
+import com.impala.campala.ui_sections.form_campsites.FormCampsitesModel
+import com.impala.campala.ui_sections.form_campsites.FormCampsitesView
+import com.impala.campala.ui_sections.form_lotteries.FormLotteriesController
+import com.impala.campala.ui_sections.form_lotteries.FormLotteriesModel
+import com.impala.campala.ui_sections.form_lotteries.FormLotteriesView
+import com.impala.campala.ui_sections.lottery_details.LotteryDetailsView
+import com.impala.campala.ui_sections.owner_notifs.OwnerNotifsView
+import com.impala.campala.ui_sections.search_campsites.SearchCampsitesController
+import com.impala.campala.ui_sections.search_campsites.SearchCampsitesModel
+import com.impala.campala.ui_sections.search_campsites.SearchCampsitesView
+import com.impala.campala.ui_sections.search_campsites.SearchCampsitesViewMode
+import com.impala.campala.ui_sections.see_reservation.SeeReservationsController
+import com.impala.campala.ui_sections.see_reservation.SeeReservationsModel
+import com.impala.campala.ui_sections.see_reservation.SeeReservationsView
+import com.impala.campala.ui_sections.view_lotteries.ViewLotteriesController
+import com.impala.campala.ui_sections.view_lotteries.ViewLotteriesModel
+import com.impala.campala.ui_sections.view_lotteries.ViewLotteriesView
+import com.impala.campala.ui_sections.waitlist.WaitlistController
+import com.impala.campala.ui_sections.waitlist.WaitlistModel
+import com.impala.campala.ui_sections.waitlist.WaitlistView
 
 /**
  * Composable function that acts as the root of the app
@@ -76,14 +81,17 @@ fun SignedInApp() {
     val contentResolver = LocalContext.current.contentResolver
     val imageCompressor = remember { ImageCompressor(contentResolver) }
 
-    val searchCampsitesModel = remember { SearchCampsitesModel(coroutineScope, SearchCampsitesViewMode.ENTRANT) }
+    val searchCampsitesModel =
+        remember { SearchCampsitesModel(coroutineScope, SearchCampsitesViewMode.ENTRANT) }
     val searchCampsitesController = remember { SearchCampsitesController(searchCampsitesModel) }
     val searchCampsitesView = remember { SearchCampsitesView(searchCampsitesController) }
     searchCampsitesModel.addObserver(searchCampsitesView)
 
     // Same screen as above, but in campsite owner mode it only shows the User's own campsites and has the Add Campsite button
-    val ownerSearchCampsitesModel = remember { SearchCampsitesModel( coroutineScope, SearchCampsitesViewMode.CAMPSITE_OWNER) }
-    val ownerSearchCampsitesController = remember { SearchCampsitesController(ownerSearchCampsitesModel) }
+    val ownerSearchCampsitesModel =
+        remember { SearchCampsitesModel(coroutineScope, SearchCampsitesViewMode.CAMPSITE_OWNER) }
+    val ownerSearchCampsitesController =
+        remember { SearchCampsitesController(ownerSearchCampsitesModel) }
     val ownerSearchCampsitesView = remember { SearchCampsitesView(ownerSearchCampsitesController) }
     ownerSearchCampsitesModel.addObserver(ownerSearchCampsitesView)
 
@@ -97,32 +105,42 @@ fun SignedInApp() {
     val formLotteriesView = remember { FormLotteriesView(formLotteriesController) }
     formLotteriesModel.addObserver(formLotteriesView)
 
-    val campsiteDetailsModel = remember { CampsiteDetailsModel( coroutineScope) }
+    val campsiteDetailsModel = remember { CampsiteDetailsModel(coroutineScope) }
     val campsiteDetailsController = remember { CampsiteDetailsController(campsiteDetailsModel) }
     val campsiteDetailsView = remember { CampsiteDetailsView(campsiteDetailsController) }
     campsiteDetailsModel.addObserver(campsiteDetailsView)
 
-    val chooseRoleModel = remember { ChooseRoleModel( coroutineScope) }
+    val chooseRoleModel = remember { ChooseRoleModel(coroutineScope) }
     val chooseRoleController = remember { ChooseRoleController(chooseRoleModel) }
     val chooseRoleView = remember { ChooseRoleView(chooseRoleController) }
     chooseRoleModel.addObserver(chooseRoleView)
 
     // Shared by both navs, it checks User.getCurrentRole() to decide between the entrant and campsite owner UI
-    val viewLotteriesModel = remember { ViewLotteriesModel( coroutineScope) }
+    val viewLotteriesModel = remember { ViewLotteriesModel(coroutineScope) }
     val viewLotteriesController = remember { ViewLotteriesController(viewLotteriesModel) }
     val viewLotteriesView = remember { ViewLotteriesView(viewLotteriesController) }
     viewLotteriesModel.addObserver(viewLotteriesView)
 
     val createReservationModel = remember { CreateReservationModel(coroutineScope) }
-    val createReservationController = remember { CreateReservationController(createReservationModel) }
+    val createReservationController =
+        remember { CreateReservationController(createReservationModel) }
     val createReservationView = remember { CreateReservationView(createReservationController) }
     createReservationModel.addObserver(createReservationView)
 
-    val seeReservationsModel = remember { SeeReservationsModel( coroutineScope) }
+    val seeReservationsModel = remember { SeeReservationsModel(coroutineScope) }
     val seeReservationsController = remember { SeeReservationsController(seeReservationsModel) }
     val seeReservationsView = remember { SeeReservationsView(seeReservationsController) }
     seeReservationsModel.addObserver(seeReservationsView)
-    
+
+    val lotteryDetailsView = remember { LotteryDetailsView() }
+
+    val waitlistModel = remember { WaitlistModel() }
+    val waitlistController = remember { WaitlistController(waitlistModel) }
+    val waitlistView = remember { WaitlistView(waitlistController) }
+    waitlistModel.addObserver(waitlistView)
+
+    val ownerNotifsView = remember { OwnerNotifsView() }
+
     if (needsRoleChoice) {
         // Scaffold is just here so the screen respects the status bar / nav bar insets
         Scaffold { padding ->
@@ -135,14 +153,37 @@ fun SignedInApp() {
         }
     } else {
         when (currentRole) {
-            UserViewMode.ENTRANT -> EntrantNavigationRoot(searchCampsitesScreen=searchCampsitesView, campsiteDetailsScreen=campsiteDetailsView, seeReservationsScreen=seeReservationsView, viewLotteriesScreen=viewLotteriesView, createReservationScreen=createReservationView, onSwitchRole={ needsRoleChoice = true })
-            UserViewMode.CAMPSITE_OWNER -> CampsiteOwnerNavigationRoot(searchCampsitesScreen=ownerSearchCampsitesView, campsiteDetailsScreen=campsiteDetailsView, formCampsitesScreen=formCampsitesView, formLotteriesScreen = formLotteriesView, viewLotteriesScreen = viewLotteriesView, seeReservationsScreen = seeReservationsView, onSwitchRole={ needsRoleChoice = true })
+            UserViewMode.ENTRANT -> EntrantNavigationRoot(
+                searchCampsitesScreen = searchCampsitesView,
+                campsiteDetailsScreen = campsiteDetailsView,
+                seeReservationsScreen = seeReservationsView,
+                viewLotteriesScreen = viewLotteriesView,
+                createReservationScreen = createReservationView,
+                onSwitchRole = { needsRoleChoice = true })
 
-            UserViewMode.ADMIN -> AdminNavigationRoot(onSwitchRole={ needsRoleChoice = true })
+            UserViewMode.CAMPSITE_OWNER -> CampsiteOwnerNavigationRoot(
+                searchCampsitesScreen = ownerSearchCampsitesView,
+                campsiteDetailsScreen = campsiteDetailsView,
+                formCampsitesScreen = formCampsitesView,
+                formLotteriesScreen = formLotteriesView,
+                viewLotteriesScreen = viewLotteriesView,
+                seeReservationsScreen = seeReservationsView,
+                lotteryDetailsView = lotteryDetailsView,
+                waitlistView=waitlistView,
+                ownerNotifsView = ownerNotifsView,
+                onSwitchRole = { needsRoleChoice = true })
+
+            UserViewMode.ADMIN -> AdminNavigationRoot(onSwitchRole = { needsRoleChoice = true })
 
             null -> {
                 // They have a profile but no role saved, so just send them to the entrant UI so the app is still usable
-                EntrantNavigationRoot(searchCampsitesScreen=searchCampsitesView, campsiteDetailsScreen=campsiteDetailsView, seeReservationsScreen=seeReservationsView, viewLotteriesScreen=viewLotteriesView, createReservationScreen=createReservationView, onSwitchRole={ needsRoleChoice = true })
+                EntrantNavigationRoot(
+                    searchCampsitesScreen = searchCampsitesView,
+                    campsiteDetailsScreen = campsiteDetailsView,
+                    seeReservationsScreen = seeReservationsView,
+                    viewLotteriesScreen = viewLotteriesView,
+                    createReservationScreen = createReservationView,
+                    onSwitchRole = { needsRoleChoice = true })
             }
         }
     }

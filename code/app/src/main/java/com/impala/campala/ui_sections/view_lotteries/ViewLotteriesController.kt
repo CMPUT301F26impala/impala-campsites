@@ -29,7 +29,7 @@ class ViewLotteriesController(val model: ViewLotteriesModel) : Controller {
      */
     fun onLotteryPress(item: LotteryListItem, navController: NavController) {
         if (model.viewMode == UserViewMode.CAMPSITE_OWNER) {
-            navController.navigate("editLottery/${item.lottery.id}")
+            navController.navigate("lottery/${item.lottery.id}")
         }
     }
 
