@@ -5,6 +5,11 @@ import com.google.firebase.firestore.firestore
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.tasks.await
 
+/**
+ * Repository for storing Messages between Owners and Entrants who reserved campsites
+ *
+ * Follows singleton pattern
+ */
 object MessagesRepository {
     private val collection by lazy { Firebase.firestore.collection("messages") }
 
