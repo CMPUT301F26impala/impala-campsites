@@ -38,9 +38,8 @@ class MessagesRepository {
      * @param isFromOwner Flag to tell who is sending
      * @param model MessagesModel to use for chat
      */
-    suspend fun sendMessage(message: String,isFromOwner: Boolean,model: MessagesModel): Unit{
+    fun sendMessage(message: String,isFromOwner: Boolean,model: MessagesModel): Unit{
         model.messageThread.addLast(MessageModel(message,isFromOwner))
         model.save()
     }
-
 }

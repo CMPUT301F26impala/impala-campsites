@@ -39,11 +39,13 @@ class MessagesTest {
         assertEquals("Should return the one already created when called again",sameAsStored,stored)
     }
 
-//    @Test
-//    fun sendMessage():Unit = runBlocking {
-//        val stored = repo.getOrCreateThreadByReservation("resoID")
-//        assertNotNull("Thread should exist after creating", stored)
-//
-//        repo.sendMessage()
-//    }
+    @Test
+    fun sendMessage():Unit = runBlocking {
+        var stored = repo.getOrCreateThreadByReservation("resoID")
+        assertNotNull("Thread should exist after creating", stored)
+
+        repo.sendMessage("Hello tenet, welcome to the lodge",true,stored)
+        stored = repo.getOrCreateThreadByReservation("resoID")
+        assertEquals("Hello tenet, welcome to the lodge",stored.messageThread[0].body)
+    }
 }
