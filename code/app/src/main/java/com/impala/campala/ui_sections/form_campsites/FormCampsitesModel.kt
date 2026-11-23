@@ -1,10 +1,15 @@
 package com.impala.campala.ui_sections.form_campsites
 
+import android.net.Uri
+import com.google.firebase.firestore.Blob
+import com.impala.campala.ImageCompressor
 import com.impala.campala.ObservableModel
 import com.impala.campala.User
 import com.impala.campala.model.CampsiteModel
 import com.impala.campala.model.CampsiteOwnerProfileRepository
 import com.impala.campala.model.CampsiteRepository
+import com.impala.campala.model.ImageModel
+import com.impala.campala.model.ImageRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
@@ -16,6 +21,7 @@ import kotlinx.coroutines.launch
  *
  * @param repo CampsiteRepository consisting of all campsites
  * @param campsiteOwnerProfileRepo Repository of campsite owner profiles. Used for saving new campsites to a User's profile
+ * @param imageCompressor Used to shrink the picked image before it's saved
  * @param User the authorized User editing the form
  * @param scope the CoroutineScope used for Firebase operations
  * @param campsite campsite whose data will be edited, passed as null in creation mode
@@ -25,9 +31,12 @@ import kotlinx.coroutines.launch
  * @property description The description to go on the campsite
  * @property maximumOccupancy The maximum occupancy to go on the campsite
  * @property tags The list of tags to go on the campsite
+ * @property unsavedImage The image picked by a form, not uploaded yet
+ * @property existingImageBytes The campsite's current saved image, null when creating a campsite or if it has no image
  * @property wasCampsiteSavedSuccessfully True if the new campsite was saved to the database successfully
  */
 class FormCampsitesModel(
+    val imageCompressor: ImageCompressor,
     val scope: CoroutineScope,
     var campsite: CampsiteModel? = null
 ): ObservableModel<FormCampsitesModel>() {
@@ -37,6 +46,8 @@ class FormCampsitesModel(
     var description = campsite?.description ?: ""
     var maximumOccupancy = campsite?.maxOccupancy?.toString() ?: ""
     var tags = campsite?.tags?.toMutableList() ?: mutableListOf()
+    var unsavedImage: Uri? = null
+    var existingImageBytes: ByteArray? = null
 
     // if campsite was saved successfully
     var wasCampsiteSavedSuccessfully = false
@@ -106,9 +117,20 @@ class FormCampsitesModel(
     }
 
     /**
+     * Holds the image picked in the form until the campsite is saved
+     *
+     * @param imageUri content Uri of the image the user picked
+     */
+    fun updateUnsavedImage(imageUri: Uri) {
+        unsavedImage = imageUri
+        notifyObservers(this)
+    }
+
+    /**
      * Prepares the model for creating a new campsite by clearing the form's fields
      */
     fun startNewCampsite() {
+        existingImageBytes = null
         setFields(null)
     }
 
@@ -118,7 +140,10 @@ class FormCampsitesModel(
      * @param campsiteId ID of the campsite being edited
      */
     suspend fun loadCampsite(campsiteId: String) {
-        setFields(CampsiteRepository.getCampsiteById(campsiteId))
+        val loadedCampsite = CampsiteRepository.getCampsiteById(campsiteId)
+        val imageId = loadedCampsite?.imageId ?: ""
+        existingImageBytes = if (imageId.isNotEmpty()) ImageRepository.getImageById(imageId)?.data?.toBytes() else null
+        setFields(loadedCampsite)
     }
 
     // Updated the fields in the form with the data that was passed, and set to null for clearing them
@@ -131,11 +156,13 @@ class FormCampsitesModel(
         description = newCampsite?.description ?: ""
         maximumOccupancy = newCampsite?.maxOccupancy?.toString() ?: ""
         tags = newCampsite?.tags?.toMutableList() ?: mutableListOf()
+        unsavedImage = null
         notifyObservers(this)
     }
 
     /**
      * Create or update a campsite using the form's values.
+     * If an image was picked, it's compressed and saved first, and replaces the campsite's old image.
      * Adds the campsite Id to the User's campsite owner profile, then notifies the view
      */
     fun saveCampsite() {
@@ -170,7 +197,20 @@ class FormCampsitesModel(
 
         //save to firebase
         scope.launch {
+            val imageUri = unsavedImage
+            val oldImageId = existingCampsite?.imageId ?: ""
+            if (imageUri != null) {
+                val image = ImageModel(data = Blob.fromBytes(imageCompressor.compress(imageUri)))
+                ImageRepository.saveImage(image)
+                updatedCampsite.imageId = image.id
+            }
+
             CampsiteRepository.saveCampsite(updatedCampsite)
+
+            // Now that the campsite points to the new image, the old one isn't used anywhere
+            if (imageUri != null && oldImageId.isNotEmpty()) {
+                ImageRepository.deleteImage(oldImageId)
+            }
             // If this is a new campsite, make sure to actually add it to the campsite owner profile too
             if (existingCampsite == null) {
                 CampsiteOwnerProfileRepository.getCampsiteOwnerProfileById(User.getUID())?.let {

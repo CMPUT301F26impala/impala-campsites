@@ -1,5 +1,9 @@
 package com.impala.campala.ui_sections.form_campsites
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -33,6 +37,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.navigation.NavController
+import com.impala.campala.ImageDisplay
 import com.impala.campala.ViewObserver
 
 
@@ -59,6 +64,8 @@ class FormCampsitesView(
     private var tags by mutableStateOf<List<String>>(emptyList())
     private var tagInput by mutableStateOf("")
     private var isEditing by mutableStateOf(false)
+    private var existingImageBytes by mutableStateOf<ByteArray?>(null)
+    private var hasPendingImage by mutableStateOf(false)
     private var wasCampsiteSavedSuccessfully by mutableStateOf(false)
 
     /**
@@ -73,6 +80,8 @@ class FormCampsitesView(
         maximumOccupancy = model.maximumOccupancy
         tags = model.tags.toList()
         isEditing = model.campsite != null
+        existingImageBytes = model.existingImageBytes
+        hasPendingImage = model.unsavedImage != null
         wasCampsiteSavedSuccessfully = model.wasCampsiteSavedSuccessfully
     }
 
@@ -91,6 +100,14 @@ class FormCampsitesView(
     fun Render(navController: NavController, campsiteId: String? = null) {
         LaunchedEffect(campsiteId) {
             controller.onOpen(campsiteId)
+        }
+        // https://developer.android.com/training/data-storage/shared/photo-picker#compose
+        val imagePicker = rememberLauncherForActivityResult(
+            ActivityResultContracts.PickVisualMedia()
+        ) { uri ->
+            if (uri != null) {
+                controller.onUploadImage(uri)
+            }
         }
         LaunchedEffect(wasCampsiteSavedSuccessfully) {
             if (wasCampsiteSavedSuccessfully == true) {
@@ -222,24 +239,39 @@ class FormCampsitesView(
                     }
                 }
 
-                // image white placeholder, will be changed later
+                // Shows the campsite's current image (white if it has none)
+                // Since images only get turned from Uri to ByteArray once you hit save, we can't really show it in the meantime
+                // So it just say "New image"
                 item {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(150.dp)
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(Color.White)
-                    )
+                    val imageModifier = Modifier
+                        .fillMaxWidth()
+                        .height(150.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                    if (hasPendingImage) {
+                        Box(
+                            modifier = imageModifier.background(Color.White),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text("New image pending save", color = Color.DarkGray)
+                        }
+                    } else {
+                        ImageDisplay(imageBytes = existingImageBytes, modifier = imageModifier)
+                    }
                 }
 
-                // button to pick an image from gallery
+                // This button just launched the image picker popup defined above in the file
                 item {
                     Text(
-                        text = "Upload Alternative Image",
+                        text = "Upload Image",
                         color = MaterialTheme.colorScheme.primary,
                         textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                imagePicker.launch(
+                                    PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                                )
+                            }
                     )
                 }
             } // personal reference, end of lazy column here

@@ -11,6 +11,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import com.impala.campala.ui_sections.search_campsites.SearchCampsitesController
 import com.impala.campala.ui_sections.search_campsites.SearchCampsitesModel
 import com.impala.campala.ui_sections.search_campsites.SearchCampsitesView
@@ -64,6 +65,8 @@ fun SignedInApp() {
     // Here, remember basically means "make this one, and even if this rerenders use the old version"
     // That way, we aren't recreating these classes a bunch of times.
     val coroutineScope = rememberCoroutineScope()
+    val contentResolver = LocalContext.current.contentResolver
+    val imageCompressor = remember { ImageCompressor(contentResolver) }
 
     val searchCampsitesModel = remember { SearchCampsitesModel(coroutineScope, SearchCampsitesViewMode.ENTRANT) }
     val searchCampsitesController = remember { SearchCampsitesController(searchCampsitesModel) }
@@ -76,7 +79,7 @@ fun SignedInApp() {
     val ownerSearchCampsitesView = remember { SearchCampsitesView(ownerSearchCampsitesController) }
     ownerSearchCampsitesModel.addObserver(ownerSearchCampsitesView)
 
-    val formCampsitesModel = remember { FormCampsitesModel(coroutineScope) }
+    val formCampsitesModel = remember { FormCampsitesModel(imageCompressor, coroutineScope) }
     val formCampsitesController = remember { FormCampsitesController(formCampsitesModel) }
     val formCampsitesView = remember { FormCampsitesView(formCampsitesController) }
     formCampsitesModel.addObserver((formCampsitesView))
