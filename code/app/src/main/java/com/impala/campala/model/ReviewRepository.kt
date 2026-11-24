@@ -27,6 +27,17 @@ object ReviewRepository {
     }
 
     /**
+     * Gathers all reviews left by entrants across all campsites for a list of reviews
+     *
+     * @return list of all the reviews
+     */
+    suspend fun fetchAllStoredReviews(): List<ReviewModel> {
+        val allStoredReviewDocuments = collection.get().await()
+        val allRetrievedCampsiteReviews = allStoredReviewDocuments.map { ReviewModel.load(it) }
+        return allRetrievedCampsiteReviews
+    }
+
+    /**
      * Saves a review to the database
      *
      * @param review ReviewModel to be saved
