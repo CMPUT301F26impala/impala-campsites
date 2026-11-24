@@ -13,6 +13,9 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import com.impala.campala.ui_sections.admin_images.AdminImagesController
+import com.impala.campala.ui_sections.admin_images.AdminImagesModel
+import com.impala.campala.ui_sections.admin_images.AdminImagesView
 import com.impala.campala.ui_sections.admin_reviews.AdminReviewsController
 import com.impala.campala.ui_sections.admin_reviews.AdminReviewsModel
 import com.impala.campala.ui_sections.admin_reviews.AdminReviewsView
@@ -43,7 +46,6 @@ import com.impala.campala.ui_sections.owner_notifs.OwnerNotifsView
 import com.impala.campala.ui_sections.search_campsites.SearchCampsitesController
 import com.impala.campala.ui_sections.search_campsites.SearchCampsitesModel
 import com.impala.campala.ui_sections.search_campsites.SearchCampsitesView
-import com.impala.campala.ui_sections.search_campsites.SearchCampsitesViewMode
 import com.impala.campala.ui_sections.see_reservation.SeeReservationsController
 import com.impala.campala.ui_sections.see_reservation.SeeReservationsModel
 import com.impala.campala.ui_sections.see_reservation.SeeReservationsView
@@ -91,7 +93,11 @@ fun SignedInApp(deepLinkCampsiteId: String? = null, onDeepLinkHandled: () -> Uni
     var currentRole by remember { mutableStateOf(User.getCurrentRole()) }
     // This is true either if it's first-app-open or if the User requested to change view modes / roles
     // If they have never had an entrant or campsite owner profile, they're new and should start on the choose role screen
-    var needsRoleChoice by remember { mutableStateOf(!User.getHasCreatedEntrantProfile() && !User.getHasCreatedCampsiteOwnerProfile()) }
+    // A banned campsite owner also has to pick a different role
+    var needsRoleChoice by remember { mutableStateOf(
+        (!User.getHasCreatedEntrantProfile() && !User.getHasCreatedCampsiteOwnerProfile())
+            || (currentRole == UserViewMode.CAMPSITE_OWNER && !User.getHasActiveCampsiteOwnerProfile())
+    ) }
 
     // Here, remember basically means "make this one, and even if this rerenders use the old version"
     // That way, we aren't recreating these classes a bunch of times.
@@ -99,19 +105,11 @@ fun SignedInApp(deepLinkCampsiteId: String? = null, onDeepLinkHandled: () -> Uni
     val contentResolver = LocalContext.current.contentResolver
     val imageCompressor = remember { ImageCompressor(contentResolver) }
 
-    val searchCampsitesModel =
-        remember { SearchCampsitesModel(coroutineScope, SearchCampsitesViewMode.ENTRANT) }
+    // Shared by all three navs, it checks User.getCurrentRole() to decide between the entrant, campsite owner, and admin UI
+    val searchCampsitesModel = remember { SearchCampsitesModel(coroutineScope) }
     val searchCampsitesController = remember { SearchCampsitesController(searchCampsitesModel) }
     val searchCampsitesView = remember { SearchCampsitesView(searchCampsitesController) }
     searchCampsitesModel.addObserver(searchCampsitesView)
-
-    // Same screen as above, but in campsite owner mode it only shows the User's own campsites and has the Add Campsite button
-    val ownerSearchCampsitesModel =
-        remember { SearchCampsitesModel(coroutineScope, SearchCampsitesViewMode.CAMPSITE_OWNER) }
-    val ownerSearchCampsitesController =
-        remember { SearchCampsitesController(ownerSearchCampsitesModel) }
-    val ownerSearchCampsitesView = remember { SearchCampsitesView(ownerSearchCampsitesController) }
-    ownerSearchCampsitesModel.addObserver(ownerSearchCampsitesView)
 
     val formCampsitesModel = remember { FormCampsitesModel(imageCompressor, coroutineScope) }
     val formCampsitesController = remember { FormCampsitesController(formCampsitesModel) }
@@ -170,10 +168,16 @@ fun SignedInApp(deepLinkCampsiteId: String? = null, onDeepLinkHandled: () -> Uni
     val ownerNotifsView = remember { OwnerNotifsView(ownerNotifsController) }
     ownerNotifsModel.addObserver(ownerNotifsView)
 
+    val adminImagesModel = remember { AdminImagesModel(coroutineScope) }
+    val adminImagesController = remember { AdminImagesController(adminImagesModel) }
+    val adminImagesView = remember { AdminImagesView(adminImagesController) }
+    adminImagesModel.addObserver(adminImagesView)
+
     val adminReviewsModel = remember { AdminReviewsModel(coroutineScope) }
     val adminReviewsController = remember { AdminReviewsController(adminReviewsModel) }
     val adminReviewsView = remember { AdminReviewsView(adminReviewsController) }
     adminReviewsModel.addObserver(adminReviewsView)
+
     // Opening a QR code is an entrant thing, so we have to switch to entrant mode to open its
     LaunchedEffect(deepLinkCampsiteId) {
         if (deepLinkCampsiteId != null) {
@@ -208,7 +212,7 @@ fun SignedInApp(deepLinkCampsiteId: String? = null, onDeepLinkHandled: () -> Uni
                 onSwitchRole = { needsRoleChoice = true })
 
             UserViewMode.CAMPSITE_OWNER -> CampsiteOwnerNavigationRoot(
-                searchCampsitesScreen = ownerSearchCampsitesView,
+                searchCampsitesScreen = searchCampsitesView,
                 campsiteDetailsScreen = campsiteDetailsView,
                 formCampsitesScreen = formCampsitesView,
                 formLotteriesScreen = formLotteriesView,
@@ -219,6 +223,9 @@ fun SignedInApp(deepLinkCampsiteId: String? = null, onDeepLinkHandled: () -> Uni
                 onSwitchRole = { needsRoleChoice = true })
 
             UserViewMode.ADMIN -> AdminNavigationRoot(
+                searchCampsitesScreen = searchCampsitesView,
+                campsiteDetailsScreen = campsiteDetailsView,
+                adminImagesScreen = adminImagesView,
                 adminReviewsScreen = adminReviewsView,
                 onSwitchRole = { needsRoleChoice = true })
 

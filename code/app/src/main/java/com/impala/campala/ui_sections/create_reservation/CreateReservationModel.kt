@@ -104,7 +104,7 @@ class CreateReservationModel(
             // I know how to write this kind of parralel async code in Javascript and so I described what I wanted and it helped me with this Kotlin
             availableCampsites = lottery.campsiteIds.map { campsiteId ->
                 async { CampsiteRepository.getCampsiteById(campsiteId) }
-            }.awaitAll().filterNotNull()
+            }.awaitAll().filterNotNull().filter { !it.hasBeenDeleted }
 
             if (availableCampsites.size == 1) {
                 // If there's only one campsite, we auto-select it and then check it's dates

@@ -5,6 +5,8 @@ rules_version = '2';
 // So I prompted Claude Opus 5.5 in the Claude Code Harness with the following
 // "Analyze our usage of our data structures and generate a set of firestore rules so that we can restore access to cloud firestore and also just generally have good security"
 // It generated the below rules, as well as generated the firestore.indexes.json file, and it added one more piece of instrumentation to build.gradle.kts to NOT use these rules on the local emulator
+// Later, Claude Opus 5.5 was prompted with "Can you fix the firebase rules to be fully up to date with what the app has here"
+// and it added the messages and notifications sections, which were missing so the app couldn't use those collections
 // Security rules for Campala.
 //
 // Every user signs in (anonymously) when the app starts, so request.auth.uid is the
@@ -133,8 +135,11 @@ service cloud.firestore {
         && validCampsite(request.resource.data);
 
       // Only the owner can edit it, and they can't hand it to someone else
+      // Only an admin can delete it, and the owner can't edit it after
       allow update: if (
-          (isSelf(resource.data.ownerId) || isAdmin())
+          (isAdmin() || (isSelf(resource.data.ownerId)
+            && !resource.data.get('hasBeenDeleted', false)
+            && !request.resource.data.get('hasBeenDeleted', false)))
           && unchanged('ownerId')
           && unchanged('id')
           && validCampsite(request.resource.data)
@@ -182,6 +187,11 @@ service cloud.firestore {
         && d.lotteryEndTime <= d.registrationEndTime
         && d.registrationStartTime <= d.registrationEndTime
         && d.reservationStartDate <= d.reservationEndDate;
+    }
+
+    function onlyRemovesCampsites() {
+      return request.resource.data.campsiteIds.toSet()
+        .difference(resource.data.campsiteIds.toSet()).size() == 0;
     }
 
     function participants(d) {
@@ -237,6 +247,8 @@ service cloud.firestore {
           && unchanged('ownerId')
           && (unchanged('campsiteIds') || ownsAllCampsites(request.resource.data.campsiteIds))
         )
+        // An admin can remove a deleted campsite from a lottery
+        || (isAdmin() && unchanged('ownerId') && onlyRemovesCampsites())
         // Everyone else can only add or remove themselves, or decline their own win
         || (signedIn() && (onlyJoinsOrLeavesSelf() || onlyDeclinesOwnWin()))
       );
@@ -303,6 +315,7 @@ service cloud.firestore {
         && request.resource.data.hasBeenCancelled == false
         // ownerId has to really be the owner, so it shows up on their reservations screen
         && campsiteData(request.resource.data.campsiteId).get('ownerId', '') == request.resource.data.ownerId
+        && !campsiteData(request.resource.data.campsiteId).get('hasBeenDeleted', false)
         && (request.resource.data.get('lotteryId', null) == null
             || wonLotteryFor(request.resource.data.lotteryId, request.resource.data.campsiteId));
 
@@ -320,6 +333,99 @@ service cloud.firestore {
       allow delete: if isSelf(resource.data.entrantId)
         || isSelf(resource.data.ownerId)
         || isAdmin();
+    }
+
+    // --------------------------------------------------------------- messages
+
+    // One chat thread per reservation (MessagesModel), stored under the reservation's ID.
+    // Only the entrant and owner on that reservation (and admins) can see or use it
+
+    function inThread(d) {
+      return isSelf(d.ownerId) || isSelf(d.entrantId);
+    }
+
+    // Firestore saves the Kotlin property FromOwner as "fromOwner" (it lowercases the
+    // getter name), so both spellings are accepted
+    function sentByOwner(m) {
+      return m.get('fromOwner', m.get('FromOwner', null));
+    }
+
+    // A single message (MessageModel). FromOwner has to match who is really sending it
+    function validMessage(m, d) {
+      return m.keys().hasOnly(['body', 'fromOwner', 'FromOwner'])
+        && m.body is string && m.body.size() <= 2000
+        && sentByOwner(m) is bool
+        && ((sentByOwner(m) == true && isSelf(d.ownerId))
+            || (sentByOwner(m) == false && isSelf(d.entrantId)));
+    }
+
+    // MessagesRepository.sendMessage saves the whole thread with the new message on the
+    // end, so the old messages must be unchanged and exactly one message added
+    function onlyAppendsOneMessage() {
+      let before = resource.data.messageThread;
+      let after = request.resource.data.messageThread;
+      return changedKeys().hasOnly(['messageThread'])
+        && after is list
+        && after.size() == before.size() + 1
+        && after[0:before.size()] == before
+        && validMessage(after[after.size() - 1], resource.data);
+    }
+
+    match /messages/{reservationId} {
+      // getOrCreateThreadByReservation reads the thread before it exists, so a
+      // missing document can be read (it just comes back empty)
+      allow read: if signedIn()
+        && (resource == null || inThread(resource.data) || isAdmin());
+
+      // The thread is created by the first sendMessage, and has to match its reservation
+      allow create: if inThread(request.resource.data)
+        && request.resource.data.keys().hasOnly(['ownerId', 'entrantId', 'reservationId', 'messageThread'])
+        && request.resource.data.reservationId == reservationId
+        && get(/databases/$(database)/documents/reservations/$(reservationId)).data.ownerId == request.resource.data.ownerId
+        && get(/databases/$(database)/documents/reservations/$(reservationId)).data.entrantId == request.resource.data.entrantId
+        && request.resource.data.messageThread is list
+        && request.resource.data.messageThread.size() <= 1
+        && (request.resource.data.messageThread.size() == 0
+            || validMessage(request.resource.data.messageThread[0], request.resource.data));
+
+      allow update: if inThread(resource.data) && onlyAppendsOneMessage();
+
+      // MessagesRepository.deleteThread
+      allow delete: if inThread(resource.data) || isAdmin();
+    }
+
+    // ---------------------------------------------------------- notifications
+
+    // Notifications (NotificationModel) are written by the app and delivered to the
+    // receivers' devices. sender is the UID of whoever sent it
+
+    function validNotification(d) {
+      return d.keys().hasOnly(['title', 'body', 'sender', 'receivers', 'sent', 'id'])
+        && d.title is string && d.title.size() <= 200
+        && d.body is string && d.body.size() <= 2000
+        && d.receivers is list && d.receivers.size() >= 1 && d.receivers.size() <= 500
+        && d.sent is bool;
+    }
+
+    match /notifications/{notificationId} {
+      // The sender sees what they sent (OwnerNotifsModel queries by sender),
+      // and receivers can see notifications sent to them
+      allow read: if isSelf(resource.data.sender)
+        || (signedIn() && request.auth.uid in resource.data.receivers)
+        || isAdmin();
+
+      // Anyone can notify themselves (CreateReservationController), but only
+      // campsite owners can notify other people (WaitlistController)
+      allow create: if isSelf(request.resource.data.sender)
+        && request.resource.data.id == notificationId
+        && validNotification(request.resource.data)
+        && (request.resource.data.receivers == [request.auth.uid] || hasOwnerProfile());
+
+      // The app never edits a notification after sending it. Marking one as sent
+      // is left to the server, which isn't limited by these rules
+      allow update: if false;
+
+      allow delete: if isSelf(resource.data.sender) || isAdmin();
     }
   }
 }

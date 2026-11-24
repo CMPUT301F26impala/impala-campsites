@@ -21,6 +21,7 @@ import kotlin.uuid.Uuid
  * @param imageId ID of the campsite's image in the images collection, empty if it has no image
  * @param tags A list of Strings with relevant tags
  * @param rules A string containing campsite rules
+ * @param hasBeenDeleted True once an admin has deleted the campsite, the document is kept so past reservations can still show it
  * @param id The ID of the campsite connecting it to an entry in the database
  *
  * @property doc A reference to the Firebase document containing this object
@@ -38,6 +39,7 @@ data class CampsiteModel @OptIn(ExperimentalUuidApi::class) constructor(
     // ratingCount is the number of ratings, the average is just total / count (use the getter below)
     var ratingTotal: Double = 0.0,
     var ratingCount: Int = 0,
+    var hasBeenDeleted: Boolean = false,
     var ownerId: String = "", // UID of the campsite owner who created it, the Firestore security rules use this to decide who can edit/delete it
     var id: String = Uuid.random().toString()
 ) {

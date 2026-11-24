@@ -83,7 +83,7 @@ fun CampsiteOwnerNavigationRoot(
             val campsiteId = backStackEntry.arguments?.getString("campsiteId") ?: ""
             // Scaffold is just here so the screen respects the status bar / nav bar insets
             Scaffold { padding ->
-                Box(Modifier.padding(padding)) {
+                Box(Modifier.padding(bottom = padding.calculateBottomPadding())) {
                     campsiteDetailsScreen.Render(navController, campsiteId)
                 }
             }
