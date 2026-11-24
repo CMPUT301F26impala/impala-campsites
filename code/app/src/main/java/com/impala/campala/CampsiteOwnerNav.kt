@@ -41,7 +41,6 @@ import com.impala.campala.ui_sections.owner_notifs.OwnerNotifsView
 import com.impala.campala.ui_sections.search_campsites.SearchCampsitesView
 import com.impala.campala.ui_sections.see_reservation.SeeReservationsView
 import com.impala.campala.ui_sections.view_lotteries.ViewLotteriesView
-import com.impala.campala.ui_sections.waitlist.WaitlistView
 
 /**
  * Composable class that sets up the navigation for a user signed in as a Campsite Owner
@@ -62,7 +61,6 @@ fun CampsiteOwnerNavigationRoot(
     viewLotteriesScreen: ViewLotteriesView,
     seeReservationsScreen: SeeReservationsView,
     lotteryDetailsView: LotteryDetailsView,
-    waitlistView: WaitlistView,
     ownerNotifsView: OwnerNotifsView,
     onSwitchRole: () -> Unit
 ) {
@@ -96,15 +94,6 @@ fun CampsiteOwnerNavigationRoot(
             Scaffold { padding ->
                 Box(Modifier.padding(padding)) {
                     lotteryDetailsView.Render(navController, lotteryId)
-                }
-            }
-        }
-        composable("waitlist/{lotteryId}") { backStackEntry ->
-            val lotteryId = backStackEntry.arguments?.getString("lotteryId") ?: ""
-            // Scaffold is just here so the screen respects the status bar / nav bar insets
-            Scaffold { padding ->
-                Box(Modifier.padding(padding)) {
-                    waitlistView.Render(navController, lotteryId)
                 }
             }
         }

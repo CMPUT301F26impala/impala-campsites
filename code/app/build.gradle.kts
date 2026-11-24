@@ -41,9 +41,16 @@ android {
     }
 }
 
+// After trying to get unit testing working, I asked Claude Opus 5.5 "Audit my gitub actions code and just let me know if testing will work"
+// It pointed out that I need to disable the firebase stuff on CI (atleast until we come up with a real solution for emulating a device on github actions)
+// So that's what this does
+val isCi = providers.environmentVariable("CI").isPresent
+
 afterEvaluate {
-    tasks.named("preDebugBuild") {
-        dependsOn(rootProject.tasks.named("startFirebaseEmulators"))
+    if (!isCi) {
+        tasks.named("preDebugBuild") {
+            dependsOn(rootProject.tasks.named("startFirebaseEmulators"))
+        }
     }
 }
 
@@ -77,4 +84,5 @@ dependencies {
     testImplementation(libs.kotlinx.coroutines.test)
     implementation(libs.androidx.compose.foundation.layout)
     implementation(libs.firebase.messaging)
+    implementation("io.github.g0dkar:qrcode-kotlin:4.5.0")
 }
