@@ -62,7 +62,7 @@ fun AdminNavigationRoot(
         composable("campsite/{campsiteId}") { backStackEntry ->
             val campsiteId = backStackEntry.arguments?.getString("campsiteId") ?: ""
             Scaffold { padding ->
-                Box(Modifier.padding(padding)) {
+                Box(Modifier.padding(bottom = padding.calculateBottomPadding())) {
                     campsiteDetailsScreen.Render(navController, campsiteId)
                 }
             }
