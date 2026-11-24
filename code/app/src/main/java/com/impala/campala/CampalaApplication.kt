@@ -16,8 +16,8 @@ class CampalaApplication : Application() {
         super.onCreate()
 
         if (BuildConfig.DEBUG) {
-//            FirebaseFirestore.getInstance().useEmulator("127.0.0.1", 8080)
-//            FirebaseAuth.getInstance().useEmulator("127.0.0.1",9099)
+            FirebaseFirestore.getInstance().useEmulator("127.0.0.1", 8080)
+            FirebaseAuth.getInstance().useEmulator("127.0.0.1",9099)
         }
     }
 }

@@ -20,12 +20,12 @@ class ViewLotteriesController(val model: ViewLotteriesModel) : Controller {
     }
 
     /**
-     * Called when a campsite owner taps a lottery row, takes them to the edit lottery screen
+     * Called when a campsite owner taps a lottery row, takes them to the lottery details screen
      *
      * For entrants this does nothing
      *
      * @param item the lottery row that was tapped
-     * @param navController the root NavController, assumes 'editLottery/{id}' is on this nav stack
+     * @param navController the root NavController, assumes 'lottery/{id}' is on this nav stack
      */
     fun onLotteryPress(item: LotteryListItem, navController: NavController) {
         if (model.viewMode == UserViewMode.CAMPSITE_OWNER) {
