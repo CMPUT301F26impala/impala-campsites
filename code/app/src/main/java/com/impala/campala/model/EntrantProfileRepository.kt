@@ -38,6 +38,56 @@ object EntrantProfileRepository {
     }
 
     /**
+     * finds user who have either an active entrant or campsite owner profile, and then gets their details
+     *
+     * @return A list containing active profiles which admin can see later
+     */
+    suspend fun getAdminProfiles(): List<AdminProfileModel> {
+        val allUserDocuments = db.collection("users").get().await()
+        val allEntrantProfiles = db.collection("entrants").get().await().toObjects(EntrantProfileModel::class.java)
+
+        val entrantProfilesByUserId = allEntrantProfiles.associateBy { it.userId }
+
+        val activeAdminDisplayProfiles = mutableListOf<AdminProfileModel>()
+
+        for (currentUserDocument in allUserDocuments.documents) {
+            val hasActiveEntrantProfile = currentUserDocument.getBoolean("hasActiveEntrantProfile") == true
+            val hasActiveCampsiteOwnerProfile = currentUserDocument.getBoolean("hasActiveCampsiteOwnerProfile") == true
+            // dont have entrant and campsite owner profile
+            if (!hasActiveEntrantProfile && !hasActiveCampsiteOwnerProfile) { continue }
+
+            val matchingEntrantProfile = entrantProfilesByUserId[currentUserDocument.id]
+            var profileDisplayName = ""
+            var profileEmailAddress = ""
+            var profilePhoneNumber = ""
+            var profilePictureImageId = ""
+
+            // if the matching profile exists then update with that data or and if it doesn;t we use the saved display name
+            if (matchingEntrantProfile != null) {
+                profileDisplayName = matchingEntrantProfile.name
+                profileEmailAddress = matchingEntrantProfile.email
+                profilePhoneNumber = matchingEntrantProfile.phoneNumber
+                profilePictureImageId = matchingEntrantProfile.imageId
+            } else {
+                val savedUserDisplayName = currentUserDocument.getString("userName")
+                if (savedUserDisplayName != null) { profileDisplayName = savedUserDisplayName }
+            }
+
+            val currentAdminDisplayProfile = AdminProfileModel(
+                userId = currentUserDocument.id,
+                name = profileDisplayName,
+                email = profileEmailAddress,
+                phoneNumber = profilePhoneNumber,
+                imageId = profilePictureImageId,
+                hasAnActiveEntrantProfile = hasActiveEntrantProfile,
+                hasAnActiveCampsiteOwnerProfile = hasActiveCampsiteOwnerProfile
+            )
+            activeAdminDisplayProfiles.add(currentAdminDisplayProfile)
+        }
+        return activeAdminDisplayProfiles
+    } // end of get admin profiles function for personal reference
+
+    /**
      * Creates the entrant profile for a user, and marks the user as having one
      *
      * @param user The User object the profile is being made for
