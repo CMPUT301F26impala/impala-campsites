@@ -25,6 +25,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -35,6 +36,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.impala.campala.ImageDisplay
@@ -262,7 +264,12 @@ class CampsiteDetailsView(val controller: CampsiteDetailsController): ViewObserv
         BasicAlertDialog(
             onDismissRequest = { qrShowing = false },
         ) {
-            ImageDisplay(qrCode!!.renderToBytes())
+            Surface(shape = MaterialTheme.shapes.large, color = Color.White) {
+                ImageDisplay(
+                    imageBytes = qrCode!!.renderToBytes(),
+                    modifier = Modifier.padding(24.dp).size(256.dp)
+                )
+            }
         }
     }
 }
