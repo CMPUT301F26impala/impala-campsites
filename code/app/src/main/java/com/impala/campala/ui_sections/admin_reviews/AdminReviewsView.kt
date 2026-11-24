@@ -10,10 +10,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -61,7 +59,7 @@ class AdminReviewsView(val controller: AdminReviewsController) : ViewObserver<Ad
             Text("No reviews yet", style = MaterialTheme.typography.bodyMedium)
         } else {
             LazyColumn(
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                verticalArrangement = Arrangement.spacedBy(24.dp)
             ) {
                 items(reviews, key = { it.id }) { review ->
                     RenderReview(review)
@@ -89,28 +87,29 @@ class AdminReviewsView(val controller: AdminReviewsController) : ViewObserver<Ad
 
     @Composable
     private fun RenderReview(review: ReviewModel) {
-        Card(modifier = Modifier.fillMaxWidth()) {
-            Row(
-                modifier = Modifier.padding(12.dp),
-                verticalAlignment = Alignment.Top
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
+            verticalAlignment = Alignment.Top
+        ) {
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                Column(
-                    modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    CardDetail(Icons.Default.LocationOn, campsiteNames[review.campsiteId] ?: "Unknown campsite")
-                    CardDetail(Icons.Default.Star, "%.1f Stars".format(review.rating))
-                    if (review.reviewText.isNotBlank()) {
-                        Text(review.reviewText, style = MaterialTheme.typography.bodyMedium)
-                    }
+                Text(
+                    campsiteNames[review.campsiteId] ?: "Unknown campsite",
+                    style = MaterialTheme.typography.headlineSmall
+                )
+                CardDetail(Icons.Default.Star, "%.1f Stars".format(review.rating))
+                if (review.reviewText.isNotBlank()) {
+                    Text(review.reviewText, style = MaterialTheme.typography.bodyLarge)
                 }
-                IconButton(onClick = { pendingDelete = review }) {
-                    Icon(
-                        Icons.Default.Delete,
-                        contentDescription = "Delete review",
-                        tint = MaterialTheme.colorScheme.error
-                    )
-                }
+            }
+            IconButton(onClick = { pendingDelete = review }) {
+                Icon(
+                    Icons.Default.Delete,
+                    contentDescription = "Delete review",
+                    tint = MaterialTheme.colorScheme.tertiary
+                )
             }
         }
     }
