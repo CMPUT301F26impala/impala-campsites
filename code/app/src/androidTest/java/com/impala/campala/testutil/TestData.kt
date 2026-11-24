@@ -159,7 +159,7 @@ private suspend fun writeUserDoc(uid: String, role: UserViewMode) {
  * @return The same campsite, so it can be saved and assigned in one line
  */
 suspend fun seedCampsite(campsite: CampsiteModel): CampsiteModel {
-    CampsiteRepository().saveCampsite(campsite)
+    CampsiteRepository.saveCampsite(campsite)
     if (campsite.ownerId.isNotBlank()) {
         addToOwnerProfile(campsite.ownerId, "ownedCampsites", campsite.id)
     }
@@ -175,7 +175,7 @@ suspend fun seedCampsite(campsite: CampsiteModel): CampsiteModel {
  * @return The same lottery, so it can be saved and assigned in one line
  */
 suspend fun seedLottery(lottery: LotteryModel): LotteryModel {
-    LotteryRepository().saveLottery(lottery)
+    LotteryRepository.saveLottery(lottery)
     addToOwnerProfile(lottery.ownerId, "ownedLotteries", lottery.id)
     return lottery
 }
