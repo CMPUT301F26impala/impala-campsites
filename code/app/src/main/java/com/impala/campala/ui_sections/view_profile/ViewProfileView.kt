@@ -43,6 +43,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.impala.campala.ImageDisplay
 import com.impala.campala.ViewObserver
+import androidx.activity.compose.BackHandler
 
 /**
  * The view for the 'Profile' tab on the entrant screen
@@ -57,6 +58,9 @@ class ViewProfileView(val controller: ViewProfileController) : ViewObserver<View
     private var imageBytes by mutableStateOf<ByteArray?>(null)
     private var showingDeleteConfirmation by mutableStateOf(false)
     private val isViewingProfileAsAdmin = controller.model.selectedAdminProfile != null
+    private var isCurrentlyDeletingProfile by mutableStateOf(false)
+    private var wasProfileDeletedSuccessfully by mutableStateOf(false)
+    private var wasProfileDeletionUnsuccessful by mutableStateOf(false)
 
     override fun update(model: ViewProfileModel) {
         val selectedUserProfile = model.selectedAdminProfile
@@ -72,6 +76,9 @@ class ViewProfileView(val controller: ViewProfileController) : ViewObserver<View
         }
         this.imageBytes = model.imageBytes
         this.showingDeleteConfirmation = model.showingDeleteConfirmation
+        this.isCurrentlyDeletingProfile = model.isCurrentlyDeletingProfile
+        this.wasProfileDeletedSuccessfully = model.wasProfileDeletedSuccessfully
+        this.wasProfileDeletionUnsuccessful = model.wasProfileDeletionUnsuccessful
     }
 
     /**
@@ -84,6 +91,12 @@ class ViewProfileView(val controller: ViewProfileController) : ViewObserver<View
         LaunchedEffect(Unit) {
             controller.onFirstRender()
         }
+        // go back when deletion is completed
+        LaunchedEffect(wasProfileDeletedSuccessfully) {
+            if (wasProfileDeletedSuccessfully && isViewingProfileAsAdmin) { navController.popBackStack() }
+        }
+        // so we don't go back mid deletion
+        BackHandler(enabled = isCurrentlyDeletingProfile) {}
 
         Box(modifier = Modifier.fillMaxSize()) {
             Column(
@@ -141,33 +154,54 @@ class ViewProfileView(val controller: ViewProfileController) : ViewObserver<View
         }
     }
 
+    /**
+     * Displays the confirmation modal for deleting a profile.
+     * Displays different text depending on who is deleting the profile
+     * and whether the deletion was successful.
+     */
     @Composable
     private fun DrawDeleteConfirmation() {
         var profileDeletionTitle = "Confirm Deletion"
         var profileDeletionMessage = "Are you sure you want to delete your profile? You will lose any in-progress reservations and will not be able to see your previous data."
         var profileDeletionButtonText = "Confirm"
-
-        if (isViewingProfileAsAdmin) {
+        var canConfirmProfileDeletion = false
+        val selectedUserProfile = controller.model.selectedAdminProfile
+        if (isViewingProfileAsAdmin && selectedUserProfile != null) {
             profileDeletionTitle = "Confirm Profile Deletion"
-            profileDeletionMessage = "Are you sure you want to ban this profile? This cannot be undone."
+            profileDeletionMessage = "Are you sure you want to ban this entrant profile? This cannot be undone."
             profileDeletionButtonText = "Ban"
+            if (selectedUserProfile.hasAnActiveEntrantProfile) {
+                canConfirmProfileDeletion = true
+            } else {
+                profileDeletionMessage = "This user does not have an entrant profile."
+            }
         }
 
+
+        if (isCurrentlyDeletingProfile) {
+            profileDeletionMessage = "Deleting user profile.."
+            profileDeletionButtonText = "Deleting.."
+        } else if (wasProfileDeletionUnsuccessful) {
+            profileDeletionMessage = "Failed to delete user profile!"
+        }
         AlertDialog(
             onDismissRequest = { controller.onDeleteCancel() },
             title = { Text(profileDeletionTitle) },
             text = { Text(profileDeletionMessage) },
             dismissButton = {
-                TextButton(onClick = { controller.onDeleteCancel() }) { Text("Go Back") }
+                TextButton(
+                    onClick = { controller.onDeleteCancel() },
+                    enabled = !isCurrentlyDeletingProfile
+                ) { Text("Go Back") }
             },
             confirmButton = {
                 TextButton(
                     onClick = { controller.onDeleteConfirm() },
-                    enabled = !isViewingProfileAsAdmin
+                    enabled = canConfirmProfileDeletion && !isCurrentlyDeletingProfile
                 ) { Text(profileDeletionButtonText) }
             }
         )
-    }
+    } // end of deletion confirmation for personal ref
 
     @Composable
     private fun DrawProfilePicture() {

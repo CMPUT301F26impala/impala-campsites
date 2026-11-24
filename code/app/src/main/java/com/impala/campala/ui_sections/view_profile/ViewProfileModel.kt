@@ -8,6 +8,8 @@ import com.impala.campala.model.ImageRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import com.impala.campala.model.AdminProfileModel
+import android.util.Log
+import kotlinx.coroutines.CancellationException
 
 /**
  * Model for the entrant's 'Profile' tab
@@ -23,6 +25,9 @@ class ViewProfileModel(val scope: CoroutineScope, val selectedAdminProfile: Admi
     var profile: EntrantProfileModel? = null
     var imageBytes: ByteArray? = null
     var showingDeleteConfirmation = false
+    var isCurrentlyDeletingProfile = false
+    var wasProfileDeletedSuccessfully = false
+    var wasProfileDeletionUnsuccessful = false
 
     /**
      * Called on opening the page, gets the profile and updates observers. If the admin selected a profile show that.
@@ -53,6 +58,8 @@ class ViewProfileModel(val scope: CoroutineScope, val selectedAdminProfile: Admi
      * Opens the 'Confirm Deletion' dialog
      */
     fun openDeleteConfirmation() {
+        if (isCurrentlyDeletingProfile) { return }
+        wasProfileDeletionUnsuccessful = false
         showingDeleteConfirmation = true
         notifyObservers(this)
     }
@@ -61,7 +68,40 @@ class ViewProfileModel(val scope: CoroutineScope, val selectedAdminProfile: Admi
      * Closes the 'Confirm Deletion' dialog
      */
     fun closeDeleteConfirmation() {
+        if (isCurrentlyDeletingProfile) { return }
+        wasProfileDeletionUnsuccessful = false
         showingDeleteConfirmation = false
         notifyObservers(this)
     }
+
+    /**
+     * Deletes the selected profile and then updates the view with the change
+     */
+    fun deleteSelectedUserProfile() {
+        if (isCurrentlyDeletingProfile) { return }
+        var userProfileIdToDelete = User.getUID()
+        if (selectedAdminProfile != null) { userProfileIdToDelete = selectedAdminProfile.userId }
+
+        isCurrentlyDeletingProfile = true
+        wasProfileDeletedSuccessfully = false
+        wasProfileDeletionUnsuccessful = false
+        notifyObservers(this)
+
+        scope.launch {
+            try {
+                EntrantProfileRepository.deleteProfile(userProfileIdToDelete)
+                if (userProfileIdToDelete == User.getUID()) { User.setHasActiveEntrantProfile(false) }
+                wasProfileDeletedSuccessfully = true
+                showingDeleteConfirmation = false
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                wasProfileDeletionUnsuccessful = true
+                Log.e("ViewProfileModel", "Failed to delete user profile", e)
+            } finally {
+                isCurrentlyDeletingProfile = false
+                notifyObservers(this@ViewProfileModel)
+            }
+        }
+    } // end of profile deletion function
 }
