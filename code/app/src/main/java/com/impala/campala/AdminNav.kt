@@ -34,14 +34,17 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.impala.campala.ui_sections.admin_reviews.AdminReviewsView
 
 /**
  * Composable class that sets up the navigation for a user signed in as an Admin
  *
+ * @param adminReviewsScreen The View where the admin can see and delete reviews
  * @param onSwitchRole a function to be executed when the user clicks the button to switch roles
  */
 @Composable
 fun AdminNavigationRoot(
+    adminReviewsScreen: AdminReviewsView,
     onSwitchRole: () -> Unit
 ) {
     val navController = rememberNavController()
@@ -49,7 +52,7 @@ fun AdminNavigationRoot(
     NavHost(navController = navController, startDestination = "home") {
         // "home" is the tab navigation, the 4 tabs inside of home are controlled by the AdminHomeScreen function
         // Any screens that aren't part of the tabs and are 'fullscreen' should be declared here
-        composable("home") { AdminHomeScreen(navController, onSwitchRole) }
+        composable("home") { AdminHomeScreen(navController, adminReviewsScreen, onSwitchRole) }
     }
 }
 
@@ -65,11 +68,12 @@ enum class AdminTab(val label: String, val icon: ImageVector) {
  * A composable function that generates tabs the user can use to move through the base screens
  *
  * @param navController The navigation controller for the admin section of the app
+ * @param adminReviewsScreen The View where the admin can see and delete reviews
  * @param onSwitchRole a function to be executed when the user clicks the button to switch roles
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AdminHomeScreen(navController: NavController, onSwitchRole: () -> Unit) {
+fun AdminHomeScreen(navController: NavController, adminReviewsScreen: AdminReviewsView, onSwitchRole: () -> Unit) {
     var selected by rememberSaveable { mutableStateOf(AdminTab.Campsites) }
     val tabState = rememberSaveableStateHolder() // keeps each tab's scroll/state
     Scaffold(
@@ -112,7 +116,7 @@ fun AdminHomeScreen(navController: NavController, onSwitchRole: () -> Unit) {
                     AdminTab.Profiles -> AdminProfilesTab(navController)
                     AdminTab.Images -> AdminImagesTab(navController)
                     AdminTab.Notifs -> AdminNotifsTab(navController)
-                    AdminTab.Reviews -> AdminReviewsTab(navController)
+                    AdminTab.Reviews -> adminReviewsScreen.Render()
                 }
             }
         }
@@ -139,12 +143,6 @@ fun AdminImagesTab(navController: NavController) {
 
 @Composable
 fun AdminNotifsTab(navController: NavController) {
-    Column() {
-    }
-}
-
-@Composable
-fun AdminReviewsTab(navController: NavController) {
     Column() {
     }
 }
