@@ -114,24 +114,3 @@ class AdminReviewsView(val controller: AdminReviewsController) : ViewObserver<Ad
         }
     }
 }
-
-@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
-@Preview
-@Composable
-fun AdminReviewsViewPreview() {
-    val model = AdminReviewsModel(rememberCoroutineScope())
-    val controller = AdminReviewsController(model)
-    val view = AdminReviewsView(controller)
-
-    view.reviews = listOf(
-        ReviewModel("entrant.id", "campsite.id", 4.5, "Great lake view"),
-        ReviewModel("entrant.id", "other.campsite.id", 2.0, "")
-    )
-    view.campsiteNames = mapOf("campsite.id" to "Lakeside Camp")
-
-    AppTheme() {
-        Scaffold() {
-            view.Render()
-        }
-    }
-}
