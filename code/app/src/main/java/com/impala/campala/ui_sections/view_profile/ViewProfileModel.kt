@@ -7,29 +7,44 @@ import com.impala.campala.model.EntrantProfileRepository
 import com.impala.campala.model.ImageRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import com.impala.campala.model.AdminProfileModel
 
 /**
  * Model for the entrant's 'Profile' tab
  *
  * @param scope the CoroutineScope that the suspend fetches run in
+ * @param selectedAdminProfile profile clicked on by the admin, when looking at their own profile its null
  *
  * @property profile The user's entrant profile or null if it's not loaded
  * @property imageBytes The profile's compressed picture, null if it has no picture
  * @property showingDeleteConfirmation Whether the 'Confirm Deletion' dialog is open
  */
-class ViewProfileModel(val scope: CoroutineScope) : ObservableModel<ViewProfileModel>() {
+class ViewProfileModel(val scope: CoroutineScope, val selectedAdminProfile: AdminProfileModel? = null) : ObservableModel<ViewProfileModel>() {
     var profile: EntrantProfileModel? = null
     var imageBytes: ByteArray? = null
     var showingDeleteConfirmation = false
 
     /**
-     * Called on opening the page, gets the profile and updates observers
+     * Called on opening the page, gets the profile and updates observers. If the admin selected a profile show that.
      */
     fun loadProfile() {
         scope.launch {
-            profile = EntrantProfileRepository.getEntrantProfileById(User.getUID())
-            val imageId = profile?.imageId ?: ""
-            imageBytes = if (imageId.isNotEmpty()) ImageRepository.getImageById(imageId)?.data?.toBytes() else null
+            if (selectedAdminProfile != null) {
+                // load the selected user's profile picture
+                val selectedProfilePictureId = selectedAdminProfile.imageId
+                imageBytes = null
+                if (selectedProfilePictureId.isNotEmpty()) {
+                    val selectedProfileImage = ImageRepository.getImageById(selectedProfilePictureId)
+                    if (selectedProfileImage != null) {
+                        val selectedProfileImageData = selectedProfileImage.data
+                        if (selectedProfileImageData != null) { imageBytes = selectedProfileImageData.toBytes() }
+                    }
+                }
+            } else {
+                profile = EntrantProfileRepository.getEntrantProfileById(User.getUID())
+                val imageId = profile?.imageId ?: ""
+                imageBytes = if (imageId.isNotEmpty()) ImageRepository.getImageById(imageId)?.data?.toBytes() else null
+            }
             notifyObservers(this@ViewProfileModel)
         }
     }

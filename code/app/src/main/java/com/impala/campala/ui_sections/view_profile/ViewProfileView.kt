@@ -56,11 +56,20 @@ class ViewProfileView(val controller: ViewProfileController) : ViewObserver<View
     private var phoneNumber by mutableStateOf("")
     private var imageBytes by mutableStateOf<ByteArray?>(null)
     private var showingDeleteConfirmation by mutableStateOf(false)
+    private val isViewingProfileAsAdmin = controller.model.selectedAdminProfile != null
 
     override fun update(model: ViewProfileModel) {
-        this.name = model.profile?.name ?: ""
-        this.email = model.profile?.email ?: ""
-        this.phoneNumber = model.profile?.phoneNumber ?: ""
+        val selectedUserProfile = model.selectedAdminProfile
+        if (selectedUserProfile != null) {
+            // for admin
+            this.name = selectedUserProfile.name
+            this.email = selectedUserProfile.email
+            this.phoneNumber = selectedUserProfile.phoneNumber
+        } else {
+            this.name = model.profile?.name ?: ""
+            this.email = model.profile?.email ?: ""
+            this.phoneNumber = model.profile?.phoneNumber ?: ""
+        }
         this.imageBytes = model.imageBytes
         this.showingDeleteConfirmation = model.showingDeleteConfirmation
     }
@@ -97,23 +106,34 @@ class ViewProfileView(val controller: ViewProfileController) : ViewObserver<View
                 Spacer(modifier = Modifier.height(4.dp))
                 DrawContactRow(Icons.Default.Phone, phoneNumber.ifBlank { "No phone number set" })
 
-                Spacer(modifier = Modifier.height(40.dp))
-                DrawActionButton(Icons.AutoMirrored.Filled.List, "View App Policies", MaterialTheme.colorScheme.primary, onClick = { controller.onViewAppPoliciesPress(navController) })
-                Spacer(modifier = Modifier.height(8.dp))
-                DrawActionButton(Icons.Default.Delete, "Delete Profile", MaterialTheme.colorScheme.tertiary, onClick = { controller.onDeleteProfilePress() })
+                if (!isViewingProfileAsAdmin) {
+                    Spacer(modifier = Modifier.height(40.dp))
+                    DrawActionButton(Icons.AutoMirrored.Filled.List, "View App Policies", MaterialTheme.colorScheme.primary, onClick = { controller.onViewAppPoliciesPress(navController) })
+                    Spacer(modifier = Modifier.height(8.dp))
+                    DrawActionButton(Icons.Default.Delete, "Delete Profile", MaterialTheme.colorScheme.tertiary, onClick = { controller.onDeleteProfilePress() })
+                }
 
                 // Extra room for the edit FAB
                 Spacer(modifier = Modifier.height(96.dp))
             }
 
-            ExtendedFloatingActionButton(
-                onClick = { controller.onEditProfilePress(navController) },
-                icon = { Icon(Icons.Default.Edit, contentDescription = null) },
-                text = { Text("Edit Profile") },
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .padding(bottom = 16.dp)
-            )
+            if (isViewingProfileAsAdmin) {
+                ExtendedFloatingActionButton(
+                    onClick = { controller.onDeleteProfilePress() },
+                    icon = { Icon(Icons.Default.Delete, contentDescription = null) },
+                    text = { Text("Delete Profile") },
+                    containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
+                    modifier = Modifier.align(Alignment.BottomEnd).padding(bottom = 16.dp)
+                )
+            } else {
+                ExtendedFloatingActionButton(
+                    onClick = { controller.onEditProfilePress(navController) },
+                    icon = { Icon(Icons.Default.Edit, contentDescription = null) },
+                    text = { Text("Edit Profile") },
+                    modifier = Modifier.align(Alignment.BottomEnd).padding(bottom = 16.dp)
+                )
+            }
         }
 
         if (showingDeleteConfirmation) {
@@ -123,21 +143,28 @@ class ViewProfileView(val controller: ViewProfileController) : ViewObserver<View
 
     @Composable
     private fun DrawDeleteConfirmation() {
+        var profileDeletionTitle = "Confirm Deletion"
+        var profileDeletionMessage = "Are you sure you want to delete your profile? You will lose any in-progress reservations and will not be able to see your previous data."
+        var profileDeletionButtonText = "Confirm"
+
+        if (isViewingProfileAsAdmin) {
+            profileDeletionTitle = "Confirm Profile Deletion"
+            profileDeletionMessage = "Are you sure you want to ban this profile? This cannot be undone."
+            profileDeletionButtonText = "Ban"
+        }
+
         AlertDialog(
             onDismissRequest = { controller.onDeleteCancel() },
-            title = { Text("Confirm Deletion") },
-            text = {
-                Text("Are you sure you want to delete your profile? You will lose any in-progress reservations and will not be able to see your previous data.")
-            },
+            title = { Text(profileDeletionTitle) },
+            text = { Text(profileDeletionMessage) },
             dismissButton = {
-                TextButton(onClick = { controller.onDeleteCancel() }) {
-                    Text("Go Back")
-                }
+                TextButton(onClick = { controller.onDeleteCancel() }) { Text("Go Back") }
             },
             confirmButton = {
-                TextButton(onClick = { controller.onDeleteConfirm() }) {
-                    Text("Confirm")
-                }
+                TextButton(
+                    onClick = { controller.onDeleteConfirm() },
+                    enabled = !isViewingProfileAsAdmin
+                ) { Text(profileDeletionButtonText) }
             }
         )
     }

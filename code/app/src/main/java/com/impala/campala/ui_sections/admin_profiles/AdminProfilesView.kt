@@ -36,6 +36,8 @@ import androidx.compose.ui.unit.dp
 import com.impala.campala.ImageDisplay
 import com.impala.campala.ViewObserver
 import com.impala.campala.model.AdminProfileModel
+import androidx.compose.foundation.clickable
+import androidx.navigation.NavController
 
 /**
  * View for the profiles tab of the admin.
@@ -74,11 +76,13 @@ class AdminProfilesView(
     /**
      * Outputs the admin profiles screen ui and loads whenever the tab is opened.
      *
+     * @param navController the navigation controller
+     *
      * @return Unit
      */
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
-    fun Render() {
+    fun Render(navController: NavController) {
         // first look at the ui
         LaunchedEffect(Unit) { controller.onFirstRender() }
 
@@ -118,7 +122,7 @@ class AdminProfilesView(
                 ) {
                     // loop and make row for each profile
                     items(filteredUserProfiles, key = { it.userId }) { currentUserProfile ->
-                        DrawUserProfileRow(currentUserProfile)
+                        DrawUserProfileRow(currentUserProfile, navController)
                         HorizontalDivider()
                     } // end of loop
                 } // end of lazy column
@@ -132,9 +136,10 @@ class AdminProfilesView(
      * @param currentUserProfile the profile to be displayed
      */
     @Composable
-    private fun DrawUserProfileRow(currentUserProfile: AdminProfileModel) {
+    private fun DrawUserProfileRow(currentUserProfile: AdminProfileModel, navController: NavController) {
         Row(
-            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)
+                .clickable { controller.onUserProfilePressed(navController, currentUserProfile.userId) },
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {

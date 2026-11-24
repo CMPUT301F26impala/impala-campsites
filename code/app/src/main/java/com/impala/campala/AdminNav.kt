@@ -35,6 +35,12 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.impala.campala.ui_sections.admin_profiles.AdminProfilesView
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.material3.TextButton
+import com.impala.campala.ui_sections.view_profile.ViewProfileModel
+import com.impala.campala.ui_sections.view_profile.ViewProfileController
+import com.impala.campala.ui_sections.view_profile.ViewProfileView
 
 /**
  * Composable class that sets up the navigation for a user signed in as an Admin
@@ -53,6 +59,31 @@ fun AdminNavigationRoot(
         // "home" is the tab navigation, the 4 tabs inside of home are controlled by the AdminHomeScreen function
         // Any screens that aren't part of the tabs and are 'fullscreen' should be declared here
         composable("home") { AdminHomeScreen(navController, adminProfilesScreen, onSwitchRole) }
+        composable("profile/{userId}") { backStackEntry ->
+            val selectedUserProfileId = backStackEntry.arguments?.getString("userId")
+            val selectedUserProfile = adminProfilesScreen.controller.model.allActiveUserProfiles.firstOrNull { it.userId == selectedUserProfileId }
+            if (selectedUserProfile != null) {
+                val adminProfileCoroutineScope = rememberCoroutineScope()
+                val adminProfileDetailsModel = remember(selectedUserProfile) { ViewProfileModel(adminProfileCoroutineScope, selectedUserProfile) }
+                val adminProfileDetailsController = remember(adminProfileDetailsModel) { ViewProfileController(adminProfileDetailsModel) }
+
+                val adminProfileDetailsView = remember(adminProfileDetailsController) {
+                    val newProfileDetailsView = ViewProfileView(adminProfileDetailsController)
+                    adminProfileDetailsModel.addObserver(newProfileDetailsView)
+                    newProfileDetailsView
+                }
+                Scaffold { padding ->
+                    Box(Modifier.padding(padding).padding(horizontal = 16.dp)) { adminProfileDetailsView.Render(navController) }
+                }
+            } else {
+                Scaffold { padding ->
+                    Column(Modifier.padding(padding).padding(16.dp)) {
+                        Text("User profile not found!")
+                        TextButton(onClick = { navController.popBackStack() }) { Text("Go Back") }
+                    }
+                }
+            }
+        } // end of profile composable for personal ref
     }
 }
 
@@ -113,7 +144,7 @@ fun AdminHomeScreen(navController: NavController,adminProfilesScreen: AdminProfi
             tabState.SaveableStateProvider(selected.name) {
                 when (selected) {
                     AdminTab.Campsites -> AdminCampsitesTab(navController)
-                    AdminTab.Profiles -> adminProfilesScreen.Render()
+                    AdminTab.Profiles -> adminProfilesScreen.Render(navController)
                     AdminTab.Images -> AdminImagesTab(navController)
                     AdminTab.Notifs -> AdminNotifsTab(navController)
                     AdminTab.Reviews -> AdminReviewsTab(navController)
