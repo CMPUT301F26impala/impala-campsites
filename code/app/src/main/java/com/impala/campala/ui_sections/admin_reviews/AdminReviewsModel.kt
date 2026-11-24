@@ -31,12 +31,15 @@ class AdminReviewsModel(
     var reviewerNamesByUserId: Map<String, String> = emptyMap()
     var isFetchingStoredReviews = false
     var wasReviewFetchUnsuccessful = false
+    var selectedReviewForDeletion: ReviewModel? = null
+    var isCurrentlyDeletingReview = false
+    var wasReviewDeletionUnsuccessful = false
 
     /**
      * Gather all the reviews and details and run when admin clicks reveiw tab in nav
      */
     fun loadAllStoredReviews() {
-        if (isFetchingStoredReviews) { return }
+        if (isFetchingStoredReviews || isCurrentlyDeletingReview) { return }
         isFetchingStoredReviews = true
         wasReviewFetchUnsuccessful = false
         notifyObservers(this)
@@ -85,4 +88,54 @@ class AdminReviewsModel(
         campsiteNamesByCampsiteId = fetchedCampsiteDisplayNames
         reviewerNamesByUserId = fetchedReviewerDisplayNames
     } // end of loading associated details
+
+    /**
+     * open deletion dialog for user to see
+     *
+     * @param selectedCampsiteReview clicked review
+     */
+    fun openReviewDeletionConfirmation(selectedCampsiteReview: ReviewModel) {
+        if (isCurrentlyDeletingReview) { return }
+        selectedReviewForDeletion = selectedCampsiteReview
+        wasReviewDeletionUnsuccessful = false
+        notifyObservers(this)
+    }
+
+    /**
+     * close dialog of deletion without actually deleting anything
+     */
+    fun closeReviewDeletionConfirmation() {
+        if (isCurrentlyDeletingReview) { return }
+        selectedReviewForDeletion = null
+        wasReviewDeletionUnsuccessful = false
+        notifyObservers(this)
+    }
+
+    /**
+     * actual deletion of the review
+     */
+    fun deleteSelectedCampsiteReview() {
+        if (isCurrentlyDeletingReview) { return }
+        val campsiteReviewToBeDeleted = selectedReviewForDeletion
+        if (campsiteReviewToBeDeleted == null) { return }
+        isCurrentlyDeletingReview = true
+        wasReviewDeletionUnsuccessful = false
+        notifyObservers(this)
+
+        scope.launch {
+            try {
+                ReviewRepository.deleteReview(campsiteReviewToBeDeleted)
+                allStoredCampsiteReviews = allStoredCampsiteReviews.filter { it.id != campsiteReviewToBeDeleted.id }
+                selectedReviewForDeletion = null
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                wasReviewDeletionUnsuccessful = true
+                Log.e("AdminReviewsModel", "Failed to delete campsite review", e)
+            } finally {
+                isCurrentlyDeletingReview = false
+                notifyObservers(this@AdminReviewsModel)
+            }
+        }
+    } // end of review dleete
 }

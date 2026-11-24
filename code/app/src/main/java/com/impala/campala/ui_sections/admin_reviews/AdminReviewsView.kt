@@ -29,6 +29,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.impala.campala.ViewObserver
 import com.impala.campala.model.ReviewModel
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.FilledIconButton
+import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.TextButton
 
 /**
  * View for the reviews branch of the admin ui
@@ -44,6 +49,9 @@ class AdminReviewsView(
     private var reviewerNamesByUserId by mutableStateOf(mapOf<String, String>())
     private var isFetchingStoredReviews by mutableStateOf(false)
     private var wasReviewFetchUnsuccessful by mutableStateOf(false)
+    private var selectedReviewForDeletion by mutableStateOf<ReviewModel?>(null)
+    private var isCurrentlyDeletingReview by mutableStateOf(false)
+    private var wasReviewDeletionUnsuccessful by mutableStateOf(false)
 
     /**
      * Puts review details from the model into the ui.
@@ -56,6 +64,9 @@ class AdminReviewsView(
         reviewerNamesByUserId = model.reviewerNamesByUserId
         isFetchingStoredReviews = model.isFetchingStoredReviews
         wasReviewFetchUnsuccessful = model.wasReviewFetchUnsuccessful
+        selectedReviewForDeletion = model.selectedReviewForDeletion
+        isCurrentlyDeletingReview = model.isCurrentlyDeletingReview
+        wasReviewDeletionUnsuccessful = model.wasReviewDeletionUnsuccessful
     }
 
     init { update(controller.model) }
@@ -86,6 +97,7 @@ class AdminReviewsView(
                 }
             } // end of lazy column
         }
+        if (selectedReviewForDeletion != null) { DrawReviewDeletionConfirmation() }
     } // end of render for personal ref
 
     /**
@@ -104,10 +116,14 @@ class AdminReviewsView(
             modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
-            Text(
-                text = reviewedCampsiteDisplayName,
-                style = MaterialTheme.typography.titleLarge
-            )
+            Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(text = reviewedCampsiteDisplayName, style = MaterialTheme.typography.titleLarge, modifier = Modifier.weight(1f))
+                FilledIconButton(
+                    onClick = { controller.onReviewDeletePressed(currentStoredReview) },
+                    enabled = !isCurrentlyDeletingReview,
+                    colors = IconButtonDefaults.filledIconButtonColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer, contentColor = MaterialTheme.colorScheme.onTertiaryContainer)
+                ) { Icon(Icons.Default.Delete, contentDescription = "Delete Review") }
+            }
 
             Text(
                 text = reviewPosterDisplayName,
@@ -124,4 +140,36 @@ class AdminReviewsView(
             }
         }
     } // end of stored review for personal ref
+
+    /**
+     * Deletion confirmation dialog where user can press confirm to delete for sure and cancel to cancel the deletion
+     */
+    @Composable
+    private fun DrawReviewDeletionConfirmation() {
+        var reviewDeletionMessage = "Are you sure you want to delete this review? This cannot be undone."
+        var reviewDeletionButtonText = "Delete"
+        if (isCurrentlyDeletingReview) {
+            reviewDeletionMessage = "Deleting review.."
+            reviewDeletionButtonText = "Deleting.."
+        } else if (wasReviewDeletionUnsuccessful) {
+            reviewDeletionMessage = "Failed to delete review!"
+        }
+
+        AlertDialog(
+            onDismissRequest = { controller.onReviewDeleteCancel() },
+            title = { Text("Confirm Review Deletion") },
+            text = { Text(reviewDeletionMessage) },
+            dismissButton = {
+                TextButton(
+                    onClick = { controller.onReviewDeleteCancel() }, enabled = !isCurrentlyDeletingReview) { Text("Go Back")
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = { controller.onReviewDeleteConfirm() },
+                    enabled = !isCurrentlyDeletingReview
+                ) { Text(reviewDeletionButtonText) }
+            }
+        )
+    } // end of deletion confirmation for personal ref
 }
