@@ -13,6 +13,9 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import com.impala.campala.ui_sections.admin_reviews.AdminReviewsController
+import com.impala.campala.ui_sections.admin_reviews.AdminReviewsModel
+import com.impala.campala.ui_sections.admin_reviews.AdminReviewsView
 import com.impala.campala.ui_sections.campsite_details.CampsiteDetailsController
 import com.impala.campala.ui_sections.campsite_details.CampsiteDetailsModel
 import com.impala.campala.ui_sections.campsite_details.CampsiteDetailsView
@@ -167,6 +170,10 @@ fun SignedInApp(deepLinkCampsiteId: String? = null, onDeepLinkHandled: () -> Uni
     val ownerNotifsView = remember { OwnerNotifsView(ownerNotifsController) }
     ownerNotifsModel.addObserver(ownerNotifsView)
 
+    val adminReviewsModel = remember { AdminReviewsModel(coroutineScope) }
+    val adminReviewsController = remember { AdminReviewsController(adminReviewsModel) }
+    val adminReviewsView = remember { AdminReviewsView(adminReviewsController) }
+    adminReviewsModel.addObserver(adminReviewsView)
     // Opening a QR code is an entrant thing, so we have to switch to entrant mode to open its
     LaunchedEffect(deepLinkCampsiteId) {
         if (deepLinkCampsiteId != null) {
@@ -211,7 +218,9 @@ fun SignedInApp(deepLinkCampsiteId: String? = null, onDeepLinkHandled: () -> Uni
                 ownerNotifsView = ownerNotifsView,
                 onSwitchRole = { needsRoleChoice = true })
 
-            UserViewMode.ADMIN -> AdminNavigationRoot(onSwitchRole = { needsRoleChoice = true })
+            UserViewMode.ADMIN -> AdminNavigationRoot(
+                adminReviewsScreen = adminReviewsView,
+                onSwitchRole = { needsRoleChoice = true })
 
             null -> {
                 // They have a profile but no role saved, so just send them to the entrant UI so the app is still usable

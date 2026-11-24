@@ -27,6 +27,15 @@ object ReviewRepository {
     }
 
     /**
+     * Gets every review in the database
+     *
+     * @return list of all reviews
+     */
+    suspend fun getAllReviews(): List<ReviewModel> {
+        return collection.get().await().map { ReviewModel.load(it) }
+    }
+
+    /**
      * Saves a review to the database
      *
      * @param review ReviewModel to be saved
