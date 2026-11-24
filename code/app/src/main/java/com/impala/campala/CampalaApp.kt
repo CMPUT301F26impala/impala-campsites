@@ -31,6 +31,8 @@ import com.impala.campala.ui_sections.form_campsites.FormCampsitesView
 import com.impala.campala.ui_sections.form_lotteries.FormLotteriesController
 import com.impala.campala.ui_sections.form_lotteries.FormLotteriesModel
 import com.impala.campala.ui_sections.form_lotteries.FormLotteriesView
+import com.impala.campala.ui_sections.lottery_details.LotteryDetailsController
+import com.impala.campala.ui_sections.lottery_details.LotteryDetailsModel
 import com.impala.campala.ui_sections.lottery_details.LotteryDetailsView
 import com.impala.campala.ui_sections.owner_notifs.OwnerNotifsController
 import com.impala.campala.ui_sections.owner_notifs.OwnerNotifsModel
@@ -48,9 +50,6 @@ import com.impala.campala.ui_sections.view_lotteries.ViewLotteriesView
 import com.impala.campala.ui_sections.view_profile.ViewProfileController
 import com.impala.campala.ui_sections.view_profile.ViewProfileModel
 import com.impala.campala.ui_sections.view_profile.ViewProfileView
-import com.impala.campala.ui_sections.waitlist.WaitlistController
-import com.impala.campala.ui_sections.waitlist.WaitlistModel
-import com.impala.campala.ui_sections.waitlist.WaitlistView
 
 /**
  * Composable function that acts as the root of the app
@@ -158,12 +157,10 @@ fun SignedInApp(deepLinkCampsiteId: String? = null, onDeepLinkHandled: () -> Uni
     val editProfileView = remember { EditProfileView(editProfileController) }
     editProfileModel.addObserver(editProfileView)
 
-    val lotteryDetailsView = remember { LotteryDetailsView() }
-
-    val waitlistModel = remember { WaitlistModel() }
-    val waitlistController = remember { WaitlistController(waitlistModel) }
-    val waitlistView = remember { WaitlistView(waitlistController) }
-    waitlistModel.addObserver(waitlistView)
+    val lotteryDetailsModel = remember { LotteryDetailsModel() }
+    val lotteryDetailsController = remember { LotteryDetailsController(lotteryDetailsModel) }
+    val lotteryDetailsView = remember { LotteryDetailsView(lotteryDetailsController) }
+    lotteryDetailsModel.addObserver(lotteryDetailsView)
 
     val ownerNotifsModel = remember { OwnerNotifsModel() }
     val ownerNotifsController = remember { OwnerNotifsController(ownerNotifsModel) }
@@ -211,7 +208,6 @@ fun SignedInApp(deepLinkCampsiteId: String? = null, onDeepLinkHandled: () -> Uni
                 viewLotteriesScreen = viewLotteriesView,
                 seeReservationsScreen = seeReservationsView,
                 lotteryDetailsView = lotteryDetailsView,
-                waitlistView=waitlistView,
                 ownerNotifsView = ownerNotifsView,
                 onSwitchRole = { needsRoleChoice = true })
 
