@@ -44,7 +44,6 @@ class ReservationRepositoryTest {
         Timestamp(end.atStartOfDay(ZoneId.systemDefault()).toInstant()),
     )
 
-    val repo = ReservationRepository()
 
     @Before
     fun setUp() {
@@ -64,69 +63,69 @@ class ReservationRepositoryTest {
 
     @Test
     fun createReservation(): Unit = runBlocking {
-        repo.saveReservation(reservation)
+        ReservationRepository.saveReservation(reservation)
 
-        val stored = repo.getReservationById(reservation.id)
+        val stored = ReservationRepository.getReservationById(reservation.id)
         assertNotNull("Reservation should exist after saving", stored)
         assertEquals(reservation,stored)
     }
 
     @Test
     fun getReservationsForEntrantsAndOwners(): Unit = runBlocking {
-        var stored = repo.getReservationsByUser("Does_not_exist")
+        var stored = ReservationRepository.getReservationsByUser("Does_not_exist")
         assertEquals(0,stored.size)
-        stored = repo.getReservationsByOwner("Does_not_exist")
+        stored = ReservationRepository.getReservationsByOwner("Does_not_exist")
         assertEquals(0,stored.size)
 
         val other = reservation.copy(id = "other", entrantId = "other-entrant", ownerId = "other-owner")
         val other1 = reservation.copy(id = "other-1", ownerId = "other-owner")
         // @Before is run on every test, so we have to set up our states again
-        repo.saveReservation(reservation)
-        repo.saveReservation(other)
-        repo.saveReservation(other1)
-        stored = repo.getReservationsByOwner(reservation.ownerId)
+        ReservationRepository.saveReservation(reservation)
+        ReservationRepository.saveReservation(other)
+        ReservationRepository.saveReservation(other1)
+        stored = ReservationRepository.getReservationsByOwner(reservation.ownerId)
         assertEquals(1,stored.size) // original
-        stored = repo.getReservationsByOwner("other-owner")
+        stored = ReservationRepository.getReservationsByOwner("other-owner")
         assertEquals(2,stored.size) // other and other1
-        stored = repo.getReservationsByUser(reservation.entrantId)
+        stored = ReservationRepository.getReservationsByUser(reservation.entrantId)
         assertEquals(2,stored.size) // original and other1
-        stored = repo.getReservationsByUser("other-entrant")
+        stored = ReservationRepository.getReservationsByUser("other-entrant")
         assertEquals(1,stored.size) // other
     }
 
     @Test
     fun getReservationByIdMissing(): Unit = runBlocking {
-        assertNull("Getting a reservation that was never saved should return null", repo.getReservationById("does-not-exist"))
+        assertNull("Getting a reservation that was never saved should return null", ReservationRepository.getReservationById("does-not-exist"))
     }
 
     @Test
     fun getReservationByIdPicksCorrectReservation(): Unit = runBlocking {
         val other = reservation.copy(id = "other-res")
-        repo.saveReservation(reservation)
-        repo.saveReservation(other)
+        ReservationRepository.saveReservation(reservation)
+        ReservationRepository.saveReservation(other)
 
-        assertEquals(reservation,repo.getReservationById(reservation.id))
-        assertEquals(other,repo.getReservationById(other.id))
+        assertEquals(reservation,ReservationRepository.getReservationById(reservation.id))
+        assertEquals(other,ReservationRepository.getReservationById(other.id))
     }
 
     @Test
     fun updateReservation_savingWithSameIdOverwitesInsteadOfCreatingDuplicate(): Unit = runBlocking {
-        repo.saveReservation(reservation)
+        ReservationRepository.saveReservation(reservation)
 
         val updated = reservation.copy(campsiteId = "newer", ownerId = "BetterOwner")
-        repo.saveReservation(updated)
+        ReservationRepository.saveReservation(updated)
 
-        assertEquals(updated,repo.getReservationById(reservation.id))
-        assertEquals(1,repo.getReservationsByUser(reservation.entrantId).size)
+        assertEquals(updated,ReservationRepository.getReservationById(reservation.id))
+        assertEquals(1,ReservationRepository.getReservationsByUser(reservation.entrantId).size)
     }
 
     @Test
     fun deleteReservation(): Unit = runBlocking {
-        repo.saveReservation(reservation)
-        assertNotNull("Reservation should exist before deleting",repo.getReservationById(reservation.id))
+        ReservationRepository.saveReservation(reservation)
+        assertNotNull("Reservation should exist before deleting",ReservationRepository.getReservationById(reservation.id))
 
-        repo.deleteReservation(reservation)
-        assertNull("Reservation should not exist after deleting",repo.getReservationById(reservation.id))
+        ReservationRepository.deleteReservation(reservation)
+        assertNull("Reservation should not exist after deleting",ReservationRepository.getReservationById(reservation.id))
     }
 
     // Moved here from the old androidTest ReservationModelTest, since it goes through Firestore
