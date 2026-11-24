@@ -51,6 +51,9 @@ import com.impala.campala.ui_sections.view_profile.ViewProfileView
 import com.impala.campala.ui_sections.waitlist.WaitlistController
 import com.impala.campala.ui_sections.waitlist.WaitlistModel
 import com.impala.campala.ui_sections.waitlist.WaitlistView
+import com.impala.campala.ui_sections.admin_profiles.AdminProfilesModel
+import com.impala.campala.ui_sections.admin_profiles.AdminProfilesController
+import com.impala.campala.ui_sections.admin_profiles.AdminProfilesView
 
 /**
  * Composable function that acts as the root of the app
@@ -145,6 +148,14 @@ fun SignedInApp() {
     val viewProfileView = remember { ViewProfileView(viewProfileController) }
     viewProfileModel.addObserver(viewProfileView)
 
+    val adminProfilesModel = remember { AdminProfilesModel(coroutineScope) }
+    val adminProfilesController = remember { AdminProfilesController(adminProfilesModel) }
+    val adminProfilesView = remember {
+        val newAdminProfilesView = AdminProfilesView(adminProfilesController)
+        adminProfilesModel.addObserver(newAdminProfilesView)
+        newAdminProfilesView
+    }
+
     val editProfileModel = remember { EditProfileModel(imageCompressor, coroutineScope) }
     val editProfileController = remember { EditProfileController(editProfileModel) }
     val editProfileView = remember { EditProfileView(editProfileController) }
@@ -196,7 +207,7 @@ fun SignedInApp() {
                 ownerNotifsView = ownerNotifsView,
                 onSwitchRole = { needsRoleChoice = true })
 
-            UserViewMode.ADMIN -> AdminNavigationRoot(onSwitchRole = { needsRoleChoice = true })
+            UserViewMode.ADMIN -> AdminNavigationRoot(adminProfilesScreen = adminProfilesView, onSwitchRole = { needsRoleChoice = true })
 
             null -> {
                 // They have a profile but no role saved, so just send them to the entrant UI so the app is still usable

@@ -7,6 +7,7 @@ import com.impala.campala.model.EntrantProfileRepository
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import com.impala.campala.model.ImageRepository
 
 /**
  * Model for the profile branch of admin UI
@@ -22,6 +23,9 @@ class AdminProfilesModel(val scope: CoroutineScope) : ObservableModel<AdminProfi
     var allActiveUserProfiles: List<AdminProfileModel> = emptyList()
     var isFetchingUserProfiles = false
     var wasProfileFetchUnsuccessful = false
+    var profileSearchInput = ""
+    var filteredUserProfiles: List<AdminProfileModel> = emptyList()
+    var profilePictureBytesById: Map<String, ByteArray> = emptyMap()
 
     /**
      * gets all the active profiles of entrants and campsite owners and runs everytime someone opens the profile tab from admin view
@@ -35,6 +39,8 @@ class AdminProfilesModel(val scope: CoroutineScope) : ObservableModel<AdminProfi
         scope.launch {
             try {
                 allActiveUserProfiles = EntrantProfileRepository.getAdminProfiles()
+                filterDisplayedProfiles()
+                loadUserProfilePictures()
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
@@ -45,5 +51,51 @@ class AdminProfilesModel(val scope: CoroutineScope) : ObservableModel<AdminProfi
                 notifyObservers(this@AdminProfilesModel)
             }
         }
+    } // end of load all active
+
+    /**
+     * updates the search text for filtering
+     *
+     * @param newSearchInput search text
+     */
+    fun updateProfileSearchInput(newSearchInput: String) {
+        profileSearchInput = newSearchInput
+        filterDisplayedProfiles()
+        notifyObservers(this)
+    }
+
+    /**
+     * filters for name, email or phone number entered by user
+     */
+    fun filterDisplayedProfiles() {
+        val matchingUserProfiles = mutableListOf<AdminProfileModel>()
+        val searchInputWithoutSpaces = profileSearchInput.trim()
+        for (currentUserProfile in allActiveUserProfiles) {
+            if (
+                currentUserProfile.name.contains(searchInputWithoutSpaces, ignoreCase = true) ||
+                currentUserProfile.email.contains(searchInputWithoutSpaces, ignoreCase = true) ||
+                currentUserProfile.phoneNumber.contains(searchInputWithoutSpaces, ignoreCase = true)
+            ) { matchingUserProfiles.add(currentUserProfile) }
+        }
+        filteredUserProfiles = matchingUserProfiles
+    }
+
+    /**
+     * gets profile pictures accessed by image ID
+     */
+    suspend fun loadUserProfilePictures() {
+        val fetchedProfilePictureBytes = mutableMapOf<String, ByteArray>()
+        for (currentUserProfile in allActiveUserProfiles) {
+            val profilePictureImageId = currentUserProfile.imageId
+            if (profilePictureImageId.isBlank()) { continue }
+            if (fetchedProfilePictureBytes.containsKey(profilePictureImageId)) { continue }
+
+            val fetchedProfileImage = ImageRepository.getImageById(profilePictureImageId)
+            if (fetchedProfileImage != null) {
+                val fetchedImageData = fetchedProfileImage.data
+                if (fetchedImageData != null) { fetchedProfilePictureBytes[profilePictureImageId] = fetchedImageData.toBytes() }
+            }
+        }
+        profilePictureBytesById = fetchedProfilePictureBytes
     }
 }

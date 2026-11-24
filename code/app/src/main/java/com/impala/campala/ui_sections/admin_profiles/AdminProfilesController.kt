@@ -17,4 +17,11 @@ class AdminProfilesController(
     fun onFirstRender() {
         model.loadAllActiveProfiles()
     }
+
+    /**
+     * Used when text in search bar is changed for filtering
+     *
+     * @param newSearchInput the search bar text
+     */
+    fun onSearchBarInputChange(newSearchInput: String) { model.updateProfileSearchInput(newSearchInput) }
 }
