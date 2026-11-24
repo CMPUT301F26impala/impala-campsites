@@ -29,6 +29,15 @@ class ChooseRoleController(val model: ChooseRoleModel) : Controller {
     }
 
     /**
+     * Called in a LaunchedEffect in the View, checks which roles the user can pick whenever the screen is shown
+     *
+     * @param user The user's object
+     */
+    fun onFirstRender(user: User) {
+        model.loadAvailableRoles(user)
+    }
+
+    /**
      * Fire when the user selects admin as their role
      *
      * @param user The user's object
@@ -42,14 +51,5 @@ class ChooseRoleController(val model: ChooseRoleModel) : Controller {
      */
     fun onRoleChosenHandled() {
         model.clearChosenRole()
-    }
-
-    /**
-     * checks for what roles are available to the user
-     *
-     * @param user user choosing a role
-     */
-    fun onFirstRender(user: User) {
-        model.loadAvailableRoles(user)
     }
 }

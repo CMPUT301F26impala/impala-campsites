@@ -6,7 +6,6 @@ import com.impala.campala.User
 import com.impala.campala.UserViewMode
 import com.impala.campala.model.CampsiteModel
 import com.impala.campala.model.CampsiteRepository
-import com.impala.campala.model.EntrantProfileRepository
 import com.impala.campala.model.LotteryModel
 import com.impala.campala.model.LotteryRepository
 import com.impala.campala.model.ReservationRepository
@@ -28,13 +27,11 @@ enum class EntrantLotteryStatus { WAITING_FOR_DRAW, ON_WAITLIST, WON }
  * @property lottery the lottery this row is for
  * @property campsite the first campsite in the lottery, null if it couldn't be found
  * @property entrantStatus where the current User stands in this lottery, only set in entrant mode
- * @property waitlistNames names of the people on the waitlist (their ID if they have no name), only set in campsite owner mode
  */
 data class LotteryListItem(
     val lottery: LotteryModel,
     val campsite: CampsiteModel?,
-    val entrantStatus: EntrantLotteryStatus? = null,
-    val waitlistNames: List<String> = emptyList()
+    val entrantStatus: EntrantLotteryStatus? = null
 ) {
     /**
      * How many spots are left in the lottery itself, excluding waitlist
@@ -52,7 +49,6 @@ data class LotteryListItem(
  * @param lotteryRepo the LotteryRepository to fetch lotteries from
  * @param campsiteRepo the CampsiteRepository, used to get the name/location of each lottery's campsite
  * @param reservationRepo the ReservationRepository, used in entrant mode to hide lotteries the User already reserved through
- * @param entrantProfileRepo the EntrantProfileRepository, used in campsite owner mode to get the names of people on each waitlist
  * @param User the signed in User, used to find their lotteries
  * @param scope the CoroutineScope that the suspend fetches run in
  *
@@ -117,13 +113,7 @@ class ViewLotteriesModel(
                 async {
                     val campsite = lottery.campsiteIds.firstOrNull()?.let { CampsiteRepository.getCampsiteById(it) }
                     val status = if (role != UserViewMode.CAMPSITE_OWNER) getEntrantStatus(lottery, uid) else null
-                    // Owners see who's on the waitlist, falls back to the ID if the entrant hasn't set a name
-                    val waitlistNames = if (role == UserViewMode.CAMPSITE_OWNER) {
-                        lottery.waitlistIds.map { id ->
-                            async { EntrantProfileRepository.getEntrantProfileById(id)?.name?.ifBlank { null } ?: id }
-                        }.awaitAll()
-                    } else emptyList()
-                    LotteryListItem(lottery, campsite, status, waitlistNames)
+                    LotteryListItem(lottery, campsite, status)
                 }
             }.awaitAll()
             notifyObservers(this@ViewLotteriesModel)

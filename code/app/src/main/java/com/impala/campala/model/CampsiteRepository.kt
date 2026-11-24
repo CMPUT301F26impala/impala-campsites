@@ -3,10 +3,13 @@ package com.impala.campala.model
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.FirebaseFirestoreException
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.firestore
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.tasks.await
+import java.time.LocalDate
+import java.time.ZoneOffset
 
 /**
  * Repository for storing the app's campsites.
@@ -77,7 +80,7 @@ object CampsiteRepository {
 
         // Done db querying, search string filtering is done with output
         val snapshot = query.get().await()
-        val allCampsites = snapshot.toObjects(CampsiteModel::class.java)
+        val allCampsites = snapshot.toObjects(CampsiteModel::class.java).filter { !it.hasBeenDeleted }
         if (searchString.isNullOrBlank()) { // No search, just return
             return allCampsites
         }
@@ -109,6 +112,34 @@ object CampsiteRepository {
     }
 
     /**
+     * Gets every campsite an owner has that hasn't been deleted
+     *
+     * @param ownerId UID of the campsite owner
+     *
+     * @return List of the owner's campsites
+     *
+     * @throws FirebaseFirestoreException if the fetch fails
+     */
+    suspend fun getCampsitesByOwnerId(ownerId: String): List<CampsiteModel> {
+        val snapshot = db.collection("campsites").whereEqualTo("ownerId", ownerId).get().await()
+        return snapshot.toObjects(CampsiteModel::class.java).filter { !it.hasBeenDeleted }
+    }
+
+    /**
+     * Gets every campsite that uses an image, used when an admin deletes that image
+     *
+     * @param imageId ID of the image
+     *
+     * @return List of campsites whose imageId matches
+     *
+     * @throws FirebaseFirestoreException if the fetch fails
+     */
+    suspend fun getCampsitesByImageId(imageId: String): List<CampsiteModel> {
+        val snapshot = db.collection("campsites").whereEqualTo("imageId", imageId).get().await()
+        return snapshot.toObjects(CampsiteModel::class.java)
+    }
+
+    /**
      * Saves a campsite to the database
      *
      *  When a screen updates a campsite, it's controller will end up calling this method
@@ -136,6 +167,63 @@ object CampsiteRepository {
     }
 
     /**
+     * Deletes a campsite but keeps its document, so past reservations at it can still show it
+     *
+     * Unfinished lotteries are deleted if this is their only campsite, otherwise it's removed from them
+     * Upcoming reservations are cancelled, and reviews are deleted
+     *
+     * This deviates from our existing paradigm because the CampsiteRepository (this) calls other repositories to delete the references there
+     * To make it more in line with other code, we could put this logic inside of CampsiteDetialsModel, but I believe it fits here because if we ever had a second place to delete a campsite, we'd have to copy paste it
+     * When it lives here, anything can use it
+     *
+     * @param campsite CampsiteModel to delete
+     *
+     * @throws FirebaseFirestoreException if any of the reads or writes fail
+     */
+    suspend fun softDeleteCampsite(campsite: CampsiteModel): Unit {
+        val today = LocalDate.now()
+        val unfinishedLotteries = LotteryRepository.getLotteriesByCampsiteId(campsite.id)
+            .filter { !today.isAfter(it.registrationEndTime.toInstant().atZone(ZoneOffset.UTC).toLocalDate()) }
+        for (lottery in unfinishedLotteries) {
+            if (lottery.campsiteIds.size <= 1) {
+                LotteryRepository.deleteLottery(lottery)
+            } else {
+                LotteryRepository.removeCampsiteFromLottery(lottery.id, campsite.id)
+            }
+        }
+
+        for (reservation in ReservationRepository.getReservationsByCampsite(campsite.id)) {
+            if (!reservation.hasBeenCancelled && !reservation.isPast) {
+                ReservationRepository.flagAsCancelled(reservation.id)
+            }
+        }
+
+        for (review in ReviewRepository.getReviewsByCampsite(campsite.id)) {
+            ReviewRepository.deleteReview(review)
+        }
+
+        if (campsite.imageId.isNotEmpty()) {
+            ImageRepository.deleteImage(campsite.imageId)
+        }
+
+        CampsiteOwnerProfileRepository.getCampsiteOwnerProfileById(campsite.ownerId)?.let {
+            CampsiteOwnerProfileRepository.removeOwnedCampsite(it, campsite.id)
+        }
+
+        // ownerId is kept so the owner can still see their past reservations
+        saveCampsite(campsite.copy(
+            name = "Deleted Campsite",
+            location = "",
+            description = "",
+            mapLocation = "",
+            imageId = "",
+            tags = mutableListOf(),
+            rules = "",
+            hasBeenDeleted = true
+        ))
+    }
+
+    /**
      * Adds a rating to the campsite's total and incremements the count of ratings
      *
      * @param campsiteId ID of the campsite being rated
@@ -147,6 +235,21 @@ object CampsiteRepository {
             .update(
                 "ratingTotal", FieldValue.increment(rating),
                 "ratingCount", FieldValue.increment(1)
+            )
+            .await()
+    }
+
+    /**
+     * Removes a rating from a campsite, for admin purposes
+     *
+     * @param campsiteId ID of the campsite the rating was on
+     * @param rating the rating out of 5 that's being removed
+     */
+    suspend fun removeRating(campsiteId: String, rating: Double): Unit {
+        db.collection("campsites").document(campsiteId)
+            .update(
+                "ratingTotal", FieldValue.increment(-rating),
+                "ratingCount", FieldValue.increment(-1)
             )
             .await()
     }

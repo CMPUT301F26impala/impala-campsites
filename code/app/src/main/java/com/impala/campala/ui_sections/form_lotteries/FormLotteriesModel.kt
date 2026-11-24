@@ -125,8 +125,6 @@ class FormLotteriesModel(
         // Remembered so that if a different lottery gets opened while this is loading, this result is thrown away instead of shown
         val editingLotteryId = lottery?.id
         scope.launch{
-            val ownedCampsiteIds = CampsiteOwnerProfileRepository.getCampsiteOwnerProfileById(ownerId)?.ownedCampsites ?: emptyList()
-
             val today = LocalDate.now()
             val takenCampsiteIds = LotteryRepository.getLotteries()
                 .filter { it.id != editingLotteryId } // The lottery being edited can keep its own campsites
@@ -135,7 +133,7 @@ class FormLotteriesModel(
                 .toSet()
 
             val availableCampsites = CampsiteRepository.getFilteredCampsites()
-                .filter { it.id in ownedCampsiteIds && it.id !in takenCampsiteIds }
+                .filter { it.id !in takenCampsiteIds }
 
             if (lottery?.id != editingLotteryId) return@launch
             campsiteDropdownData = availableCampsites

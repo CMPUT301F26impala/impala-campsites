@@ -2,6 +2,7 @@ package com.impala.campala.model
 
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.FirebaseFirestoreException
 import com.google.firebase.firestore.firestore
 import com.impala.campala.User
 import kotlinx.coroutines.CancellationException
@@ -143,6 +144,20 @@ object EntrantProfileRepository {
         // deactivate the entrant profile after the cleanup is completed
         userDocumentToDeactivate.update("hasActiveEntrantProfile", false).await()
     } // end of delete profiles function
+
+    /**
+     * Gets every entrant profile whose profile picture is an image, used when an admin deletes that image
+     *
+     * @param imageId ID of the image
+     *
+     * @return List of entrant profiles whose imageId matches
+     *
+     * @throws FirebaseFirestoreException if the fetch fails
+     */
+    suspend fun getEntrantProfilesByImageId(imageId: String): List<EntrantProfileModel> {
+        val snapshot = db.collection("entrants").whereEqualTo("imageId", imageId).get().await()
+        return snapshot.toObjects(EntrantProfileModel::class.java)
+    }
 
     /**
      * Creates the entrant profile for a user, and marks the user as having one

@@ -71,6 +71,8 @@ import com.impala.campala.ui_sections.view_profile.ViewProfileView
  * @param createReservationScreen The View where the user can make a reservation from
  * @param viewProfileScreen The View where the user can see their entrant profile
  * @param editProfileScreen The View where the user can edit their entrant profile
+ * @param deepLinkCampsiteId The campsite a deep link asked to open, or null if there isn't one
+ * @param onDeepLinkHandled Called once the app has navigated to the deep linked campsite
  * @param onSwitchRole a function to be executed when the user clicks the button to switch roles
  */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -83,6 +85,8 @@ fun EntrantNavigationRoot(
     createReservationScreen: CreateReservationView,
     viewProfileScreen: ViewProfileView,
     editProfileScreen: EditProfileView,
+    deepLinkCampsiteId: String? = null,
+    onDeepLinkHandled: () -> Unit = {},
     onSwitchRole: () -> Unit
 ) {
     Firebase.messaging.register()
@@ -124,6 +128,15 @@ fun EntrantNavigationRoot(
 
     val navController = rememberNavController()
 
+    LaunchedEffect(deepLinkCampsiteId) {
+        if (deepLinkCampsiteId != null) {
+            navController.navigate("campsite/$deepLinkCampsiteId") {
+                popUpTo("home")
+            }
+            onDeepLinkHandled()
+        }
+    }
+
     NavHost(navController = navController, startDestination = "home") {
         // "home" is the tab navigation, the 4 tabs inside of home are controlled by the EntrantHomeScreen function
         // Any screens that aren't part of the tabs and are 'fullscreen' should be declared here
@@ -141,7 +154,7 @@ fun EntrantNavigationRoot(
             val campsiteId = backStackEntry.arguments?.getString("campsiteId") ?: ""
             // Scaffold is just here so the screen respects the status bar / nav bar insets
             Scaffold { padding ->
-                Box(Modifier.padding(padding)) {
+                Box(Modifier.padding(bottom = padding.calculateBottomPadding())) {
                     campsiteDetailsScreen.Render(navController, campsiteId)
                 }
             }
@@ -256,39 +269,3 @@ fun EntrantHomeScreen(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun ExampleScreenOne(navController: NavController) {
-    Scaffold(
-        topBar = { TopAppBar(title = { Text("Example Components Screen") }) },
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = {
-                    navController.popBackStack()
-                },
-                containerColor = MaterialTheme.colorScheme.primaryContainer,
-                contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-            ) {
-                Row(
-                    modifier = Modifier.padding(horizontal = 16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        Icons.Filled.Delete,
-                        contentDescription = "Delete Icon",
-                    )
-                    Text("Go Back!")
-                }
-            }
-        }
-    ) { innerPadding ->
-        Column(
-            Modifier
-                .padding(innerPadding)
-                .padding(horizontal = 16.dp)
-        ) {
-            UiExamples()
-        }
-    }
-}

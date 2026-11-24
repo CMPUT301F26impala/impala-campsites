@@ -2,6 +2,7 @@ package com.impala.campala.ui_sections.search_campsites
 
 import com.impala.campala.ObservableModel
 import com.impala.campala.User
+import com.impala.campala.UserViewMode
 import com.impala.campala.model.CampsiteModel
 import com.impala.campala.model.CampsiteOwnerProfileRepository
 import com.impala.campala.model.CampsiteRepository
@@ -16,13 +17,6 @@ import java.time.ZoneOffset
 import java.util.Date
 
 /**
- * Which User type the 'Browse Campsites' screen is being shown to
- *
- * ENTRANT sees every campsite, CAMPSITE_OWNER only sees the campsites they own
- */
-enum class SearchCampsitesViewMode { ENTRANT, CAMPSITE_OWNER }
-
-/**
  * Model for the 'Browse Campsites' screen
  *
  * This tracks all the filter state (the search string and the filter values)
@@ -33,8 +27,8 @@ enum class SearchCampsitesViewMode { ENTRANT, CAMPSITE_OWNER }
  * @param lotteryRepo used by the date filter to find which campsites have a lottery with that date available
  * @param User the signed in User so that, if it's campsite owner mode, it can show only their campsites
  * @param scope the CoroutineScope that the suspend fetches run in
- * @param viewMode whether this screen is for an entrant or a campsite owner
  *
+ * @property viewMode the User's role when the campsites were last loaded
  * @property searchString text typed into the search bar
  * @property minimumOccupantsFilter the minimum capacity a User wants, or null for "any is fine"
  * @property locationFilter only show campsites at this location, null for any
@@ -44,9 +38,11 @@ enum class SearchCampsitesViewMode { ENTRANT, CAMPSITE_OWNER }
  * @property images the loaded campsite images, keyed by image ID. Campsites with no image, or whose image hasn't loaded yet, aren't in it
  */
 class SearchCampsitesModel(
-    val scope: CoroutineScope,
-    val viewMode: SearchCampsitesViewMode
+    val scope: CoroutineScope
 ): ObservableModel<SearchCampsitesModel>() {
+    var viewMode: UserViewMode = UserViewMode.ENTRANT
+        private set
+
     var searchString = "";
     var minimumOccupantsFilter: Int? = null;
     var locationFilter: String? = null;
@@ -69,7 +65,7 @@ class SearchCampsitesModel(
         resultsJob?.cancel()
         resultsJob = this.scope.launch {
             var campsites = CampsiteRepository.getFilteredCampsites(searchString, locationFilter, null, minimumOccupantsFilter, null)
-            if (viewMode == SearchCampsitesViewMode.CAMPSITE_OWNER) {
+            if (viewMode == UserViewMode.CAMPSITE_OWNER) {
                 // Campsite owners only see the campsites listed in their profile
                 val ownedCampsites = CampsiteOwnerProfileRepository.getCampsiteOwnerProfileById(User.getUID())?.ownedCampsites ?: emptyList()
                 campsites = campsites.filter { it.id in ownedCampsites }
@@ -85,6 +81,9 @@ class SearchCampsitesModel(
                     .flatMap { it.campsiteIds }
                     .toSet()
                 campsites = campsites.filter { it.id in campsiteIdsAvailableOnDate }
+            }
+            if (viewMode == UserViewMode.ADMIN && searchString.isBlank()) {
+                campsites = campsites.sortedBy { it.name.lowercase() }
             }
             results = campsites
             notifyObservers(this@SearchCampsitesModel)
@@ -105,6 +104,17 @@ class SearchCampsitesModel(
      * Seeds results with just the unfiltered list of campsites, and loads the location filter options
      */
     fun getInitialData() {
+        // The User can switch roles while the app is open
+        val role = User.getCurrentRole() ?: UserViewMode.ENTRANT
+        if (role != viewMode) {
+            viewMode = role
+            searchString = ""
+            minimumOccupantsFilter = null
+            locationFilter = null
+            dateFilter = null
+            results = emptyList()
+            notifyObservers(this)
+        }
         this.updateResults()
         this.scope.launch {
             locations = CampsiteRepository.getLocations()
