@@ -54,6 +54,8 @@ import com.impala.campala.ui_sections.view_lotteries.ViewLotteriesView
  * @param seeReservationsScreen The View where the user can see the details of their reservation
  * @param viewLotteriesScreen The View where the user can see details of a lottery
  * @param createReservationScreen The View where the user can make a reservation from
+ * @param deepLinkCampsiteId The campsite a deep link asked to open, or null if there isn't one
+ * @param onDeepLinkHandled Called once the app has navigated to the deep linked campsite
  * @param onSwitchRole a function to be executed when the user clicks the button to switch roles
  */
 @Composable
@@ -63,9 +65,20 @@ fun EntrantNavigationRoot(
     seeReservationsScreen: SeeReservationsView,
     viewLotteriesScreen: ViewLotteriesView,
     createReservationScreen: CreateReservationView,
+    deepLinkCampsiteId: String? = null,
+    onDeepLinkHandled: () -> Unit = {},
     onSwitchRole: () -> Unit
 ) {
     val navController = rememberNavController()
+
+    LaunchedEffect(deepLinkCampsiteId) {
+        if (deepLinkCampsiteId != null) {
+            navController.navigate("campsite/$deepLinkCampsiteId") {
+                popUpTo("home")
+            }
+            onDeepLinkHandled()
+        }
+    }
 
     NavHost(navController = navController, startDestination = "home") {
         // "home" is the tab navigation, the 4 tabs inside of home are controlled by the EntrantHomeScreen function
@@ -168,34 +181,5 @@ fun EntrantHomeScreen(navController: NavController, searchCampsitesScreen: Searc
 fun ProfileTab(navController: NavController) {
     Column() {
         Text("Profile Screen!!!!")
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun ExampleScreenOne(navController: NavController) {
-    Scaffold(
-        topBar = { TopAppBar(title = { Text("Example Components Screen") }) },
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = {
-                    navController.popBackStack()
-                },
-                containerColor = MaterialTheme.colorScheme.primaryContainer,
-                contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-            ) {
-                Row(modifier = Modifier.padding(horizontal=16.dp), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        Icons.Filled.Delete,
-                        contentDescription = "Delete Icon",
-                    )
-                    Text("Go Back!")
-                }
-            }
-        }
-    ) { innerPadding ->
-        Column(Modifier.padding(innerPadding).padding(horizontal=16.dp)) {
-            UiExamples()
-        }
     }
 }

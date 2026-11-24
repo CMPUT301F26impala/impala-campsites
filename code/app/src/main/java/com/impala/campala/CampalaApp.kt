@@ -42,20 +42,31 @@ import com.impala.campala.ui_sections.create_reservation.CreateReservationView
  * Composable function that acts as the root of the app
  * It sets up the User and SignedInApp does the rest
  * That way, the rest of the code can just assume User is not null and is already initialized
+ *
+ * @param deepLinkCampsiteId If there was a deep link opened, this is the link
+ * @param onDeepLinkHandled Called once the app has navigated to the deep linked campsite to clear the value
  */
 @Composable
-fun CampalaApp() {
+fun CampalaApp(deepLinkCampsiteId: String? = null, onDeepLinkHandled: () -> Unit = {}) {
+    var userInitialized by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
         User.initialize()
+        userInitialized = true
     }
-    SignedInApp()
+    SignedInApp(
+        deepLinkCampsiteId = if (userInitialized) deepLinkCampsiteId else null,
+        onDeepLinkHandled = onDeepLinkHandled
+    )
 }
 
 /**
  * A composable function that initializes the screens and directs the User to a Nav based on their role
+ *
+ * @param deepLinkCampsiteId The campsite a deep link asked to open, the User is switched to entrant mode to view it
+ * @param onDeepLinkHandled Called once the app has navigated to the deep linked campsite
  */
 @Composable
-fun SignedInApp() {
+fun SignedInApp(deepLinkCampsiteId: String? = null, onDeepLinkHandled: () -> Unit = {}) {
     // This is just a property on User, but it's cleaner to extract it out
     var currentRole by remember { mutableStateOf(User.getCurrentRole()) }
     // This is true either if it's first-app-open or if the User requested to change view modes / roles
@@ -114,7 +125,16 @@ fun SignedInApp() {
     val seeReservationsController = remember { SeeReservationsController(seeReservationsModel) }
     val seeReservationsView = remember { SeeReservationsView(seeReservationsController) }
     seeReservationsModel.addObserver(seeReservationsView)
-    
+
+    // Opening a QR code is an entrant thing, so we have to switch to entrant mode to open its
+    LaunchedEffect(deepLinkCampsiteId) {
+        if (deepLinkCampsiteId != null) {
+            User.setCurrentRole(UserViewMode.ENTRANT)
+            currentRole = UserViewMode.ENTRANT
+            needsRoleChoice = false
+        }
+    }
+
     if (needsRoleChoice) {
         // Scaffold is just here so the screen respects the status bar / nav bar insets
         Scaffold { padding ->
@@ -127,14 +147,14 @@ fun SignedInApp() {
         }
     } else {
         when (currentRole) {
-            UserViewMode.ENTRANT -> EntrantNavigationRoot(searchCampsitesScreen=searchCampsitesView, campsiteDetailsScreen=campsiteDetailsView, seeReservationsScreen=seeReservationsView, viewLotteriesScreen=viewLotteriesView, createReservationScreen=createReservationView, onSwitchRole={ needsRoleChoice = true })
+            UserViewMode.ENTRANT -> EntrantNavigationRoot(searchCampsitesScreen=searchCampsitesView, campsiteDetailsScreen=campsiteDetailsView, seeReservationsScreen=seeReservationsView, viewLotteriesScreen=viewLotteriesView, createReservationScreen=createReservationView, deepLinkCampsiteId=deepLinkCampsiteId, onDeepLinkHandled=onDeepLinkHandled, onSwitchRole={ needsRoleChoice = true })
             UserViewMode.CAMPSITE_OWNER -> CampsiteOwnerNavigationRoot(searchCampsitesScreen=ownerSearchCampsitesView, campsiteDetailsScreen=campsiteDetailsView, formCampsitesScreen=formCampsitesView, formLotteriesScreen = formLotteriesView, viewLotteriesScreen = viewLotteriesView, seeReservationsScreen = seeReservationsView, onSwitchRole={ needsRoleChoice = true })
 
             UserViewMode.ADMIN -> AdminNavigationRoot(onSwitchRole={ needsRoleChoice = true })
 
             null -> {
                 // They have a profile but no role saved, so just send them to the entrant UI so the app is still usable
-                EntrantNavigationRoot(searchCampsitesScreen=searchCampsitesView, campsiteDetailsScreen=campsiteDetailsView, seeReservationsScreen=seeReservationsView, viewLotteriesScreen=viewLotteriesView, createReservationScreen=createReservationView, onSwitchRole={ needsRoleChoice = true })
+                EntrantNavigationRoot(searchCampsitesScreen=searchCampsitesView, campsiteDetailsScreen=campsiteDetailsView, seeReservationsScreen=seeReservationsView, viewLotteriesScreen=viewLotteriesView, createReservationScreen=createReservationView, deepLinkCampsiteId=deepLinkCampsiteId, onDeepLinkHandled=onDeepLinkHandled, onSwitchRole={ needsRoleChoice = true })
             }
         }
     }
