@@ -39,8 +39,11 @@ class CampsiteDetailsController(val model: CampsiteDetailsModel) : Controller {
         navController.popBackStack()
     }
 
+    /**
+     * Called when the Generate QR Code button is pressed
+     */
     fun generateQRCode() {
-        // TODO: Add functionality to generate and display a QR Code.
+        model.generateQrCode()
     }
 
     /**

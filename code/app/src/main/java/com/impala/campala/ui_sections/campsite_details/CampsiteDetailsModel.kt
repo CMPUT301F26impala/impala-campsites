@@ -15,7 +15,7 @@ import com.impala.campala.model.ReviewModel
 import com.impala.campala.model.ReviewRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import kotlin.uuid.Uuid
+import qrcode.QRCode
 
 /**
  * Model for the Campsite Details screen
@@ -23,13 +23,6 @@ import kotlin.uuid.Uuid
  * There will be one of these objects, not one for each campsite
  * The attributes will be updated when a different campsite is displayed
  *
- * @param campsiteRepo the repo to fetch relevant campsite from
- * @param lotteryRepo the repo to fetch the campsite lottery from
- * @param campsiteOwnerProfileRepo the repo to check which campsites the User owns
- * @param reservationRepo the repo to fetch the campsite's reservations from
- * @param imageRepo the repo to fetch the campsite's image from
- * @param reviewRepo the repo to fetch the campsite's reviews from
- * @param User the object which contains the current User's information
  * @param scope the CoroutineScope that the suspend fetches run in
  *
  * @property name the Campsite name
@@ -42,7 +35,7 @@ import kotlin.uuid.Uuid
  * @property campsite the Campsite object whose details are displayed
  * @property lottery the Lottery for the Campsite, if it exists
  * @property joinStatus indicates whether a User can join a lottery or the reason they cannot
- * @property UserIsOwner flag for if the current User owns the campsite
+ * @property userIsOwner flag for if the current User owns the campsite
  * @property lotteryExists flag indicating if there is a lottery for the selected campsite
  * @property reservedDates the campsite's upcoming, non-cancelled reservations sorted by start date, only loaded for the owner
  * @property reviews the reviews entrants have left on the campsite
@@ -64,6 +57,7 @@ class CampsiteDetailsModel(
     var lotteryExists: Boolean = false
     var reservedDates: List<ReservationModel> = emptyList()
     var reviews: List<ReviewModel> = emptyList()
+    var qrCode: QRCode? = null
 
     /**
      * Called every time the screen is rendered.
@@ -82,6 +76,7 @@ class CampsiteDetailsModel(
         this.maxOccupancy = campsite?.maxOccupancy ?: 0
         this.tags = campsite?.tags ?: mutableListOf()
         this.averageRating = campsite?.averageRating
+        this.qrCode = null
 
         val imageId = campsite?.imageId ?: ""
         this.imageBytes = if (imageId.isNotEmpty()) ImageRepository.getImageById(imageId)?.data?.toBytes() else null
@@ -125,6 +120,7 @@ class CampsiteDetailsModel(
             LotteryRepository.joinLottery(lottery!!.id, User.getUID())
             campsite?.let { loadCampsite(it.id) }
         }
+        notifyObservers(this)
     }
 
     /**
@@ -136,5 +132,15 @@ class CampsiteDetailsModel(
             LotteryRepository.leaveLottery(lottery!!.id, User.getUID())
             campsite?.let { loadCampsite(it.id) }
         }
+        notifyObservers(this)
+    }
+
+    /**
+     * Called when the owner generates a QR code
+     * Creates a new QR Code with the campsite ID which will link to the details page
+     */
+    fun generateQrCode() {
+        qrCode = QRCode.ofSquares().build("campala://${campsite!!.id}")
+        notifyObservers(this)
     }
 }

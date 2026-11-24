@@ -1,5 +1,6 @@
 [versions]
 agp = "9.4.1"
+core = "3.5.4"
 coreKtx = "1.19.1"
 firebaseBom = "35.1.0"
 junit = "4.13.2"
@@ -23,6 +24,7 @@ androidx-compose-foundation-layout = { group = "androidx.compose.foundation", na
 androidx-compose-material-icons-core = { module = "androidx.compose.material:material-icons-core" }
 androidx-compose-ui-text-google-fonts = { module = "androidx.compose.ui:ui-text-google-fonts", version.ref = "uiTextGoogleFonts" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+core = { module = "com.google.zxing:core", version.ref = "core" }
 firebase-auth = { module = "com.google.firebase:firebase-auth" }
 firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebaseBom" }
 firebase-firestore = { module = "com.google.firebase:firebase-firestore" }

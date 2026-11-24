@@ -77,4 +77,5 @@ dependencies {
     testImplementation(libs.kotlinx.coroutines.test)
     implementation(libs.androidx.compose.foundation.layout)
     implementation(libs.firebase.messaging)
+    implementation("io.github.g0dkar:qrcode-kotlin:4.5.0")
 }

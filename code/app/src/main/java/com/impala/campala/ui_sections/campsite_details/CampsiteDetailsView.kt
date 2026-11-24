@@ -1,6 +1,5 @@
 package com.impala.campala.ui_sections.campsite_details
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -20,7 +19,9 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -42,6 +43,7 @@ import com.google.firebase.Timestamp
 import com.impala.campala.model.LotteryModel
 import com.impala.campala.model.ReservationModel
 import com.impala.campala.model.ReviewModel
+import qrcode.QRCode
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 
@@ -64,8 +66,11 @@ class CampsiteDetailsView(val controller: CampsiteDetailsController): ViewObserv
     private var joinStatus by mutableStateOf<LotteryModel.ProspectiveJoinStatus?>(null)
     private var reservedDates = mutableStateListOf<ReservationModel>()
     private var reviews = mutableStateListOf<ReviewModel>()
+    private var qrShowing by mutableStateOf(false)
+    private var qrCode by mutableStateOf<QRCode?>(null)
 
     override fun update(model: CampsiteDetailsModel) {
+        qrShowing = false
         this.name = model.name
         this.location = model.location
         this.description = model.description
@@ -81,6 +86,7 @@ class CampsiteDetailsView(val controller: CampsiteDetailsController): ViewObserv
         this.reservedDates.addAll(model.reservedDates)
         this.reviews.clear()
         this.reviews.addAll(model.reviews)
+        this.qrCode = model.qrCode
     }
 
     /**
@@ -139,6 +145,7 @@ class CampsiteDetailsView(val controller: CampsiteDetailsController): ViewObserv
             }
             RenderBottomButtons(modifier = Modifier.align(Alignment.BottomEnd), navController)
         }
+        RenderQrCode()
     }
 
     @Composable
@@ -202,7 +209,10 @@ class CampsiteDetailsView(val controller: CampsiteDetailsController): ViewObserv
             verticalArrangement = Arrangement.Bottom
         ) {
             if(isOwner) {
-                Button(onClick = { controller.generateQRCode() }) { Text("Generate QR") }
+                Button(onClick = {
+                    controller.generateQRCode()
+                    qrShowing = true
+                }) { Text("Generate QR") }
             }
             // Show a different button based on whether the lottery exists and is full
             else {
@@ -239,6 +249,20 @@ class CampsiteDetailsView(val controller: CampsiteDetailsController): ViewObserv
             IconButton(onClick = { controller.moveToBrowse(navController) }) {
                 Icon(Icons.Default.Close, contentDescription = "Back Icon", tint = MaterialTheme.colorScheme.onSurfaceVariant)
             }
+        }
+    }
+
+    // Renders the modal with the QR Code that links to the details page
+    @OptIn(ExperimentalMaterial3Api::class)
+    @Composable
+    private fun RenderQrCode() {
+        if(!qrShowing || qrCode == null) {
+            return
+        }
+        BasicAlertDialog(
+            onDismissRequest = { qrShowing = false },
+        ) {
+            ImageDisplay(qrCode!!.renderToBytes())
         }
     }
 }
