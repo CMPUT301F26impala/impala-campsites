@@ -16,6 +16,9 @@ import androidx.compose.ui.platform.LocalContext
 import com.impala.campala.ui_sections.admin_images.AdminImagesController
 import com.impala.campala.ui_sections.admin_images.AdminImagesModel
 import com.impala.campala.ui_sections.admin_images.AdminImagesView
+import com.impala.campala.ui_sections.admin_reviews.AdminReviewsController
+import com.impala.campala.ui_sections.admin_reviews.AdminReviewsModel
+import com.impala.campala.ui_sections.admin_reviews.AdminReviewsView
 import com.impala.campala.ui_sections.campsite_details.CampsiteDetailsController
 import com.impala.campala.ui_sections.campsite_details.CampsiteDetailsModel
 import com.impala.campala.ui_sections.campsite_details.CampsiteDetailsView
@@ -170,6 +173,11 @@ fun SignedInApp(deepLinkCampsiteId: String? = null, onDeepLinkHandled: () -> Uni
     val adminImagesView = remember { AdminImagesView(adminImagesController) }
     adminImagesModel.addObserver(adminImagesView)
 
+    val adminReviewsModel = remember { AdminReviewsModel(coroutineScope) }
+    val adminReviewsController = remember { AdminReviewsController(adminReviewsModel) }
+    val adminReviewsView = remember { AdminReviewsView(adminReviewsController) }
+    adminReviewsModel.addObserver(adminReviewsView)
+
     // Opening a QR code is an entrant thing, so we have to switch to entrant mode to open its
     LaunchedEffect(deepLinkCampsiteId) {
         if (deepLinkCampsiteId != null) {
@@ -218,6 +226,7 @@ fun SignedInApp(deepLinkCampsiteId: String? = null, onDeepLinkHandled: () -> Uni
                 searchCampsitesScreen = searchCampsitesView,
                 campsiteDetailsScreen = campsiteDetailsView,
                 adminImagesScreen = adminImagesView,
+                adminReviewsScreen = adminReviewsView,
                 onSwitchRole = { needsRoleChoice = true })
 
             null -> {

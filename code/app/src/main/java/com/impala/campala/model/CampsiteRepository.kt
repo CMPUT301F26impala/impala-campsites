@@ -238,4 +238,19 @@ object CampsiteRepository {
             )
             .await()
     }
+
+    /**
+     * Removes a rating from a campsite, for admin purposes
+     *
+     * @param campsiteId ID of the campsite the rating was on
+     * @param rating the rating out of 5 that's being removed
+     */
+    suspend fun removeRating(campsiteId: String, rating: Double): Unit {
+        db.collection("campsites").document(campsiteId)
+            .update(
+                "ratingTotal", FieldValue.increment(-rating),
+                "ratingCount", FieldValue.increment(-1)
+            )
+            .await()
+    }
 }
