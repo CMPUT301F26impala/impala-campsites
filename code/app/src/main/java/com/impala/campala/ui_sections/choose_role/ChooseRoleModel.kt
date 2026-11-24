@@ -21,6 +21,7 @@ import kotlinx.coroutines.launch
  *
  * @property isSaving true while the profile is being created, so the buttons can't be pressed twice
  * @property chosenRole The role chosen by the user
+ * @property canUseAsCampsiteOwner false once the user's campsite owner profile is banned, which hides the campsite owner button
  */
 class ChooseRoleModel(
     val scope: CoroutineScope
@@ -30,6 +31,20 @@ class ChooseRoleModel(
 
     var chosenRole: UserViewMode? = null
 
+    var canUseAsCampsiteOwner = false
+        private set
+
+    /**
+     * Called whenever the screen is shown, checks which roles the user can pick
+     * A banned campsite owner shouldn't be able to go back into that view
+     *
+     * @param user The User picking a role
+     */
+    fun loadAvailableRoles(user: User) {
+        canUseAsCampsiteOwner = !user.getHasCreatedCampsiteOwnerProfile() || user.getHasActiveCampsiteOwnerProfile()
+        notifyObservers(this)
+    }
+
     /**
      * If this is the first time choosing said role, it will create the object for it, and then it also updates the role property on the user.
      *
@@ -37,6 +52,8 @@ class ChooseRoleModel(
      * @param role UserViewMode.ENTRANT, UserViewMode.CAMPSITE_OWNER, or UserViewMode.ADMIN
      */
     fun chooseRole(user: User, role: UserViewMode) {
+        if (role == UserViewMode.CAMPSITE_OWNER && !canUseAsCampsiteOwner) return
+
         // First we set isSaving so that double presses can't happen
         isSaving = true
         notifyObservers(this)

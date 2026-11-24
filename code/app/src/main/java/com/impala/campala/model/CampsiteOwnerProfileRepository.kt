@@ -3,6 +3,7 @@ package com.impala.campala.model
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreException
+import com.google.firebase.firestore.SetOptions
 import com.google.firebase.firestore.firestore
 import com.impala.campala.User
 import kotlinx.coroutines.CancellationException
@@ -37,7 +38,6 @@ object CampsiteOwnerProfileRepository {
 
     /**
      * Creates the campsite owner profile for a user, and marks the user as having one
-     * // TODO: Is it okay to put the user logic in here, or should the user just call this to make the profile and then set the user fields itself
      *
      * @param user The User object the profile is being made for
      * @param profile The new profile model object, its userId gets set to the user's UID so you don't have to do that yourself
@@ -106,5 +106,21 @@ object CampsiteOwnerProfileRepository {
     suspend fun removeOwnedCampsite(profile: CampsiteOwnerProfileModel, campsiteId: String) {
         profile.ownedCampsites.remove(campsiteId)
         this.saveCampsiteOwnerProfile(profile)
+    }
+
+    /**
+     * Bans a campsite owner, deletes their campsites, and marks them as banned
+     * The next time they open the app they're sent to the choose role screen, and can't pick campsite owner
+     *
+     * @param userId UID of the campsite owner to ban
+     *
+     * @throws FirebaseFirestoreException if any of the reads or writes fail
+     */
+    suspend fun banCampsiteOwner(userId: String): Unit {
+        for (campsite in CampsiteRepository.getCampsitesByOwnerId(userId)) {
+            CampsiteRepository.softDeleteCampsite(campsite)
+        }
+        db.collection("users").document(userId)
+            .set(mapOf("hasActiveCampsiteOwnerProfile" to false), SetOptions.merge()).await()
     }
 }

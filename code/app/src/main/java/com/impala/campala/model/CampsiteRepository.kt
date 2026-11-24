@@ -112,6 +112,20 @@ object CampsiteRepository {
     }
 
     /**
+     * Gets every campsite an owner has that hasn't been deleted
+     *
+     * @param ownerId UID of the campsite owner
+     *
+     * @return List of the owner's campsites
+     *
+     * @throws FirebaseFirestoreException if the fetch fails
+     */
+    suspend fun getCampsitesByOwnerId(ownerId: String): List<CampsiteModel> {
+        val snapshot = db.collection("campsites").whereEqualTo("ownerId", ownerId).get().await()
+        return snapshot.toObjects(CampsiteModel::class.java).filter { !it.hasBeenDeleted }
+    }
+
+    /**
      * Gets every campsite that uses an image, used when an admin deletes that image
      *
      * @param imageId ID of the image

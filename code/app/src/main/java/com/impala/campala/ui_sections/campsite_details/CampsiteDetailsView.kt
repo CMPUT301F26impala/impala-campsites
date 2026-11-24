@@ -300,7 +300,7 @@ class CampsiteDetailsView(val controller: CampsiteDetailsController): ViewObserv
                 confirmButton = {
                     TextButton(onClick = {
                         banDialogOpen = false
-                        controller.banOwner()
+                        controller.banOwner(navController)
                     }) { Text("Ban") }
                 }
             )

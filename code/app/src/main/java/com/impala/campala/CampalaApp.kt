@@ -83,7 +83,11 @@ fun SignedInApp() {
     var currentRole by remember { mutableStateOf(User.getCurrentRole()) }
     // This is true either if it's first-app-open or if the User requested to change view modes / roles
     // If they have never had an entrant or campsite owner profile, they're new and should start on the choose role screen
-    var needsRoleChoice by remember { mutableStateOf(!User.getHasCreatedEntrantProfile() && !User.getHasCreatedCampsiteOwnerProfile()) }
+    // A banned campsite owner also has to pick a different role
+    var needsRoleChoice by remember { mutableStateOf(
+        (!User.getHasCreatedEntrantProfile() && !User.getHasCreatedCampsiteOwnerProfile())
+            || (currentRole == UserViewMode.CAMPSITE_OWNER && !User.getHasActiveCampsiteOwnerProfile())
+    ) }
 
     // Here, remember basically means "make this one, and even if this rerenders use the old version"
     // That way, we aren't recreating these classes a bunch of times.

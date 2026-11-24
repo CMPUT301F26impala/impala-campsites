@@ -67,9 +67,11 @@ class CampsiteDetailsController(val model: CampsiteDetailsModel) : Controller {
     }
 
     /**
-     * Called when an admin confirms banning the campsite's owner
+     * Called when an admin confirms banning the campsite's owner, goes back to the Browse Campsite screen once they're banned
+     *
+     * @param navController the navController object used for navigation
      */
-    fun banOwner() {
-        model.banOwner()
+    fun banOwner(navController: NavController) {
+        model.banOwner(onBanned = { navController.popBackStack() })
     }
 }

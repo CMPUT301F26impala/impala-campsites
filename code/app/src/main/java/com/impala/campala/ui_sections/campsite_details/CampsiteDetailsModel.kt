@@ -165,8 +165,20 @@ class CampsiteDetailsModel(
 
     /**
      * Called when an admin confirms banning the campsite's owner
+     *
+     * @param onBanned called once the owner is banned, used to leave the screen
      */
-    fun banOwner() {
-        // TODO: Ban the campsite owner
+    fun banOwner(onBanned: () -> Unit) {
+        val campsite = campsite ?: return
+        this.scope.launch {
+            try {
+                CampsiteOwnerProfileRepository.banCampsiteOwner(campsite.ownerId)
+                onBanned()
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Log.e("CampsiteDetailsModel", "Failed to ban campsite owner", e)
+            }
+        }
     }
 }
