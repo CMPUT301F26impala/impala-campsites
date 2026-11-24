@@ -249,7 +249,7 @@ fun EntrantHomeScreen(
                     EntrantTab.Search -> searchCampsitesScreen.Render(navController)
                     EntrantTab.Lotteries -> viewLotteriesScreen.Render(navController)
                     EntrantTab.Reservations -> seeReservationsScreen.Render(navController)
-                    EntrantTab.Profile -> viewProfileScreen.Render(navController)
+                    EntrantTab.Profile -> viewProfileScreen.Render(navController, onProfileDeleted = onSwitchRole)
                 }
             }
         }

@@ -43,4 +43,13 @@ class ChooseRoleController(val model: ChooseRoleModel) : Controller {
     fun onRoleChosenHandled() {
         model.clearChosenRole()
     }
+
+    /**
+     * checks for what roles are available to the user
+     *
+     * @param user user choosing a role
+     */
+    fun onFirstRender(user: User) {
+        model.loadAvailableRoles(user)
+    }
 }

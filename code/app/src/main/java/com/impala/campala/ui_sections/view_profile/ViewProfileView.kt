@@ -85,15 +85,23 @@ class ViewProfileView(val controller: ViewProfileController) : ViewObserver<View
      * The main function that renders the screen
      *
      * @param navController The navigation controller for Android
+     * @param onProfileDeleted called when an entrant deletes their own profile
      */
     @Composable
-    fun Render(navController: NavController) {
+    fun Render(
+        navController: NavController,
+        onProfileDeleted: () -> Unit = {}
+    ) {
         LaunchedEffect(Unit) {
             controller.onFirstRender()
         }
         // go back when deletion is completed
         LaunchedEffect(wasProfileDeletedSuccessfully) {
-            if (wasProfileDeletedSuccessfully && isViewingProfileAsAdmin) { navController.popBackStack() }
+            if (wasProfileDeletedSuccessfully) {
+                // change flags to normal stuff again
+                controller.onProfileDeletionHandled()
+                if (isViewingProfileAsAdmin) { navController.popBackStack() } else { onProfileDeleted() }
+            }
         }
         // so we don't go back mid deletion
         BackHandler(enabled = isCurrentlyDeletingProfile) {}
@@ -164,7 +172,7 @@ class ViewProfileView(val controller: ViewProfileController) : ViewObserver<View
         var profileDeletionTitle = "Confirm Deletion"
         var profileDeletionMessage = "Are you sure you want to delete your profile? You will lose any in-progress reservations and will not be able to see your previous data."
         var profileDeletionButtonText = "Confirm"
-        var canConfirmProfileDeletion = false
+        var canConfirmProfileDeletion = !isViewingProfileAsAdmin
         val selectedUserProfile = controller.model.selectedAdminProfile
         if (isViewingProfileAsAdmin && selectedUserProfile != null) {
             profileDeletionTitle = "Confirm Profile Deletion"

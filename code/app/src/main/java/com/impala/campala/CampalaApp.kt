@@ -83,8 +83,8 @@ fun SignedInApp() {
     // This is just a property on User, but it's cleaner to extract it out
     var currentRole by remember { mutableStateOf(User.getCurrentRole()) }
     // This is true either if it's first-app-open or if the User requested to change view modes / roles
-    // If they have never had an entrant or campsite owner profile, they're new and should start on the choose role screen
-    var needsRoleChoice by remember { mutableStateOf(!User.getHasCreatedEntrantProfile() && !User.getHasCreatedCampsiteOwnerProfile()) }
+    // If they have never had an entrant or campsite owner profile, they're new and should start on the choose role screen, also check if profile is deactivated
+    var needsRoleChoice by remember { mutableStateOf((!User.getHasCreatedEntrantProfile() && !User.getHasCreatedCampsiteOwnerProfile()) || (currentRole == UserViewMode.ENTRANT && !User.getHasActiveEntrantProfile()) || currentRole == null) }
 
     // Here, remember basically means "make this one, and even if this rerenders use the old version"
     // That way, we aren't recreating these classes a bunch of times.

@@ -104,4 +104,12 @@ class ViewProfileModel(val scope: CoroutineScope, val selectedAdminProfile: Admi
             }
         }
     } // end of profile deletion function
+
+    /**
+     * reset flags after deletion
+     */
+    fun clearProfileDeletionStatus() {
+        wasProfileDeletedSuccessfully = false
+        notifyObservers(this)
+    }
 }

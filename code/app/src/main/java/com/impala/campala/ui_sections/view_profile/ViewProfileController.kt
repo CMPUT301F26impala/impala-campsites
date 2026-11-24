@@ -54,4 +54,11 @@ class ViewProfileController(val model: ViewProfileModel) : Controller {
     fun onDeleteConfirm() {
         model.deleteSelectedUserProfile()
     }
+
+    /**
+     * clear value of flags after deletion
+     */
+    fun onProfileDeletionHandled() {
+        model.clearProfileDeletionStatus()
+    }
 }
