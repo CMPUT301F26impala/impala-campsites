@@ -2,6 +2,7 @@ package com.impala.campala.ui_sections.form_campsites
 
 import android.net.Uri
 import com.google.firebase.firestore.Blob
+import com.google.firebase.firestore.GeoPoint
 import com.impala.campala.ImageCompressor
 import com.impala.campala.ObservableModel
 import com.impala.campala.User
@@ -173,8 +174,8 @@ class FormCampsitesModel(
         maximumOccupancy = newCampsite?.maxOccupancy?.toString() ?: ""
         tags = newCampsite?.tags?.toMutableList() ?: mutableListOf()
         unsavedImage = null
-        mapLatitude = null
-        mapLongitude = null
+        mapLatitude = newCampsite?.coordinates?.latitude
+        mapLongitude = newCampsite?.coordinates?.longitude
         notifyObservers(this)
     }
 
@@ -189,6 +190,10 @@ class FormCampsitesModel(
         // check for number pad on android
         val occupancy = if (maximumOccupancy == "") 0 else maximumOccupancy.toInt()
 
+        val lat = mapLatitude
+        val lng = mapLongitude // im not sure if long is a reserved keyword in Kotlin, so using lng
+        val coordinates = if (lat != null && lng != null) GeoPoint(lat, lng) else null
+
         // editing an existing campsite, updatedCampsite stores the datatype we will send after create/edit
         // campsite is a var now, so it's copied into a val first so kotlin knows it can't change underneath us
         val existingCampsite = campsite
@@ -199,7 +204,8 @@ class FormCampsitesModel(
                 location = location.trim(),
                 description = description,
                 maxOccupancy = occupancy,
-                tags = tags.toMutableList()
+                tags = tags.toMutableList(),
+                coordinates = coordinates
             )
         } else {
             // creating a new campsite
@@ -209,6 +215,7 @@ class FormCampsitesModel(
                 description = description,
                 maxOccupancy = occupancy,
                 tags = tags.toMutableList(),
+                coordinates = coordinates,
                 ownerId = User.getUID()
             )
         }
