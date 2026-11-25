@@ -1,0 +1,68 @@
+package com.impala.campala.ui_sections.message_user
+
+import com.impala.campala.ObservableModel
+import com.impala.campala.model.MessageModel
+import com.impala.campala.model.MessagesRepository
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toInstant
+import kotlinx.datetime.toLocalDateTime
+
+class MessageUserModel(
+    val scope: CoroutineScope,
+    private val reservationId: String,
+    ) : ObservableModel<MessageUserModel>() {
+//    val ownerMessages = mutableListOf<MessageModel>()
+//    val entrantMessages = mutableListOf<MessageModel>()
+
+    private var entrantId : String = ""
+    private var ownerId : String = ""
+    private var messages = mutableListOf<MessageModel>()
+
+
+    /**
+     * Refreshes the message log. returns the MessageUserModel, which may be helpful.
+     *
+     * Must be done at least once when MessageUserModel is opened.
+     */
+    public fun refresh(): MessageUserModel {
+        scope.launch {
+            val repository = MessagesRepository.getOrCreateThreadByReservation(reservationId)
+
+            //TODO: Optimize this so it adds new messages instead of clearing ALL OLD messages then adding ALL messages.
+            messages = repository.messageThread
+
+//            ownerMessages.clear()
+//            ownerMessages.addAll(messages.filter { it.fromOwner })
+//
+//            entrantMessages.clear()
+//            entrantMessages.addAll(messages.filter { !it.fromOwner })
+
+            entrantId = repository.entrantId
+            ownerId = repository.ownerId
+        }
+        return this
+    }
+
+    /**
+     * Sends a given message to the list of messages.
+     */
+    public fun send(text: String, owner: Boolean) {
+        scope.launch {
+            MessagesRepository.sendMessage(text, owner, MessagesRepository.getOrCreateThreadByReservation(reservationId))
+        }
+    }
+
+    fun threadInfo(): Map<String, String> {
+        return mapOf(
+            "entrantId" to entrantId,
+            "ownerId" to ownerId,
+            "reservationId" to reservationId
+        )
+    }
+
+    fun messages() : MutableList<MessageModel> {
+        return messages
+    }
+}

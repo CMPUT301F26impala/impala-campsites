@@ -77,4 +77,5 @@ dependencies {
     testImplementation(libs.kotlinx.coroutines.test)
     implementation(libs.androidx.compose.foundation.layout)
     implementation(libs.firebase.messaging)
+    implementation(libs.kotlinx.datetime)
 }

@@ -1,5 +1,11 @@
 package com.impala.campala.model
 
+//import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
+import kotlin.time.Instant
+
 /**
  * Stores a single message between owner and entrant
  *
@@ -7,6 +13,10 @@ package com.impala.campala.model
  */
 data class MessageModel(
     val body: String = "",
-    val FromOwner: Boolean = false
+    val fromOwner: Boolean = false,
+    val date: Instant // Uses LocalDateTime for simplicity Stores UTC. Be careful: Instant type should be used when grabbing time, as instant always defaults to UTC.
 ) {
+    public fun localDate(): LocalDateTime {
+        return this.date.toLocalDateTime(TimeZone.currentSystemDefault())
+    }
 }

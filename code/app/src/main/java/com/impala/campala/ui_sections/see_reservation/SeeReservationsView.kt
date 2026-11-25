@@ -102,7 +102,7 @@ class SeeReservationsView(val controller: SeeReservationsController) : ViewObser
             controller.initialize()
         }
 
-        // To preserve Liam's design of the A, B, C screens, I've made Owner just it's own thing
+        // To preserve Liam's design of the A, B, C screens, I've made Owner just its own thing
         if (viewMode == UserViewMode.CAMPSITE_OWNER) {
             DrawOwnerRes()
             return
