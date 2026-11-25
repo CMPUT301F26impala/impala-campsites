@@ -34,9 +34,14 @@ import com.impala.campala.ui_sections.view_lotteries.ViewLotteriesModel
 
 class MessageUserView(val controller: MessageUserController) : ViewObserver<MessageUserModel> {
     var currentRole = User.getCurrentRole()
+    private var messages = mutableStateListOf<MessageModel>()
+    private var threadInfo by mutableStateOf(mapOf("entrantId" to "", "ownerId" to "", "reservationId" to ""))
 
     override fun update(model: MessageUserModel): Unit {
         this.currentRole = User.getCurrentRole()
+        this.messages.clear()
+        this.messages.addAll(model.messages())
+        this.threadInfo = model.threadInfo()
     }
 
     @Composable
@@ -46,14 +51,9 @@ class MessageUserView(val controller: MessageUserController) : ViewObserver<Mess
             mutableStateOf("")
         }
 
-        var messages by remember {
-            mutableStateOf(mutableListOf<MessageModel>())
-        }
-
         // Redo this on each launch
         LaunchedEffect(reservationId) {
             controller.loadThread(reservationId)
-            messages = controller.messages()
         }
 
         Column(modifier = Modifier) {
@@ -70,16 +70,15 @@ class MessageUserView(val controller: MessageUserController) : ViewObserver<Mess
 
                 // Conversation title. Varies based on current role, defaults to a 3rd party "User [x] and owner [y]", equivalent to what admin would see.
                 Text(
-                    text = if (User.getCurrentRole() == UserViewMode.ENTRANT) controller.threadInfo()["ownerId"]!!
-                    else if (User.getCurrentRole() == UserViewMode.CAMPSITE_OWNER) controller.threadInfo()["entrantId"]!!
-                    else "User " + controller.threadInfo()["entrantId"]!! + " and owner " + controller.threadInfo()["ownerId"]!!,
+                    text = if (User.getCurrentRole() == UserViewMode.ENTRANT) threadInfo["ownerId"]!!
+                    else if (User.getCurrentRole() == UserViewMode.CAMPSITE_OWNER) threadInfo["entrantId"]!!
+                    else "User " + threadInfo["entrantId"]!! + " and owner " + threadInfo["ownerId"]!!,
                     fontSize = 30.sp
                 )
 
                 Button(
                     onClick = {
                         controller.refresh()
-                        messages = controller.messages()
                     },
                     modifier = Modifier.testTag("refreshButton") // for testing
                 ) {

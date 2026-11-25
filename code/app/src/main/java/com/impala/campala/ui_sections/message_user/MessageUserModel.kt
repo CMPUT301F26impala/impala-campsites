@@ -26,6 +26,12 @@ class MessageUserModel(
      */
     public fun loadThread(reservationId: String) {
         this.reservationId = reservationId
+
+        messages = mutableListOf()
+        entrantId = ""
+        ownerId = ""
+        notifyObservers(this)
+
         refresh()
     }
 
@@ -49,6 +55,8 @@ class MessageUserModel(
 
             entrantId = repository.entrantId
             ownerId = repository.ownerId
+
+            notifyObservers(this@MessageUserModel)
         }
         return this
     }
@@ -59,6 +67,7 @@ class MessageUserModel(
     public fun send(text: String, owner: Boolean) {
         scope.launch {
             MessagesRepository.sendMessage(text, owner, MessagesRepository.getOrCreateThreadByReservation(reservationId))
+            refresh()
         }
     }
 

@@ -1,7 +1,6 @@
 package com.impala.campala.ui_sections.message_user
 
 import com.impala.campala.Controller
-import com.impala.campala.model.MessageModel
 
 class MessageUserController(val model: MessageUserModel) : Controller {
 
@@ -29,12 +28,4 @@ class MessageUserController(val model: MessageUserModel) : Controller {
 //    fun entrantMessages(): MutableList<MessageModel> {
 //        return model.entrantMessages
 //    }
-
-    fun threadInfo(): Map<String, String> {
-        return model.threadInfo()
-    }
-
-    fun messages() : MutableList<MessageModel> {
-        return model.messages()
-    }
 }
