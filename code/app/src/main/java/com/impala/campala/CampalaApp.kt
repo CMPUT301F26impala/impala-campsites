@@ -55,6 +55,9 @@ import com.impala.campala.ui_sections.view_lotteries.ViewLotteriesView
 import com.impala.campala.ui_sections.view_profile.ViewProfileController
 import com.impala.campala.ui_sections.view_profile.ViewProfileModel
 import com.impala.campala.ui_sections.view_profile.ViewProfileView
+import com.impala.campala.ui_sections.admin_profiles.AdminProfilesModel
+import com.impala.campala.ui_sections.admin_profiles.AdminProfilesController
+import com.impala.campala.ui_sections.admin_profiles.AdminProfilesView
 
 /**
  * Composable function that acts as the root of the app
@@ -92,11 +95,13 @@ fun SignedInApp(deepLinkCampsiteId: String? = null, onDeepLinkHandled: () -> Uni
     // This is just a property on User, but it's cleaner to extract it out
     var currentRole by remember { mutableStateOf(User.getCurrentRole()) }
     // This is true either if it's first-app-open or if the User requested to change view modes / roles
-    // If they have never had an entrant or campsite owner profile, they're new and should start on the choose role screen
+    // If they have never had an entrant or campsite owner profile, they're new and should start on the choose role screen, also check if profile is deactivated
     // A banned campsite owner also has to pick a different role
     var needsRoleChoice by remember { mutableStateOf(
         (!User.getHasCreatedEntrantProfile() && !User.getHasCreatedCampsiteOwnerProfile())
+            || (currentRole == UserViewMode.ENTRANT && !User.getHasActiveEntrantProfile())
             || (currentRole == UserViewMode.CAMPSITE_OWNER && !User.getHasActiveCampsiteOwnerProfile())
+            || currentRole == null
     ) }
 
     // Here, remember basically means "make this one, and even if this rerenders use the old version"
@@ -152,6 +157,14 @@ fun SignedInApp(deepLinkCampsiteId: String? = null, onDeepLinkHandled: () -> Uni
     val viewProfileController = remember { ViewProfileController(viewProfileModel) }
     val viewProfileView = remember { ViewProfileView(viewProfileController) }
     viewProfileModel.addObserver(viewProfileView)
+
+    val adminProfilesModel = remember { AdminProfilesModel(coroutineScope) }
+    val adminProfilesController = remember { AdminProfilesController(adminProfilesModel) }
+    val adminProfilesView = remember {
+        val newAdminProfilesView = AdminProfilesView(adminProfilesController)
+        adminProfilesModel.addObserver(newAdminProfilesView)
+        newAdminProfilesView
+    }
 
     val editProfileModel = remember { EditProfileModel(imageCompressor, coroutineScope) }
     val editProfileController = remember { EditProfileController(editProfileModel) }
@@ -225,6 +238,7 @@ fun SignedInApp(deepLinkCampsiteId: String? = null, onDeepLinkHandled: () -> Uni
             UserViewMode.ADMIN -> AdminNavigationRoot(
                 searchCampsitesScreen = searchCampsitesView,
                 campsiteDetailsScreen = campsiteDetailsView,
+                adminProfilesScreen = adminProfilesView,
                 adminImagesScreen = adminImagesView,
                 adminReviewsScreen = adminReviewsView,
                 onSwitchRole = { needsRoleChoice = true })

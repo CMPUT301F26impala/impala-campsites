@@ -34,11 +34,13 @@ import com.impala.campala.ViewObserver
 class ChooseRoleView(val controller: ChooseRoleController) : ViewObserver<ChooseRoleModel> {
     private var isSaving by mutableStateOf(false)
     private var chosenRole by mutableStateOf<UserViewMode?>(null)
+    private var canUseAsEntrant by mutableStateOf(false)
     private var canUseAsCampsiteOwner by mutableStateOf(false)
 
     override fun update(model: ChooseRoleModel) {
         this.isSaving = model.isSaving
         this.chosenRole = model.chosenRole
+        this.canUseAsEntrant = model.canUseAsEntrant
         this.canUseAsCampsiteOwner = model.canUseAsCampsiteOwner
     }
 
@@ -81,8 +83,10 @@ class ChooseRoleView(val controller: ChooseRoleController) : ViewObserver<Choose
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(2.dp)
             ) {
-                Button(onClick = { controller.useAsEntrant(user) }, enabled = !isSaving) {
-                    Text("Use as a Camper")
+                if (canUseAsEntrant) {
+                    Button(onClick = { controller.useAsEntrant(user) }, enabled = !isSaving) {
+                        Text("Use as a Camper")
+                    }
                 }
                 if (canUseAsCampsiteOwner) {
                     Button(onClick = { controller.useAsCampsiteOwner(user) }, enabled = !isSaving) {

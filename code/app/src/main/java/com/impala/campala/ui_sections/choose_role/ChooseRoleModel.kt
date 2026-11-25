@@ -19,6 +19,7 @@ import kotlinx.coroutines.launch
  * @param campsiteOwnerProfileRepo The repository to fetch relevant owner profiles from
  * @param scope The coroutine scope the suspend functions run in
  *
+ * @property canUseAsEntrant if user is allowed to use the app as an entrant
  * @property isSaving true while the profile is being created, so the buttons can't be pressed twice
  * @property chosenRole The role chosen by the user
  * @property canUseAsCampsiteOwner false once the user's campsite owner profile is banned, which hides the campsite owner button
@@ -30,6 +31,7 @@ class ChooseRoleModel(
     var isSaving = false
 
     var chosenRole: UserViewMode? = null
+    var canUseAsEntrant = false
 
     var canUseAsCampsiteOwner = false
         private set
@@ -41,6 +43,7 @@ class ChooseRoleModel(
      * @param user The User picking a role
      */
     fun loadAvailableRoles(user: User) {
+        canUseAsEntrant = !user.getHasCreatedEntrantProfile() || user.getHasActiveEntrantProfile()
         canUseAsCampsiteOwner = !user.getHasCreatedCampsiteOwnerProfile() || user.getHasActiveCampsiteOwnerProfile()
         notifyObservers(this)
     }
@@ -52,6 +55,8 @@ class ChooseRoleModel(
      * @param role UserViewMode.ENTRANT, UserViewMode.CAMPSITE_OWNER, or UserViewMode.ADMIN
      */
     fun chooseRole(user: User, role: UserViewMode) {
+        // dleeted ones should not be allowed to use entrant mode
+        if (role == UserViewMode.ENTRANT && !canUseAsEntrant) { return }
         if (role == UserViewMode.CAMPSITE_OWNER && !canUseAsCampsiteOwner) return
 
         // First we set isSaving so that double presses can't happen

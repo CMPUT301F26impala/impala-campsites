@@ -7,6 +7,10 @@ import com.google.firebase.firestore.firestore
 import com.impala.campala.User
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.tasks.await
+import com.google.firebase.Timestamp
+import com.google.firebase.auth.FirebaseAuth
+import java.time.LocalDate
+import java.time.ZoneOffset
 
 /**
  * Repository for storing the app's entrant profiles.
@@ -37,6 +41,78 @@ object EntrantProfileRepository {
             return null
         }
     }
+
+    /**
+     * finds users who have an active entrant profile, and then gets their entrant profiles
+     *
+     * @return A list containing active entrant profiles which admin can see later
+     */
+    suspend fun getAdminProfiles(): List<EntrantProfileModel> {
+        val activeEntrantUserIds = db.collection("users")
+            .whereEqualTo("hasActiveEntrantProfile", true)
+            .get().await()
+            .documents.map { it.id }.toSet()
+
+        val allEntrantDocuments = db.collection("entrants").get().await().documents
+
+        // entrant profiles are stored under their user's ID, so only keep the ones whose user is still active
+        return allEntrantDocuments
+            .filter { it.id in activeEntrantUserIds }
+            .mapNotNull { it.toObject(EntrantProfileModel::class.java) }
+    } // end of get admin profiles function for personal reference
+
+    /**
+     * Deletes an entrant profile by marking it as inactive and removes the user from unfinished lotteries and cancelling their pending reservations
+     *
+     * @param userId ID of the user being deleted
+     */
+    suspend fun deleteProfile(userId: String) {
+        require(userId.isNotBlank())
+        val currentlyAuthenticatedUserId = FirebaseAuth.getInstance().currentUser?.uid
+        check(currentlyAuthenticatedUserId != null) { "No signed in user" }
+
+        // check if they are actually an admin
+        if (currentlyAuthenticatedUserId != userId) {
+            val authenticatedUserAdminDocument = db.collection("admins").document(currentlyAuthenticatedUserId).get().await()
+            check(authenticatedUserAdminDocument.exists()) { "Admin permissions required" }
+        }
+
+        val userDocumentToDeactivate = db.collection("users").document(userId)
+        val userDetailsBeforeDeletion = userDocumentToDeactivate.get().await()
+        check(userDetailsBeforeDeletion.exists()) { "User does not exist" }
+
+        if (userDetailsBeforeDeletion.getBoolean("hasActiveEntrantProfile") != true) { return }
+
+        val allReservationsOfSelectedUser = ReservationRepository.getReservationsByUser(userId)
+        val allRetrievedLotteryRecords = LotteryRepository.getLotteries()
+
+        // handing pending reservations
+        for (selectedUserReservation in allReservationsOfSelectedUser) {
+            if (!selectedUserReservation.hasBeenCancelled && !selectedUserReservation.isPast) { ReservationRepository.flagAsCancelled(selectedUserReservation.id) }
+        }
+
+        val currentCalendarDate = LocalDate.now()
+        val currentDateAndTimeStamp = Timestamp.now()
+
+        // remove unfinished lotteries
+        for (lotteryRecordBeingChecked in allRetrievedLotteryRecords) {
+            val lastAvailableLotteryBookingDate = lotteryRecordBeingChecked.registrationEndTime.toInstant().atZone(ZoneOffset.UTC).toLocalDate()
+            if (currentCalendarDate.isAfter(lastAvailableLotteryBookingDate)) { continue }
+
+            if (currentDateAndTimeStamp < lotteryRecordBeingChecked.lotteryEndTime ||
+                lotteryRecordBeingChecked.winnerIds.isEmpty()) {
+                if (userId in lotteryRecordBeingChecked.entrantIds || userId in lotteryRecordBeingChecked.waitlistIds) {
+                    LotteryRepository.leaveLottery(lotteryRecordBeingChecked.id, userId)
+                }
+            } else if (userId in lotteryRecordBeingChecked.winnerIds && userId !in lotteryRecordBeingChecked.declinedIds) {
+                val hasUserPreviouslyReservedThroughLottery = allReservationsOfSelectedUser.any { it.lotteryId == lotteryRecordBeingChecked.id }
+                if (!hasUserPreviouslyReservedThroughLottery) { LotteryRepository.declineWin(lotteryRecordBeingChecked.id, userId) }
+            }
+        }
+
+        // deactivate the entrant profile after the cleanup is completed
+        userDocumentToDeactivate.update("hasActiveEntrantProfile", false).await()
+    } // end of delete profiles function
 
     /**
      * Gets every entrant profile whose profile picture is an image, used when an admin deletes that image

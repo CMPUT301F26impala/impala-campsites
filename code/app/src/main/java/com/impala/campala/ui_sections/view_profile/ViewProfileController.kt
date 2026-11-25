@@ -52,7 +52,13 @@ class ViewProfileController(val model: ViewProfileModel) : Controller {
      * Deletes the user's profile
      */
     fun onDeleteConfirm() {
-        // TODO: Actually delete the profile, for now this just closes the dialog
-        model.closeDeleteConfirmation()
+        model.deleteSelectedUserProfile()
+    }
+
+    /**
+     * clear value of flags after deletion
+     */
+    fun onProfileDeletionHandled() {
+        model.clearProfileDeletionStatus()
     }
 }
