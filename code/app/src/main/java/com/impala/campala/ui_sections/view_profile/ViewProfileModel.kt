@@ -7,7 +7,6 @@ import com.impala.campala.model.EntrantProfileRepository
 import com.impala.campala.model.ImageRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import com.impala.campala.model.AdminProfileModel
 import android.util.Log
 import kotlinx.coroutines.CancellationException
 
@@ -21,7 +20,7 @@ import kotlinx.coroutines.CancellationException
  * @property imageBytes The profile's compressed picture, null if it has no picture
  * @property showingDeleteConfirmation Whether the 'Confirm Deletion' dialog is open
  */
-class ViewProfileModel(val scope: CoroutineScope, val selectedAdminProfile: AdminProfileModel? = null) : ObservableModel<ViewProfileModel>() {
+class ViewProfileModel(val scope: CoroutineScope, val selectedAdminProfile: EntrantProfileModel? = null) : ObservableModel<ViewProfileModel>() {
     var profile: EntrantProfileModel? = null
     var imageBytes: ByteArray? = null
     var showingDeleteConfirmation = false

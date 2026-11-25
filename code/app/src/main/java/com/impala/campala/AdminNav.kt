@@ -111,7 +111,7 @@ enum class AdminTab(val label: String, val icon: ImageVector) {
     Campsites("Campsites", Icons.Default.Search),
     Profiles("Profiles", Icons.Default.AccountCircle),
     Images("Images", Icons.Default.Face),
-    Notifs("Messages", Icons.Default.Notifications),
+    Notifs("Alerts", Icons.Default.Notifications),
     Reviews("Reviews", Icons.Default.Star)
 }
 

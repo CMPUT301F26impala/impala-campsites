@@ -35,7 +35,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.impala.campala.ImageDisplay
 import com.impala.campala.ViewObserver
-import com.impala.campala.model.AdminProfileModel
+import com.impala.campala.model.EntrantProfileModel
 import androidx.compose.foundation.clickable
 import androidx.navigation.NavController
 
@@ -52,7 +52,7 @@ class AdminProfilesView(
     val controller: AdminProfilesController
 ) : ViewObserver<AdminProfilesModel> {
 
-    private var filteredUserProfiles by mutableStateOf(listOf<AdminProfileModel>())
+    private var filteredUserProfiles by mutableStateOf(listOf<EntrantProfileModel>())
     private var isFetchingUserProfiles by mutableStateOf(false)
     private var wasProfileFetchUnsuccessful by mutableStateOf(false)
     private var profileSearchInput by mutableStateOf("")
@@ -131,12 +131,12 @@ class AdminProfilesView(
     } // end of render for personal ref
 
     /**
-     * Displays all details of a user, also whether they are an entrant, campsite owner or both
+     * Displays all details of a user
      *
      * @param currentUserProfile the profile to be displayed
      */
     @Composable
-    private fun DrawUserProfileRow(currentUserProfile: AdminProfileModel, navController: NavController) {
+    private fun DrawUserProfileRow(currentUserProfile: EntrantProfileModel, navController: NavController) {
         Row(
             modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)
                 .clickable { controller.onUserProfilePressed(navController, currentUserProfile.userId) },
@@ -155,22 +155,6 @@ class AdminProfilesView(
                 Text(text = profileDisplayName, style = MaterialTheme.typography.titleMedium)
                 Text(text = currentUserProfile.email, style = MaterialTheme.typography.bodyMedium)
                 Text(text = currentUserProfile.phoneNumber, style = MaterialTheme.typography.bodyMedium)
-
-                var activeProfileRoleText = ""
-                // check which roles are active for the user
-                if (currentUserProfile.hasAnActiveEntrantProfile && currentUserProfile.hasAnActiveCampsiteOwnerProfile) {
-                    activeProfileRoleText = "Entrant, Campsite Owner"
-                } else if (currentUserProfile.hasAnActiveEntrantProfile) {
-                    activeProfileRoleText = "Entrant"
-                } else if (currentUserProfile.hasAnActiveCampsiteOwnerProfile) {
-                    activeProfileRoleText = "Campsite Owner"
-                }
-
-                Text(
-                    text = activeProfileRoleText,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.primary
-                )
             }
         }
     } // end of profile row for personal ref

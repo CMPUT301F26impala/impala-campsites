@@ -172,17 +172,10 @@ class ViewProfileView(val controller: ViewProfileController) : ViewObserver<View
         var profileDeletionTitle = "Confirm Deletion"
         var profileDeletionMessage = "Are you sure you want to delete your profile? You will lose any in-progress reservations and will not be able to see your previous data."
         var profileDeletionButtonText = "Confirm"
-        var canConfirmProfileDeletion = !isViewingProfileAsAdmin
-        val selectedUserProfile = controller.model.selectedAdminProfile
-        if (isViewingProfileAsAdmin && selectedUserProfile != null) {
+        if (isViewingProfileAsAdmin) {
             profileDeletionTitle = "Confirm Profile Deletion"
             profileDeletionMessage = "Are you sure you want to ban this entrant profile? This cannot be undone."
             profileDeletionButtonText = "Ban"
-            if (selectedUserProfile.hasAnActiveEntrantProfile) {
-                canConfirmProfileDeletion = true
-            } else {
-                profileDeletionMessage = "This user does not have an entrant profile."
-            }
         }
 
 
@@ -205,7 +198,7 @@ class ViewProfileView(val controller: ViewProfileController) : ViewObserver<View
             confirmButton = {
                 TextButton(
                     onClick = { controller.onDeleteConfirm() },
-                    enabled = canConfirmProfileDeletion && !isCurrentlyDeletingProfile
+                    enabled = !isCurrentlyDeletingProfile
                 ) { Text(profileDeletionButtonText) }
             }
         )

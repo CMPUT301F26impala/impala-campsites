@@ -2,7 +2,7 @@ package com.impala.campala.ui_sections.admin_profiles
 
 import android.util.Log
 import com.impala.campala.ObservableModel
-import com.impala.campala.model.AdminProfileModel
+import com.impala.campala.model.EntrantProfileModel
 import com.impala.campala.model.EntrantProfileRepository
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -12,23 +12,23 @@ import com.impala.campala.model.ImageRepository
 /**
  * Model for the profile branch of admin UI
  *
- * Has a list of people with active entrant or campsite owner profiles
+ * Has a list of people with active entrant profiles
  *
- * @param scope the CoroutineScope used to get the active entrants and campsite owners
- * @property allActiveUserProfiles list containing all active entrants and campsite owners
+ * @param scope the CoroutineScope used to get the active entrants
+ * @property allActiveUserProfiles list containing all active entrants
  * @property isFetchingUserProfiles to check if the fetch for profiles is in process
  * @property wasProfileFetchUnsuccessful to check if the fetch for profiles failed
  */
 class AdminProfilesModel(val scope: CoroutineScope) : ObservableModel<AdminProfilesModel>() {
-    var allActiveUserProfiles: List<AdminProfileModel> = emptyList()
+    var allActiveUserProfiles: List<EntrantProfileModel> = emptyList()
     var isFetchingUserProfiles = false
     var wasProfileFetchUnsuccessful = false
     var profileSearchInput = ""
-    var filteredUserProfiles: List<AdminProfileModel> = emptyList()
+    var filteredUserProfiles: List<EntrantProfileModel> = emptyList()
     var profilePictureBytesById: Map<String, ByteArray> = emptyMap()
 
     /**
-     * gets all the active profiles of entrants and campsite owners and runs everytime someone opens the profile tab from admin view
+     * gets all the active profiles of entrants and runs everytime someone opens the profile tab from admin view
      */
     fun loadAllActiveProfiles() {
         if (isFetchingUserProfiles) { return }
@@ -68,7 +68,7 @@ class AdminProfilesModel(val scope: CoroutineScope) : ObservableModel<AdminProfi
      * filters for name, email or phone number entered by user
      */
     fun filterDisplayedProfiles() {
-        val matchingUserProfiles = mutableListOf<AdminProfileModel>()
+        val matchingUserProfiles = mutableListOf<EntrantProfileModel>()
         val searchInputWithoutSpaces = profileSearchInput.trim()
         for (currentUserProfile in allActiveUserProfiles) {
             if (
