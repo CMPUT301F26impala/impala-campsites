@@ -39,8 +39,11 @@ class CampsiteDetailsController(val model: CampsiteDetailsModel) : Controller {
         navController.popBackStack()
     }
 
+    /**
+     * Called when the Generate QR Code button is pressed
+     */
     fun generateQRCode() {
-        // TODO: Add functionality to generate and display a QR Code.
+        model.generateQrCode()
     }
 
     /**
@@ -55,5 +58,23 @@ class CampsiteDetailsController(val model: CampsiteDetailsModel) : Controller {
      */
     fun leaveWaitlist() {
         model.leaveWaitlist()
+    }
+
+    /**
+     * Called when an admin confirms deleting the campsite, goes back to the Browse Campsite screen once it's deleted
+     *
+     * @param navController the navController object used for navigation
+     */
+    fun deleteCampsite(navController: NavController) {
+        model.deleteCampsite(onDeleted = { navController.popBackStack() })
+    }
+
+    /**
+     * Called when an admin confirms banning the campsite's owner, goes back to the Browse Campsite screen once they're banned
+     *
+     * @param navController the navController object used for navigation
+     */
+    fun banOwner(navController: NavController) {
+        model.banOwner(onBanned = { navController.popBackStack() })
     }
 }

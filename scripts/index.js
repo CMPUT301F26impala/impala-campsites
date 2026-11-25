@@ -1,4 +1,4 @@
-import { initializeApp, cert } from 'firebase-admin';
+import { initializeApp, cert, applicationDefault } from 'firebase-admin';
 import { getFirestore, Timestamp, FieldPath, DocumentSnapshot } from 'firebase-admin/firestore';
 import { getMessaging } from 'firebase-admin/messaging';
 
@@ -53,7 +53,7 @@ async function docsInSet(collection, ids) {
 async function sendNotif(notif) {
     try {
         await messaging.sendEachForMulticast({
-            fids:(await docsInSet("entrants",notif.get("receivers"))).map((doc) => doc.get('notificationId')),
+            fids: (await docsInSet('entrants', notif.get('receivers'))).map((doc) => doc.get('notificationId')),
             notification: {
                 title: notif.get('title'),
                 body: notif.get('body'),
@@ -84,31 +84,32 @@ async function drawDueLotteries(now) {
         if ((doc.get('winnerIds') ?? []).length > 0) continue;
 
         /**
-         * @type {Set<string>}
+         * @type {string[]}
          */
         const winners = await db.runTransaction(async (tx) => {
             const snap = await tx.get(doc.ref);
-            if (!snap.exists || (snap.get('winnerIds') ?? []).length > 0) return false;
+            if (!snap.exists || (snap.get('winnerIds') ?? []).length > 0) return [];
 
             const winners = pickWinners(snap.get('entrantIds') ?? [], snap.get('numberOfWinners') ?? 1);
             if (winners.length > 0) tx.update(doc.ref, { winnerIds: winners });
             return winners;
         });
-        if (winners.length == 0) return;
 
         const campNames = (await docsInSet('campsites', doc.get('campsiteIds')))
             .map((doc) => doc.get('name'))
             .join(', ');
 
         const winNotif = db.collection('notifications').doc();
-        winNotif.create({
-            title: 'You won!',
-            body: `You won the lottery for ${campNames}. Open the app to reserve your stay`,
-            id: winNotif.id, // i dont think we actually use the id field, its just a result of lazy encoding in the app
-            sender: 'SYSTEM', // i dont know if a fake user id here breaks anything, and it might be reasonable to use the owner id
-            receivers: winners,
-            sent: false,
-        });
+        if (winners.length>0) {
+            winNotif.create({
+                title: 'You won!',
+                body: `You won the lottery for ${campNames}. Open the app to reserve your stay`,
+                id: winNotif.id, // i dont think we actually use the id field, its just a result of lazy encoding in the app
+                sender: 'SYSTEM', // i dont know if a fake user id here breaks anything, and it might be reasonable to use the owner id
+                receivers: winners,
+                sent: false,
+            });            
+        }
 
         /**
          * @type {String[]}
@@ -117,14 +118,16 @@ async function drawDueLotteries(now) {
         const winnersSet = new Set(winners);
         const losers = allIds.filter((id) => !winnersSet.has(id));
         const loseNotif = db.collection('notifications').doc();
-        loseNotif.create({
-            title: 'You lost :(',
-            body: `You lost the lottery for ${campNames}. Better luck next time`,
-            id: loseNotif.id,
-            sender: 'SYSTEM',
-            receivers: losers,
-            sent: false,
-        });
+        if (losers.length>0) {
+            loseNotif.create({
+                title: 'You lost :(',
+                body: `You lost the lottery for ${campNames}. Better luck next time`,
+                id: loseNotif.id,
+                sender: 'SYSTEM',
+                receivers: losers,
+                sent: false,
+            });
+        }
 
         drawn.push(doc.id);
         console.log(`Drew lottery ${doc.id}`);
@@ -142,6 +145,7 @@ async function processUnsentNotifs() {
 }
 
 const raw = process.env.FIREBASE_SERVICE_ACCOUNT;
+applicationDefault;
 initializeApp({ credential: cert(JSON.parse(raw)) });
 const db = getFirestore();
 const messaging = getMessaging();
@@ -153,6 +157,6 @@ if (!raw) {
 const ids = await drawDueLotteries(Timestamp.now());
 console.log(`Done, drew ${ids.length} ${ids.length === 1 ? 'lottery' : 'lotteries'}`);
 
-processUnsentNotifs()
+processUnsentNotifs();
 
 // module.exports = { pickWinners, drawDueLotteries };

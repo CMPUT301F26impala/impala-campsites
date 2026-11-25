@@ -1,5 +1,6 @@
 package com.impala.campala.ui_sections.campsite_details
 
+import android.util.Log
 import com.impala.campala.ObservableModel
 import com.impala.campala.User
 import com.impala.campala.UserViewMode
@@ -13,9 +14,10 @@ import com.impala.campala.model.ReservationModel
 import com.impala.campala.model.ReservationRepository
 import com.impala.campala.model.ReviewModel
 import com.impala.campala.model.ReviewRepository
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import kotlin.uuid.Uuid
+import qrcode.QRCode
 
 /**
  * Model for the Campsite Details screen
@@ -23,13 +25,6 @@ import kotlin.uuid.Uuid
  * There will be one of these objects, not one for each campsite
  * The attributes will be updated when a different campsite is displayed
  *
- * @param campsiteRepo the repo to fetch relevant campsite from
- * @param lotteryRepo the repo to fetch the campsite lottery from
- * @param campsiteOwnerProfileRepo the repo to check which campsites the User owns
- * @param reservationRepo the repo to fetch the campsite's reservations from
- * @param imageRepo the repo to fetch the campsite's image from
- * @param reviewRepo the repo to fetch the campsite's reviews from
- * @param User the object which contains the current User's information
  * @param scope the CoroutineScope that the suspend fetches run in
  *
  * @property name the Campsite name
@@ -42,7 +37,8 @@ import kotlin.uuid.Uuid
  * @property campsite the Campsite object whose details are displayed
  * @property lottery the Lottery for the Campsite, if it exists
  * @property joinStatus indicates whether a User can join a lottery or the reason they cannot
- * @property UserIsOwner flag for if the current User owns the campsite
+ * @property userIsOwner flag for if the current User owns the campsite
+ * @property userIsAdmin flag for if the current User is viewing as an admin, which shows the delete and ban buttons
  * @property lotteryExists flag indicating if there is a lottery for the selected campsite
  * @property reservedDates the campsite's upcoming, non-cancelled reservations sorted by start date, only loaded for the owner
  * @property reviews the reviews entrants have left on the campsite
@@ -61,9 +57,11 @@ class CampsiteDetailsModel(
     var lottery: LotteryModel? = null
     var joinStatus: LotteryModel.ProspectiveJoinStatus? = null
     var userIsOwner: Boolean = false
+    var userIsAdmin: Boolean = false
     var lotteryExists: Boolean = false
     var reservedDates: List<ReservationModel> = emptyList()
     var reviews: List<ReviewModel> = emptyList()
+    var qrCode: QRCode? = null
 
     /**
      * Called every time the screen is rendered.
@@ -82,12 +80,15 @@ class CampsiteDetailsModel(
         this.maxOccupancy = campsite?.maxOccupancy ?: 0
         this.tags = campsite?.tags ?: mutableListOf()
         this.averageRating = campsite?.averageRating
+        this.qrCode = null
 
         val imageId = campsite?.imageId ?: ""
         this.imageBytes = if (imageId.isNotEmpty()) ImageRepository.getImageById(imageId)?.data?.toBytes() else null
 
         userIsOwner = User.getCurrentRole() == UserViewMode.CAMPSITE_OWNER &&
                 CampsiteOwnerProfileRepository.getCampsiteOwnerProfileById(User.getUID())?.ownedCampsites?.contains(campsiteId) == true
+
+        userIsAdmin = User.getCurrentRole() == UserViewMode.ADMIN
 
         // Only the owner sees the reserved dates, cancelled and past reservations are left out
         reservedDates = if (userIsOwner) {
@@ -125,6 +126,7 @@ class CampsiteDetailsModel(
             LotteryRepository.joinLottery(lottery!!.id, User.getUID())
             campsite?.let { loadCampsite(it.id) }
         }
+        notifyObservers(this)
     }
 
     /**
@@ -135,6 +137,54 @@ class CampsiteDetailsModel(
         this.scope.launch {
             LotteryRepository.leaveLottery(lottery!!.id, User.getUID())
             campsite?.let { loadCampsite(it.id) }
+        }
+        notifyObservers(this)
+    }
+
+    /**
+     * Called when the owner generates a QR code
+     * Creates a new QR Code with the campsite ID which will link to the details page
+     */
+    fun generateQrCode() {
+        qrCode = QRCode.ofSquares().build("campala://${campsite!!.id}")
+        notifyObservers(this)
+    }
+
+    /**
+     * Called when an admin confirms deleting the campsite
+     *
+     * @param onDeleted called once the campsite is deleted, used to leave the screen
+     */
+    fun deleteCampsite(onDeleted: () -> Unit) {
+        val campsite = campsite ?: return
+        this.scope.launch {
+            try {
+                CampsiteRepository.softDeleteCampsite(campsite)
+                onDeleted()
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Log.e("CampsiteDetailsModel", "Failed to delete campsite", e)
+            }
+        }
+    }
+
+    /**
+     * Called when an admin confirms banning the campsite's owner
+     *
+     * @param onBanned called once the owner is banned, used to leave the screen
+     */
+    fun banOwner(onBanned: () -> Unit) {
+        val campsite = campsite ?: return
+        this.scope.launch {
+            try {
+                CampsiteOwnerProfileRepository.banCampsiteOwner(campsite.ownerId)
+                onBanned()
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Log.e("CampsiteDetailsModel", "Failed to ban campsite owner", e)
+            }
         }
     }
 }

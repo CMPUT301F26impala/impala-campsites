@@ -34,10 +34,14 @@ import com.impala.campala.ViewObserver
 class ChooseRoleView(val controller: ChooseRoleController) : ViewObserver<ChooseRoleModel> {
     private var isSaving by mutableStateOf(false)
     private var chosenRole by mutableStateOf<UserViewMode?>(null)
+    private var canUseAsEntrant by mutableStateOf(false)
+    private var canUseAsCampsiteOwner by mutableStateOf(false)
 
     override fun update(model: ChooseRoleModel) {
         this.isSaving = model.isSaving
         this.chosenRole = model.chosenRole
+        this.canUseAsEntrant = model.canUseAsEntrant
+        this.canUseAsCampsiteOwner = model.canUseAsCampsiteOwner
     }
 
     /**
@@ -49,6 +53,9 @@ class ChooseRoleView(val controller: ChooseRoleController) : ViewObserver<Choose
      */
     @Composable
     fun Render(user: User, onRoleChosen: (UserViewMode) -> Unit) {
+        LaunchedEffect(Unit) {
+            controller.onFirstRender(user)
+        }
         LaunchedEffect(chosenRole) {
             // This is needed to be able to tell CampalaApp.kt (the root navigation stuff) "Hey, I've picked a role now, close this page and open the proper nav"
             chosenRole?.let { // This is basically (if (chosenRole != null) { onRoleChosen(chosenRole) }
@@ -76,11 +83,15 @@ class ChooseRoleView(val controller: ChooseRoleController) : ViewObserver<Choose
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(2.dp)
             ) {
-                Button(onClick = { controller.useAsEntrant(user) }, enabled = !isSaving) {
-                    Text("Use as a Camper")
+                if (canUseAsEntrant) {
+                    Button(onClick = { controller.useAsEntrant(user) }, enabled = !isSaving) {
+                        Text("Use as a Camper")
+                    }
                 }
-                Button(onClick = { controller.useAsCampsiteOwner(user) }, enabled = !isSaving) {
-                    Text("Use as a Campsite Owner")
+                if (canUseAsCampsiteOwner) {
+                    Button(onClick = { controller.useAsCampsiteOwner(user) }, enabled = !isSaving) {
+                        Text("Use as a Campsite Owner")
+                    }
                 }
                 Button(onClick = { controller.useAsAdmin(user) }, enabled = !isSaving) {
                     Text("View as Admin")

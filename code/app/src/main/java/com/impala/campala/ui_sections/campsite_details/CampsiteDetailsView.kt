@@ -1,39 +1,54 @@
 package com.impala.campala.ui_sections.campsite_details
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.impala.campala.ImageDisplay
@@ -42,6 +57,7 @@ import com.google.firebase.Timestamp
 import com.impala.campala.model.LotteryModel
 import com.impala.campala.model.ReservationModel
 import com.impala.campala.model.ReviewModel
+import qrcode.QRCode
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 
@@ -53,6 +69,7 @@ import java.time.format.DateTimeFormatter
  */
 class CampsiteDetailsView(val controller: CampsiteDetailsController): ViewObserver<CampsiteDetailsModel> {
     private var isOwner by mutableStateOf(false)
+    private var isAdmin by mutableStateOf(false)
     private var lotteryExists by mutableStateOf(false)
     private var name by mutableStateOf("")
     private var location by mutableStateOf("")
@@ -64,8 +81,11 @@ class CampsiteDetailsView(val controller: CampsiteDetailsController): ViewObserv
     private var joinStatus by mutableStateOf<LotteryModel.ProspectiveJoinStatus?>(null)
     private var reservedDates = mutableStateListOf<ReservationModel>()
     private var reviews = mutableStateListOf<ReviewModel>()
+    private var qrShowing by mutableStateOf(false)
+    private var qrCode by mutableStateOf<QRCode?>(null)
 
     override fun update(model: CampsiteDetailsModel) {
+        qrShowing = false
         this.name = model.name
         this.location = model.location
         this.description = model.description
@@ -75,12 +95,14 @@ class CampsiteDetailsView(val controller: CampsiteDetailsController): ViewObserv
         this.tags.clear()
         this.tags.addAll(model.tags)
         this.isOwner = model.userIsOwner
+        this.isAdmin = model.userIsAdmin
         this.lotteryExists = model.lotteryExists
         this.joinStatus = model.joinStatus
         this.reservedDates.clear()
         this.reservedDates.addAll(model.reservedDates)
         this.reviews.clear()
         this.reviews.addAll(model.reviews)
+        this.qrCode = model.qrCode
     }
 
     /**
@@ -104,10 +126,11 @@ class CampsiteDetailsView(val controller: CampsiteDetailsController): ViewObserv
                     imageBytes = imageBytes,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(192.dp)
+                        .height(240.dp + WindowInsets.statusBars.asPaddingValues().calculateTopPadding())
+                        .clip(RoundedCornerShape(bottomStart = 24.dp, bottomEnd = 24.dp))
                 )
                 Row(
-                    modifier = Modifier.padding(horizontal = 10.dp).fillMaxWidth(),
+                    modifier = Modifier.padding(start = 10.dp, end = 10.dp, top = 8.dp).fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween,
                 ) {
@@ -139,6 +162,7 @@ class CampsiteDetailsView(val controller: CampsiteDetailsController): ViewObserv
             }
             RenderBottomButtons(modifier = Modifier.align(Alignment.BottomEnd), navController)
         }
+        RenderQrCode()
     }
 
     @Composable
@@ -201,8 +225,14 @@ class CampsiteDetailsView(val controller: CampsiteDetailsController): ViewObserv
             horizontalAlignment = Alignment.End,
             verticalArrangement = Arrangement.Bottom
         ) {
-            if(isOwner) {
-                Button(onClick = { controller.generateQRCode() }) { Text("Generate QR") }
+            if(isAdmin) {
+                RenderAdminButtons(navController)
+            }
+            else if(isOwner) {
+                Button(onClick = {
+                    controller.generateQRCode()
+                    qrShowing = true
+                }) { Text("Generate QR") }
             }
             // Show a different button based on whether the lottery exists and is full
             else {
@@ -238,6 +268,95 @@ class CampsiteDetailsView(val controller: CampsiteDetailsController): ViewObserv
             // This button will move the user back to the Browse Campsite screen
             IconButton(onClick = { controller.moveToBrowse(navController) }) {
                 Icon(Icons.Default.Close, contentDescription = "Back Icon", tint = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
+    }
+
+    // The admin's moderation buttons, each one asks for confirmation in a dialog before doing anything
+    @Composable
+    private fun RenderAdminButtons(navController: NavController) {
+        var banDialogOpen by remember { mutableStateOf(false) }
+        var deleteDialogOpen by remember { mutableStateOf(false) }
+
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Button(
+                onClick = { banDialogOpen = true },
+                // Smaller side padding than default so both buttons fit side by side on a phone
+                contentPadding = PaddingValues(horizontal = 12.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onTertiaryContainer
+                )
+            ) {
+                Icon(Icons.Default.AccountCircle, contentDescription = null, modifier = Modifier.size(18.dp))
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Ban Campsite Owner")
+            }
+            Button(
+                onClick = { deleteDialogOpen = true },
+                // Smaller side padding than default so both buttons fit side by side on a phone
+                contentPadding = PaddingValues(horizontal = 12.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.tertiary,
+                    contentColor = MaterialTheme.colorScheme.onTertiary
+                )
+            ) {
+                Icon(Icons.Default.Delete, contentDescription = null, modifier = Modifier.size(18.dp))
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Delete Campsite")
+            }
+        }
+
+        if (banDialogOpen) {
+            AlertDialog(
+                onDismissRequest = { banDialogOpen = false },
+                title = { Text("Confirm Campsite Owner Profile Deletion") },
+                text = { Text("Are you sure you want to ban the profile that owns this campsite? All of their campsites will be deleted and this cannot be undone.") },
+                dismissButton = {
+                    TextButton(onClick = { banDialogOpen = false }) { Text("Go Back") }
+                },
+                confirmButton = {
+                    TextButton(onClick = {
+                        banDialogOpen = false
+                        controller.banOwner(navController)
+                    }) { Text("Ban") }
+                }
+            )
+        }
+
+        if (deleteDialogOpen) {
+            AlertDialog(
+                onDismissRequest = { deleteDialogOpen = false },
+                title = { Text("Confirm Campsite Deletion") },
+                text = { Text("Are you sure you want to delete this campsite? This cannot be undone.") },
+                dismissButton = {
+                    TextButton(onClick = { deleteDialogOpen = false }) { Text("Go Back") }
+                },
+                confirmButton = {
+                    TextButton(onClick = {
+                        deleteDialogOpen = false
+                        controller.deleteCampsite(navController)
+                    }) { Text("Delete") }
+                }
+            )
+        }
+    }
+
+    // Renders the modal with the QR Code that links to the details page
+    @OptIn(ExperimentalMaterial3Api::class)
+    @Composable
+    private fun RenderQrCode() {
+        if(!qrShowing || qrCode == null) {
+            return
+        }
+        BasicAlertDialog(
+            onDismissRequest = { qrShowing = false },
+        ) {
+            Surface(shape = MaterialTheme.shapes.large, color = Color.White) {
+                ImageDisplay(
+                    imageBytes = qrCode!!.renderToBytes(),
+                    modifier = Modifier.padding(24.dp).size(256.dp)
+                )
             }
         }
     }
