@@ -36,9 +36,15 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Surface
+import androidx.compose.runtime.remember
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.navigation.NavController
 import com.impala.campala.ImageDisplay
 import com.impala.campala.ViewObserver
+import com.impala.campala.ui_sections.components.LocationPicker
 
 
 
@@ -67,6 +73,9 @@ class FormCampsitesView(
     private var existingImageBytes by mutableStateOf<ByteArray?>(null)
     private var hasPendingImage by mutableStateOf(false)
     private var wasCampsiteSavedSuccessfully by mutableStateOf(false)
+    private var mapLatitude by mutableStateOf<Double?>(null)
+    private var mapLongitude by mutableStateOf<Double?>(null)
+    private var isMapPickerOpen by mutableStateOf(false)
 
     /**
      * Used whenever model notifies the view about changes, to copy the updated campsite information into the form's fields
@@ -83,6 +92,8 @@ class FormCampsitesView(
         existingImageBytes = model.existingImageBytes
         hasPendingImage = model.unsavedImage != null
         wasCampsiteSavedSuccessfully = model.wasCampsiteSavedSuccessfully
+        mapLatitude = model.mapLatitude
+        mapLongitude = model.mapLongitude
     }
 
     init {
@@ -168,6 +179,24 @@ class FormCampsitesView(
                         placeholder = { Text("Enter the location") },
                         modifier = Modifier.fillMaxWidth()
                     )
+                }
+
+                item {
+                    val lat = mapLatitude
+                    val lng = mapLongitude
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = if (lat != null && lng != null) "%.5f, %.5f".format(lat, lng) else "No map location set",
+                            color = MaterialTheme.colorScheme.onBackground,
+                            modifier = Modifier.weight(1f)
+                        )
+                        OutlinedButton(onClick = { isMapPickerOpen = true }) {
+                            Text("Open Map")
+                        }
+                    }
                 }
 
                 // Campsite Description input box
@@ -304,5 +333,63 @@ class FormCampsitesView(
                 }
             } // personal reference row ends here
         } // bracket for Column of overall screen
+
+        if (isMapPickerOpen) {
+            MapPickerDialog()
+        }
+    }
+
+    // Wraps the Map Picker function with a confirm button
+    @Composable
+    private fun MapPickerDialog() {
+        var pickedLatitude by remember { mutableStateOf(mapLatitude) }
+        var pickedLongitude by remember { mutableStateOf(mapLongitude) }
+
+        Dialog(
+            onDismissRequest = { isMapPickerOpen = false },
+            // Makes the modal fullscreen, not just the lil rectangle
+            properties = DialogProperties(usePlatformDefaultWidth = false)
+        ) {
+            Surface(modifier = Modifier.fillMaxSize()) {
+                Column {
+                    LocationPicker(
+                        onLocationChange = { lat, lng ->
+                            pickedLatitude = lat
+                            pickedLongitude = lng
+                        },
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxWidth(),
+                        initialLatitude = mapLatitude,
+                        initialLongitude = mapLongitude
+                    )
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(24.dp),
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        Button(onClick = { isMapPickerOpen = false }) {
+                            Text("Cancel")
+                        }
+
+                        Spacer(modifier = Modifier.width(24.dp))
+
+                        Button(
+                            onClick = {
+                                val lat = pickedLatitude
+                                val lng = pickedLongitude
+                                if (lat != null && lng != null) {
+                                    controller.onMapLocationPicked(lat, lng)
+                                }
+                                isMapPickerOpen = false
+                            }
+                        ) {
+                            Text("Confirm")
+                        }
+                    }
+                }
+            }
+        }
     }
 }

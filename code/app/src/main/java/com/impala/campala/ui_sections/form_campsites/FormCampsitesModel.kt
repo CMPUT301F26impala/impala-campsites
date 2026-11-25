@@ -33,6 +33,8 @@ import kotlinx.coroutines.launch
  * @property tags The list of tags to go on the campsite
  * @property unsavedImage The image picked by a form, not uploaded yet
  * @property existingImageBytes The campsite's current saved image, null when creating a campsite or if it has no image
+ * @property mapLatitude Latitude picked on the map, null if no location has been picked.
+ * @property mapLongitude Longitude picked on the map, null if no location has been picked.
  * @property wasCampsiteSavedSuccessfully True if the new campsite was saved to the database successfully
  */
 class FormCampsitesModel(
@@ -48,6 +50,8 @@ class FormCampsitesModel(
     var tags = campsite?.tags?.toMutableList() ?: mutableListOf()
     var unsavedImage: Uri? = null
     var existingImageBytes: ByteArray? = null
+    var mapLatitude: Double? = null
+    var mapLongitude: Double? = null
 
     // if campsite was saved successfully
     var wasCampsiteSavedSuccessfully = false
@@ -127,6 +131,18 @@ class FormCampsitesModel(
     }
 
     /**
+     * Updates the location picked on the map
+     *
+     * @param newLatitude Latitude of the picked location
+     * @param newLongitude Longitude of the picked location
+     */
+    fun updateMapLocation(newLatitude: Double, newLongitude: Double) {
+        mapLatitude = newLatitude
+        mapLongitude = newLongitude
+        notifyObservers(this)
+    }
+
+    /**
      * Prepares the model for creating a new campsite by clearing the form's fields
      */
     fun startNewCampsite() {
@@ -157,6 +173,8 @@ class FormCampsitesModel(
         maximumOccupancy = newCampsite?.maxOccupancy?.toString() ?: ""
         tags = newCampsite?.tags?.toMutableList() ?: mutableListOf()
         unsavedImage = null
+        mapLatitude = null
+        mapLongitude = null
         notifyObservers(this)
     }
 
