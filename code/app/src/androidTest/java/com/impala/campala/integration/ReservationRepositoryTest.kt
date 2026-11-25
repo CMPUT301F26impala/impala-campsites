@@ -29,7 +29,7 @@ class ReservationRepositoryTest {
         "prison",
         "bad place",
         69420,
-        "TBD",
+        null,
         "",
         mutableListOf("slytherins welcome")
     )

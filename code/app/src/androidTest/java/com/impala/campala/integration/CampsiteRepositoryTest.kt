@@ -23,7 +23,7 @@ class CampsiteRepositoryTest {
         "prison",
         "bad place",
         69420,
-        "TBD",
+        null,
         "",
         mutableListOf("slytherins welcome")
     )
@@ -105,22 +105,22 @@ class CampsiteRepositoryTest {
     @Test
     fun repositorySearchString(): Unit = runBlocking {
         CampsiteRepository.saveCampsite(campsite)
-        var campsites = CampsiteRepository.getFilteredCampsites("No match",null,null,null)
+        var campsites = CampsiteRepository.getFilteredCampsites("No match",null,null)
         assertEquals(0,campsites.size)
-        campsites = CampsiteRepository.getFilteredCampsites("azkaban",null,null,null)
+        campsites = CampsiteRepository.getFilteredCampsites("azkaban",null,null)
         assertEquals(1,campsites.size)
-        campsites = CampsiteRepository.getFilteredCampsites("slytherins welcome",null,null,null)
+        campsites = CampsiteRepository.getFilteredCampsites("slytherins welcome",null,null)
         assertEquals(1,campsites.size)
     }
 
     @Test
     fun repositoryCapacity(): Unit = runBlocking {
         CampsiteRepository.saveCampsite(campsite)
-        var campsites = CampsiteRepository.getFilteredCampsites(null,null,null,69420)
+        var campsites = CampsiteRepository.getFilteredCampsites(null,null,69420)
         assertEquals(1,campsites.size)
-        campsites = CampsiteRepository.getFilteredCampsites(null,null,null,1)
+        campsites = CampsiteRepository.getFilteredCampsites(null,null,1)
         assertEquals(1,campsites.size)
-        campsites = CampsiteRepository.getFilteredCampsites(null,null,null,69421)
+        campsites = CampsiteRepository.getFilteredCampsites(null,null,69421)
         assertEquals(0,campsites.size)
     }
 }
