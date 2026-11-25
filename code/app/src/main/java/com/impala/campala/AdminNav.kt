@@ -17,7 +17,9 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -177,8 +179,36 @@ fun AdminHomeScreen(navController: NavController, searchCampsitesScreen: SearchC
     }
 }
 
+enum class AdminAlertsTab(val label: String) {
+    Messages("Messages"),
+    Notifications("Notifications")
+}
+
+/**
+ * Allows you to switch between the Messages and Notifications screens
+ *
+ * @param navController The navigation controller for the admin section of the app
+ */
 @Composable
 fun AdminNotifsTab(navController: NavController) {
+    var selected by rememberSaveable { mutableStateOf(AdminAlertsTab.Messages) }
+    val tabState = rememberSaveableStateHolder() // keeps each tab's scroll/state
     Column() {
+        PrimaryTabRow(selectedTabIndex = selected.ordinal) {
+            AdminAlertsTab.entries.forEach { tab ->
+                Tab(
+                    selected = tab == selected,
+                    onClick = { selected = tab },
+                    text = { Text(text = tab.label, maxLines = 1) }
+                )
+            }
+        }
+        tabState.SaveableStateProvider(selected.name) {
+            when (selected) {
+                // TODO: swap these placeholders for the Messages and Notifications views once they exist
+                AdminAlertsTab.Messages -> Text("Messages")
+                AdminAlertsTab.Notifications -> Text("Notifications")
+            }
+        }
     }
 }
