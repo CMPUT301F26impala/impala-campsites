@@ -40,7 +40,7 @@ class MessageUserView(val controller: MessageUserController) : ViewObserver<Mess
     }
 
     @Composable
-    fun render(navController: NavController) { //TODO: Make it nice!
+    fun render(navController: NavController, reservationId: String) { //TODO: Make it nice!
 
         var message by remember {
             mutableStateOf("")
@@ -51,8 +51,8 @@ class MessageUserView(val controller: MessageUserController) : ViewObserver<Mess
         }
 
         // Redo this on each launch
-        LaunchedEffect(Unit) {
-            controller.refresh()
+        LaunchedEffect(reservationId) {
+            controller.loadThread(reservationId)
             messages = controller.messages()
         }
 

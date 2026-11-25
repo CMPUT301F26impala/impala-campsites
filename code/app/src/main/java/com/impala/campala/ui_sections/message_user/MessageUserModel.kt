@@ -11,15 +11,23 @@ import kotlinx.datetime.toLocalDateTime
 
 class MessageUserModel(
     val scope: CoroutineScope,
-    private val reservationId: String,
     ) : ObservableModel<MessageUserModel>() {
 //    val ownerMessages = mutableListOf<MessageModel>()
 //    val entrantMessages = mutableListOf<MessageModel>()
 
+    private var reservationId : String = ""
     private var entrantId : String = ""
     private var ownerId : String = ""
     private var messages = mutableListOf<MessageModel>()
 
+    /**
+     * Loads the message thread for a reservation, made so that we don't have to provide this at constructor time
+     * @param reservationId the ID of the reservation
+     */
+    public fun loadThread(reservationId: String) {
+        this.reservationId = reservationId
+        refresh()
+    }
 
     /**
      * Refreshes the message log. returns the MessageUserModel, which may be helpful.

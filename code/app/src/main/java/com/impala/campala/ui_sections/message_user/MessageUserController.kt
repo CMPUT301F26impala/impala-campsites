@@ -5,6 +5,15 @@ import com.impala.campala.model.MessageModel
 
 class MessageUserController(val model: MessageUserModel) : Controller {
 
+    /**
+     * Called in a LaunchedEffect in the View, loads the messages for a reservation
+     *
+     * @param reservationId the ID of the reservation whose messages are shown
+     */
+    fun loadThread(reservationId: String) {
+        model.loadThread(reservationId)
+    }
+
     fun refresh() : MessageUserModel {
         return model.refresh()
     }
