@@ -204,7 +204,7 @@ class SeeReservationsView(val controller: SeeReservationsController) : ViewObser
                         shape = RoundedCornerShape(8.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = tertiaryContainerDark, contentColor = tertiaryDark),
                         onClick = {
-                            //cancel reservation
+                            controller.rejectReservation(res)
                         }) {
                         Icon(Icons.Default.Close, contentDescription = null, modifier = Modifier.size(18.dp))
                         Spacer(modifier = Modifier.width(8.dp))

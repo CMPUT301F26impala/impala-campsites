@@ -41,46 +41,25 @@ class FormLotteriesController(
 
     //registration and available and booking
     /**
-     * Changes start of registration date
-     *
-     * @param newStartDate New registration start date
+     * Changes registration period date range
      */
-    fun onRegistrationPeriodStartDateChange(newStartDate: Timestamp) { model.updateRegistrationPeriodStartDate(newStartDate) }
+    fun onRegistrationPeriodDateRangeChange(start: Timestamp?, end: Timestamp?) {
+        model.updateRegistrationPeriodDateRange(start, end)
+    }
 
     /**
-     * Changes end of registration date
-     *
-     * @param newEndDate New registration end date
+     * Changes booking period date range
      */
-    fun onRegistrationPeriodEndDateChange(newEndDate: Timestamp) { model.updateRegistrationPeriodEndDate(newEndDate) }
+    fun onBookingPeriodDateRangeChange(start: Timestamp?, end: Timestamp?) {
+        model.updateBookingPeriodDateRange(start, end)
+    }
 
     /**
-     * Changes start of booking date
-     *
-     * @param newStartDate New booking start date
+     * Changes available dates range
      */
-    fun onBookingPeriodStartDateChange(newStartDate: Timestamp) { model.updateBookingPeriodStartDate(newStartDate) }
-
-    /**
-     * Changes end of booking date
-     *
-     * @param newEndDate New booking end date
-     */
-    fun onBookingPeriodEndDateChange(newEndDate: Timestamp) { model.updateBookingPeriodEndDate(newEndDate) }
-
-    /**
-     * Changes start of available dates for booking
-     *
-     * @param newStartDate New available start date
-     */
-    fun onAvailableDatesStartChange(newStartDate: Timestamp) { model.updateAvailableDatesStart(newStartDate) }
-
-    /**
-     * Changes end of available dates for booking
-     *
-     * @param newEndDate New available end date
-     */
-    fun onAvailableDatesEndChange(newEndDate: Timestamp) { model.updateAvailableDatesEnd(newEndDate) }
+    fun onAvailableDatesDateRangeChange(start: Timestamp?, end: Timestamp?) {
+        model.updateAvailableDatesDateRange(start, end)
+    }
 
     /**
      * Changes maximum participants of the lottery

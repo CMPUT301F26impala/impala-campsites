@@ -11,8 +11,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.DateRange
@@ -64,7 +64,8 @@ import java.time.format.DateTimeFormatter
  *
  * @param controller the LotteryDetailsController instance that is connected to the model
  */
-class LotteryDetailsView(val controller: LotteryDetailsController) : ViewObserver<LotteryDetailsModel> {
+class LotteryDetailsView(val controller: LotteryDetailsController) :
+    ViewObserver<LotteryDetailsModel> {
     private var isLoaded by mutableStateOf(false)
     private var name by mutableStateOf("")
     private var location by mutableStateOf("")
@@ -79,6 +80,7 @@ class LotteryDetailsView(val controller: LotteryDetailsController) : ViewObserve
     private var bookingStart by mutableStateOf<Timestamp?>(null)
     private var bookingEnd by mutableStateOf<Timestamp?>(null)
     private var waitlist by mutableStateOf<List<EntrantProfileModel>>(emptyList())
+    private var waitlistImages by mutableStateOf<List<ByteArray?>>(emptyList())
     private var selected by mutableStateOf<Set<String>>(emptySet())
     private var showNotifModal by mutableStateOf(false)
     private var notifTitle by mutableStateOf("")
@@ -101,6 +103,7 @@ class LotteryDetailsView(val controller: LotteryDetailsController) : ViewObserve
         bookingStart = lottery?.registrationStartTime
         bookingEnd = lottery?.registrationEndTime
         waitlist = model.waitlist
+        waitlistImages = model.waitlistImages
         // Copied so Compose sees a new Set, the model keeps changing the same one so it would look unchanged
         selected = model.selected.toSet()
         showNotifModal = model.showNotifModal
@@ -122,31 +125,59 @@ class LotteryDetailsView(val controller: LotteryDetailsController) : ViewObserve
         LaunchedEffect(lotteryId) {
             controller.onOpen(lotteryId)
         }
-        Box(modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .verticalScroll(rememberScrollState())
+        Box(modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 16.dp)) {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(name, style = MaterialTheme.typography.headlineMedium, modifier = Modifier.weight(1f))
-                    IconButton(onClick = { controller.onEditPress(navController, lotteryId) }) {
-                        Icon(Icons.Default.Edit, contentDescription = "Edit lottery", tint = MaterialTheme.colorScheme.onSurface)
+                item {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 16.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            name,
+                            style = MaterialTheme.typography.headlineMedium,
+                            modifier = Modifier.weight(1f)
+                        )
+                        IconButton(onClick = { controller.onEditPress(navController, lotteryId) }) {
+                            Icon(
+                                Icons.Default.Edit,
+                                contentDescription = "Edit lottery",
+                                tint = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
                     }
                 }
                 if (isLoaded) {
-                    RenderInfo()
-                    RenderTextSection("Description", description.ifEmpty { "No description" })
-                    RenderTextSection("Tags", tags.joinToString().ifEmpty { "No tags" })
-                    RenderSectionTitle("Waitlist ($waitlistCount/$waitlistCapacity)")
+                    item { RenderInfo() }
+                    item { RenderTextSection("Description", description.ifEmpty { "No description" }) }
+                    item { RenderTextSection("Tags", tags.joinToString().ifEmpty { "No tags" }) }
+                    item { RenderSectionTitle("Waitlist ($waitlistCount/$waitlistCapacity)") }
                 }
-                RenderWaitlist()
+                items((waitlist zip waitlistImages)) { (camper, image) ->
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Checkbox(
+                            checked = camper.userId in selected,
+                            onCheckedChange = { controller.onCheckedChange(camper) }
+                        )
+                        InfoCard(
+                            image, camper.name.ifEmpty { "Unknown" }, listOf(
+                                { CardDetail(Icons.Outlined.AccountCircle, camper.userId) }
+                            ))
+                    }
+                }
                 // Room for the Create Notification button so it doesn't cover the last person
-                Spacer(modifier = Modifier.height(96.dp))
+                item {
+                    Spacer(modifier = Modifier.height(96.dp))
+                }
             }
             RenderNotifyButton()
         }
@@ -170,29 +201,6 @@ class LotteryDetailsView(val controller: LotteryDetailsController) : ViewObserve
     }
 
     @Composable
-    private fun RenderWaitlist() {
-        Column(
-            modifier = Modifier.padding(0.dp, 16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            waitlist.forEach { camper ->
-                Row(
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Checkbox(
-                        checked = camper.userId in selected,
-                        onCheckedChange = { controller.onCheckedChange(camper) }
-                    )
-                    InfoCard(
-                        null, camper.name.ifEmpty { "Unknown" }, listOf(
-                        { CardDetail(Icons.Outlined.AccountCircle, camper.userId) }
-                    ))
-                }
-            }
-        }
-    }
-
-    @Composable
     private fun RenderNotifyButton() {
         val canNotify = selected.isNotEmpty()
         // FABs don't have an enabled flag, so the disabled look uses the same colours a disabled Button does
@@ -206,7 +214,12 @@ class LotteryDetailsView(val controller: LotteryDetailsController) : ViewObserve
             text = { Text("Create Notification") },
             containerColor = if (canNotify) FloatingActionButtonDefaults.containerColor else disabledContainer,
             contentColor = if (canNotify) contentColorFor(FloatingActionButtonDefaults.containerColor) else disabledContent,
-            elevation = if (canNotify) FloatingActionButtonDefaults.elevation() else FloatingActionButtonDefaults.elevation(0.dp, 0.dp, 0.dp, 0.dp),
+            elevation = if (canNotify) FloatingActionButtonDefaults.elevation() else FloatingActionButtonDefaults.elevation(
+                0.dp,
+                0.dp,
+                0.dp,
+                0.dp
+            ),
             // This sits on top of the scrolling Column, the Box in Render is what lets the two overlap
             modifier = Modifier
                 .fillMaxSize()
@@ -266,7 +279,12 @@ class LotteryDetailsView(val controller: LotteryDetailsController) : ViewObserve
             modifier = Modifier.padding(vertical = 2.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(16.dp))
+            Icon(
+                icon,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(16.dp)
+            )
             Text(
                 text,
                 style = MaterialTheme.typography.bodyMedium,
@@ -298,8 +316,10 @@ class LotteryDetailsView(val controller: LotteryDetailsController) : ViewObserve
         val endDay = end.toInstant().atZone(ZoneOffset.UTC).toLocalDate()
         val sameYear = startDay.year == endDay.year
         val sameMonth = sameYear && startDay.month == endDay.month
-        val startText = startDay.format(DateTimeFormatter.ofPattern(if (sameYear) "MMMM d" else "MMMM d, yyyy"))
-        val endText = endDay.format(DateTimeFormatter.ofPattern(if (sameMonth) "d, yyyy" else "MMMM d, yyyy"))
+        val startText =
+            startDay.format(DateTimeFormatter.ofPattern(if (sameYear) "MMMM d" else "MMMM d, yyyy"))
+        val endText =
+            endDay.format(DateTimeFormatter.ofPattern(if (sameMonth) "d, yyyy" else "MMMM d, yyyy"))
         return if (sameMonth) "$startText-$endText" else "$startText - $endText"
     }
 }

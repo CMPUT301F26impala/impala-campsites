@@ -29,12 +29,14 @@ import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DateRangePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
@@ -43,6 +45,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.getSelectedDate
 import androidx.compose.material3.rememberDatePickerState
+import androidx.compose.material3.rememberDateRangePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -154,7 +157,7 @@ class CreateReservationView(
                         DrawCampsiteSelector()
                     }
                     DrawCalendar(dateRangeStart, dateRangeEnd)
-                    DrawDateFields()
+                    DrawDateRangeField()
                     // Spacer so the fabs don't cover content
                     Spacer(modifier = Modifier.height(160.dp))
                 } else if (currentStage == CURRENT_RESERVATION_STAGE.CONFIRMATION) {
@@ -320,106 +323,59 @@ class CreateReservationView(
         }
     }
 
-    // Draws the Start Date and End Date fields
-    @Composable
-    private fun DrawDateFields() {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            DateField("Start Date", selectedStartDate, Modifier.weight(1f)) { date ->
-                controller.onStartDateChange(date)
-            }
-            DateField("End Date", selectedEndDate, Modifier.weight(1f)) { date ->
-                controller.onEndDateChange(date)
-            }
-        }
-    }
-
-    // An OutlinedTextField that opens a date picker when pressed
-    // @param label the label shown on the field
-    // @param date the currently picked date, null if none is picked
-    // @param modifier android modifier
-    // @param onDateChange called with the new date when one is picked, or null when it's cleared
+    // Draws the reservation date range picker field
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
-    private fun DateField(
-        label: String,
-        date: LocalDate?,
-        modifier: Modifier,
-        onDateChange: (LocalDate?) -> Unit
-    ) {
-        var datePickerOpen by remember { mutableStateOf(false) }
+    private fun DrawDateRangeField() {
+        val initialStartMillis = selectedStartDate?.atStartOfDay(ZoneOffset.UTC)?.toInstant()?.toEpochMilli()
+        val initialEndMillis = selectedEndDate?.atStartOfDay(ZoneOffset.UTC)?.toInstant()?.toEpochMilli()
 
-        // I had problems with having the text input that opened up the dialog, because yknow a text input doesn't really want to open something else when pressed it wants to open the keyboard
-        // So I asked Claude Opus 5.5 how to make an OutlinedTextField trigger other code when pressed, and it gave me the below LaunchedEffect block
-        // the TextField itself is my code
-        val interactionSource = remember { MutableInteractionSource() }
-        LaunchedEffect(interactionSource) {
-            interactionSource.interactions.collect { interaction ->
-                if (interaction is PressInteraction.Release) {
-                    datePickerOpen = true
-                }
-            }
+        val dateRangePickerState = rememberDateRangePickerState(
+            initialSelectedStartDateMillis = initialStartMillis,
+            initialSelectedEndDateMillis = initialEndMillis
+        )
+        var openDialog by remember { mutableStateOf(false) }
+
+        val formatOfDate = DateTimeFormatter.ofPattern("MMM d, yyyy")
+        val displayText = if (selectedStartDate == null || selectedEndDate == null) {
+            "Select Reservation Date Range"
+        } else {
+            "${selectedStartDate!!.format(formatOfDate)} - ${selectedEndDate!!.format(formatOfDate)}"
         }
 
-        OutlinedTextField(
-            value = date?.format(DateTimeFormatter.ofPattern("MM/dd/uuuu")) ?: "",
-            onValueChange = {},
-            readOnly = true,
-            label = { Text(label) },
-            singleLine = true,
-            interactionSource = interactionSource,
-            trailingIcon = {
-                if (date != null) {
-                    IconButton(onClick = { onDateChange(null) }) {
-                        Icon(Icons.Default.Clear, contentDescription = "Clear $label")
-                    }
-                }
-            },
-            modifier = modifier
-        )
+        OutlinedButton(
+            onClick = { openDialog = true },
+            modifier = Modifier.fillMaxWidth().padding(top = 16.dp)
+        ) {
+            Icon(Icons.Default.DateRange, contentDescription = null, modifier = Modifier.padding(end = 8.dp))
+            Text(displayText)
+        }
 
-        if (datePickerOpen) {
-            // I Used Claude Opus 5.5 with the prompt "How can I wire up a DatePickerDialog in Kotlin such that it has a list of specific selectable dates"
-            // It helped me create this rememberDatePickerState call
-            // Aside from that, I still wrote the UI for this myself.
-            val datePickerState = rememberDatePickerState(
-                initialSelectedDate = date,
-                initialDisplayedMonth = YearMonth.from(date ?: dateRangeStart),
-                selectableDates = object : SelectableDates {
-                    override fun isSelectableDate(utcTimeMillis: Long): Boolean {
-                        // The picker gives dates as milliseconds at midnight UTC
-                        val day =
-                            Instant.ofEpochMilli(utcTimeMillis).atZone(ZoneOffset.UTC).toLocalDate()
-                        return !day.isBefore(dateRangeStart) && !day.isAfter(dateRangeEnd) &&
-                                day !in alreadyReservedDatesForSelectedCampsite
-                    }
-
-                    override fun isSelectableYear(year: Int): Boolean {
-                        return year in dateRangeStart.year..dateRangeEnd.year
-                    }
-                }
-            )
+        if (openDialog) {
             DatePickerDialog(
-                onDismissRequest = { datePickerOpen = false },
+                onDismissRequest = { openDialog = false },
                 confirmButton = {
-                    TextButton(onClick = {
-                        datePickerOpen = false
-                        onDateChange(datePickerState.getSelectedDate())
-                    }) {
-                        Text("OK")
-                    }
+                    TextButton(
+                        onClick = {
+                            openDialog = false
+                            val startMillis = dateRangePickerState.selectedStartDateMillis
+                            val endMillis = dateRangePickerState.selectedEndDateMillis
+                            val startLocalDate = startMillis?.let { Instant.ofEpochMilli(it).atZone(ZoneOffset.UTC).toLocalDate() }
+                            val endLocalDate = endMillis?.let { Instant.ofEpochMilli(it).atZone(ZoneOffset.UTC).toLocalDate() }
+                            controller.onDateRangeChange(startLocalDate, endLocalDate)
+                        }
+                    ) { Text("OK") }
                 },
                 dismissButton = {
-                    TextButton(onClick = { datePickerOpen = false }) {
-                        Text("Cancel")
-                    }
+                    TextButton(onClick = { openDialog = false }) { Text("Cancel") }
                 }
             ) {
-                DatePicker(state = datePickerState)
+                DateRangePicker(
+                    state = dateRangePickerState,
+                    title = { Text("Select Reservation Date Range") },
+                    showModeToggle = false,
+                    modifier = Modifier.fillMaxWidth().height(500.dp).padding(16.dp)
+                )
             }
         }
     }

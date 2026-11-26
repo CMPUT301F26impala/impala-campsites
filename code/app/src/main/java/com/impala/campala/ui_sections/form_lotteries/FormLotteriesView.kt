@@ -19,21 +19,27 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DateRangePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DisplayMode
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.InputChip
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
+import androidx.compose.material3.rememberDateRangePickerState
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -287,70 +293,32 @@ class FormLotteriesView(
                     )
                 }
 
-                // registration booked available: start end dates input side by side
-                // registration
+                // registration booked available: date range pickers
                 item {
-                    Column {
-                        Text(text = "Registration Period", color = MaterialTheme.colorScheme.onBackground)
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(39.dp, Alignment.CenterHorizontally),
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            DateInput(
-                                insideText = "Start Date",
-                                chosenDate = registrationPeriodStartDate,
-                                onDateChange = { controller.onRegistrationPeriodStartDateChange(it) }
-                            )
-                            DateInput(
-                                insideText = "End Date",
-                                chosenDate = registrationPeriodEndDate,
-                                onDateChange = { controller.onRegistrationPeriodEndDateChange(it) }
-                            )
-                        }
-                    }
+                    DateRangeInput(
+                        label = "Registration Period",
+                        startDate = registrationPeriodStartDate,
+                        endDate = registrationPeriodEndDate,
+                        onDateRangeChange = { start, end -> controller.onRegistrationPeriodDateRangeChange(start, end) }
+                    )
                 }
 
-                // booking
                 item {
-                    Column {
-                        Text(text = "Booking Period", color = MaterialTheme.colorScheme.onBackground)
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(39.dp, Alignment.CenterHorizontally),
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            DateInput(
-                                insideText = "Start Date",
-                                chosenDate = bookingPeriodStartDate,
-                                onDateChange = { controller.onBookingPeriodStartDateChange(it) }
-                            )
-                            DateInput(
-                                insideText = "End Date",
-                                chosenDate = bookingPeriodEndDate,
-                                onDateChange = { controller.onBookingPeriodEndDateChange(it) }
-                            )
-                        }
-                    }
+                    DateRangeInput(
+                        label = "Booking Period",
+                        startDate = bookingPeriodStartDate,
+                        endDate = bookingPeriodEndDate,
+                        onDateRangeChange = { start, end -> controller.onBookingPeriodDateRangeChange(start, end) }
+                    )
                 }
-                // available
+
                 item {
-                    Column {
-                        Text(text = "Dates Available", color = MaterialTheme.colorScheme.onBackground)
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(39.dp, Alignment.CenterHorizontally),
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            DateInput(
-                                insideText = "Start Date",
-                                chosenDate = availableDatesStart,
-                                onDateChange = { controller.onAvailableDatesStartChange(it) }
-                            )
-                            DateInput(
-                                insideText = "End Date",
-                                chosenDate = availableDatesEnd,
-                                onDateChange = { controller.onAvailableDatesEndChange(it) }
-                            )
-                        }
-                    }
+                    DateRangeInput(
+                        label = "Dates Available",
+                        startDate = availableDatesStart,
+                        endDate = availableDatesEnd,
+                        onDateRangeChange = { start, end -> controller.onAvailableDatesDateRangeChange(start, end) }
+                    )
                 }
 
             } // personal refernece, end of lazy column
@@ -376,57 +344,63 @@ class FormLotteriesView(
         } // end of column
     } // end of render function
 
-    // Used in render to create the 6 date input boxes.
-    // Displays the selected date on a button, or the field name if no date was selected.
-    // When pressed, opens a date picker where the user can enter a date.
-    // The selected date is then passed back using onDateChange after pressing OK.
-    // @param insideText the text to display if no date has been selected
-    // @param chosenDate the current date selected, or null if no date was selected
-    // @param onDateChange the function called to update the date after the user selects one
-    // @return Unit, but renders a date input button as a side effect
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
-    private fun DateInput(
-        insideText: String,
-        chosenDate: Timestamp?,
-        onDateChange: (Timestamp) -> Unit
+    private fun DateRangeInput(
+        label: String,
+        startDate: Timestamp?,
+        endDate: Timestamp?,
+        onDateRangeChange: (Timestamp?, Timestamp?) -> Unit
     ) {
-        val currentDatePicker = rememberDatePickerState(
-            initialSelectedDateMillis = chosenDate?.toDate()?.time,
-            initialDisplayMode = DisplayMode.Input
+        val dateRangePickerState = rememberDateRangePickerState(
+            initialSelectedStartDateMillis = startDate?.toDate()?.time,
+            initialSelectedEndDateMillis = endDate?.toDate()?.time
         )
-        var openPopupForDatePick by remember { mutableStateOf(false) }
+        var openDialog by remember { mutableStateOf(false) }
 
         val formatOfDate = SimpleDateFormat("MM/dd/yyyy", Locale.US)
         formatOfDate.timeZone = TimeZone.getTimeZone("UTC")
 
-        val stirngOfDate = if (chosenDate == null) insideText
-        else formatOfDate.format(chosenDate.toDate())
+        val displayText = if (startDate == null || endDate == null) {
+            label
+        } else {
+            "${formatOfDate.format(startDate.toDate())} - ${formatOfDate.format(endDate.toDate())}"
+        }
 
         OutlinedButton(
-            onClick = { openPopupForDatePick = true }
-        ) { Text(stirngOfDate) }
+            onClick = { openDialog = true },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Icon(Icons.Default.DateRange, contentDescription = null, modifier = Modifier.padding(end = 8.dp))
+            Text(displayText)
+        }
 
-        if (openPopupForDatePick) {
+        if (openDialog) {
             DatePickerDialog(
-                onDismissRequest = { openPopupForDatePick = false },
+                onDismissRequest = { openDialog = false },
                 confirmButton = {
                     TextButton(
                         onClick = {
-                            openPopupForDatePick = false
-                            val selectedMillis = currentDatePicker.selectedDateMillis
-                            if (selectedMillis != null) { onDateChange(Timestamp(Date(selectedMillis))) }
+                            openDialog = false
+                            val startMillis = dateRangePickerState.selectedStartDateMillis
+                            val endMillis = dateRangePickerState.selectedEndDateMillis
+                            val startTimestamp = startMillis?.let { Timestamp(Date(it)) }
+                            val endTimestamp = endMillis?.let { Timestamp(Date(it)) }
+                            onDateRangeChange(startTimestamp, endTimestamp)
                         }
                     ) { Text("OK") }
                 },
                 dismissButton = {
-                    TextButton(
-                        onClick = { openPopupForDatePick = false }
-                    ) { Text("Cancel") }
+                    TextButton(onClick = { openDialog = false }) { Text("Cancel") }
                 }
             ) {
-                DatePicker(state = currentDatePicker)
+                DateRangePicker(
+                    state = dateRangePickerState,
+                    title = { Text(label) },
+                    showModeToggle = false,
+                    modifier = Modifier.fillMaxWidth().height(500.dp).padding(16.dp)
+                )
             }
         }
-    } // end of date input function
+    }
 }

@@ -6,6 +6,7 @@ import com.impala.campala.model.CampsiteModel
 import com.impala.campala.model.CampsiteRepository
 import com.impala.campala.model.EntrantProfileModel
 import com.impala.campala.model.EntrantProfileRepository
+import com.impala.campala.model.ImageRepository
 import com.impala.campala.model.LotteryModel
 import com.impala.campala.model.LotteryRepository
 import kotlinx.coroutines.async
@@ -42,7 +43,8 @@ class LotteryDetailsModel : ObservableModel<LotteryDetailsModel>() {
         get() = campsites.joinToString(", ") { it.name }
 
     val location: String
-        get() = campsites.map { it.location }.filter { it.isNotBlank() }.distinct().joinToString(", ")
+        get() = campsites.map { it.location }.filter { it.isNotBlank() }.distinct()
+            .joinToString(", ")
 
     val description: String
         get() = campsites.map { it.description }.filter { it.isNotBlank() }.joinToString("\n\n")
@@ -65,20 +67,21 @@ class LotteryDetailsModel : ObservableModel<LotteryDetailsModel>() {
         }
 
     var waitlist: List<EntrantProfileModel> = emptyList()
+    var waitlistImages: List<ByteArray?> = emptyList()
     var selected = mutableSetOf<String>()
-    var showNotifModal=false
+    var showNotifModal = false
         set(value) {
-            field=value
+            field = value
             notifyObservers(this)
         }
-    var notifTitle: String=""
+    var notifTitle: String = ""
         set(value) {
-            field=value
+            field = value
             notifyObservers(this)
         }
-    var notifBody: String=""
+    var notifBody: String = ""
         set(value) {
-            field=value
+            field = value
             notifyObservers(this)
         }
 
@@ -105,6 +108,7 @@ class LotteryDetailsModel : ObservableModel<LotteryDetailsModel>() {
         waitlist = loaded?.waitlistIds.orEmpty()
             .map { EntrantProfileRepository.getEntrantProfileById(it) }
             .filterNotNull()
+        waitlistImages = waitlist.map { ImageRepository.getImageById(it.imageId)?.data?.toBytes() }
         lottery = loaded
         notifyObservers(this)
     }

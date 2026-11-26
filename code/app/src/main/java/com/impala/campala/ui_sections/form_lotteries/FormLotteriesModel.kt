@@ -167,62 +167,29 @@ class FormLotteriesModel(
     }
 
     /**
-     * Updates the start date for when the campsite is available
-     *
-     * @param newStartDate the new starting date selected
+     * Updates the start and end dates for when the campsite is available
      */
-    fun updateAvailableDatesStart(newStartDate: Timestamp) {
-        availableDatesStart = newStartDate
+    fun updateAvailableDatesDateRange(start: Timestamp?, end: Timestamp?) {
+        availableDatesStart = start
+        availableDatesEnd = end
         notifyObservers(this)
     }
 
     /**
-     * Updates the end date for when the campsite is available
-     *
-     * @param newEndDate the new ending date selected
+     * Updates the start and end dates of the lottery registration period
      */
-    fun updateAvailableDatesEnd(newEndDate: Timestamp) {
-        availableDatesEnd = newEndDate
+    fun updateRegistrationPeriodDateRange(start: Timestamp?, end: Timestamp?) {
+        registrationPeriodStartDate = start
+        registrationPeriodEndDate = end
         notifyObservers(this)
     }
 
     /**
-     * Updates the starting date of the lottery registration period
-     *
-     * @param newStartDate the new date when users can start joining the lottery
+     * Updates the start and end dates of the booking period
      */
-    fun updateRegistrationPeriodStartDate(newStartDate: Timestamp) {
-        registrationPeriodStartDate = newStartDate
-        notifyObservers(this)
-    }
-
-    /**
-     * Updates the ending date of the lottery registration period
-     *
-     * @param newEndDate the new date when the lottery registration ends
-     */
-    fun updateRegistrationPeriodEndDate(newEndDate: Timestamp) {
-        registrationPeriodEndDate = newEndDate
-        notifyObservers(this)
-    }
-
-    /**
-     * Updates the starting date of the booking period
-     *
-     * @param newStartDate the new date when winners can start booking
-     */
-    fun updateBookingPeriodStartDate(newStartDate: Timestamp) {
-        bookingPeriodStartDate = newStartDate
-        notifyObservers(this)
-    }
-
-    /**
-     * Updates the ending date of the booking period
-     *
-     * @param newEndDate the new date when winners can no longer book
-     */
-    fun updateBookingPeriodEndDate(newEndDate: Timestamp) {
-        bookingPeriodEndDate = newEndDate
+    fun updateBookingPeriodDateRange(start: Timestamp?, end: Timestamp?) {
+        bookingPeriodStartDate = start
+        bookingPeriodEndDate = end
         notifyObservers(this)
     }
 

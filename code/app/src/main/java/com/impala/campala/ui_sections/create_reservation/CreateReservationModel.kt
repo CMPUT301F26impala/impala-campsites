@@ -163,23 +163,11 @@ class CreateReservationModel(
     }
 
     /**
-     * Sets the first day of the User's chosen stay
-     *
-     * @param date the start date, null if it's been cleared or isn't a full date yet
+     * Sets the start and end dates of the User's chosen stay
      */
-    fun updateSelectedStartDate(date: LocalDate?) {
-        selectedStartDate = date
-        recalculateValidity()
-        notifyObservers(this)
-    }
-
-    /**
-     * Sets the last day of the User's chosen stay, this day is included in the stay
-     *
-     * @param date the end date, null if it's been cleared or isn't a full date yet
-     */
-    fun updateSelectedEndDate(date: LocalDate?) {
-        selectedEndDate = date
+    fun updateSelectedDateRange(start: LocalDate?, end: LocalDate?) {
+        selectedStartDate = start
+        selectedEndDate = end
         recalculateValidity()
         notifyObservers(this)
     }

@@ -101,6 +101,26 @@ fun ComposeContentTestRule.pickDate(fieldLabel: String, date: LocalDate) {
 }
 
 /**
+ * Opens a date range picker dialog, taps start and end days, and presses OK
+ */
+fun ComposeContentTestRule.pickDateRange(fieldLabel: String, startDate: LocalDate, endDate: LocalDate) {
+    onAllNodes(hasScrollToNodeAction()).onFirst().performScrollToNode(hasText(fieldLabel))
+    onNodeWithText(fieldLabel).performScrollTo().performClick()
+
+    val startDayLabel = startDate.format(DateTimeFormatter.ofPattern("MMMM d, yyyy", Locale.US))
+    val startDayCell = hasText(startDayLabel, substring = true) and hasClickAction() and hasAnyAncestor(isDialog())
+    waitUntil(UI_TIMEOUT_MS) { onAllNodes(startDayCell).fetchSemanticsNodes().isNotEmpty() }
+    onNode(startDayCell).performClick()
+
+    val endDayLabel = endDate.format(DateTimeFormatter.ofPattern("MMMM d, yyyy", Locale.US))
+    val endDayCell = hasText(endDayLabel, substring = true) and hasClickAction() and hasAnyAncestor(isDialog())
+    waitUntil(UI_TIMEOUT_MS) { onAllNodes(endDayCell).fetchSemanticsNodes().isNotEmpty() }
+    onNode(endDayCell).performClick()
+
+    onNodeWithText("OK").performClick()
+}
+
+/**
  * Same idea as [pickDate], but for date pickers that open in text input mode (eg: the lottery form),
  * where you type the date instead of tapping a day
  *

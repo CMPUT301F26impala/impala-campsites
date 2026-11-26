@@ -8,7 +8,7 @@ import com.impala.campala.model.CampsiteModel
 import com.impala.campala.model.ReservationRepository
 import com.impala.campala.testutil.clickText
 import com.impala.campala.testutil.launchApp
-import com.impala.campala.testutil.pickDate
+import com.impala.campala.testutil.pickDateRange
 import com.impala.campala.testutil.seedCampsite
 import com.impala.campala.testutil.seedLottery
 import com.impala.campala.testutil.signInAsNewEntrant
@@ -85,8 +85,7 @@ class CreateReservationFlowTest {
         // Pick dates
         val start = stayStart.plusDays(9)
         val end = stayStart.plusDays(11)
-        compose.pickDate("Start Date", start)
-        compose.pickDate("End Date", end)
+        compose.pickDateRange("Select Reservation Date Range", start, end)
 
         // I wasn't able to access the FAB, so again I prompted Claude Opus 5.5 and it told me to try useUnmergedTree
         compose.clickText("Confirm Reservation", useUnmergedTree = true)

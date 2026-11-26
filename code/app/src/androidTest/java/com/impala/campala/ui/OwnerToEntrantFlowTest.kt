@@ -13,7 +13,7 @@ import com.impala.campala.testutil.launchApp
 import com.impala.campala.testutil.signInAsNewEntrant
 import com.impala.campala.testutil.switchToEntrant
 import com.impala.campala.testutil.switchToOwner
-import com.impala.campala.testutil.typeDate
+import com.impala.campala.testutil.pickDateRange
 import com.impala.campala.testutil.typeInto
 import com.impala.campala.testutil.waitForDatabase
 import com.impala.campala.testutil.waitForText
@@ -111,12 +111,9 @@ class OwnerToEntrantFlowTest {
         compose.typeInto("Number of Winners", "2")
         val today = LocalDate.now()
         val joinEnd = today.plusDays(7)
-        compose.typeDate("Start Date", today.minusDays(1))
-        compose.typeDate("End Date", joinEnd)
-        compose.typeDate("Start Date", today.plusDays(8))
-        compose.typeDate("End Date", today.plusDays(14))
-        compose.typeDate("Start Date", today.plusDays(30))
-        compose.typeDate("End Date", today.plusDays(40))
+        compose.pickDateRange("Registration Period", today.minusDays(1), joinEnd)
+        compose.pickDateRange("Booking Period", today.plusDays(8), today.plusDays(14))
+        compose.pickDateRange("Dates Available", today.plusDays(30), today.plusDays(40))
         compose.clickText("Create")
         compose.waitForText("Add Lottery", useUnmergedTree = true)
         compose.waitForText("Hogsmeade Meadow")
