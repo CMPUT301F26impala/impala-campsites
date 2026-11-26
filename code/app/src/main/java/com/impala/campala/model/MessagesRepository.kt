@@ -94,4 +94,15 @@ object MessagesRepository {
     suspend fun deleteThread(reservationId: String): Unit {
         collection.document(reservationId).delete().await()
     }
+
+    /**
+     * Deletes a single message out of a thread, and saves the thread
+     *
+     * @param thread the MessagesModel the message belongs to
+     * @param message the message to remove from the thread
+     */
+    suspend fun deleteMessage(thread: MessagesModel, message: MessageModel): Unit {
+        thread.messageThread.remove(message)
+        thread.save().await()
+    }
 }
