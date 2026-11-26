@@ -13,6 +13,7 @@ import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import com.google.firebase.firestore.GeoPoint
 import com.impala.campala.ui.theme.onPrimaryContainerLight
+import org.maplibre.compose.camera.CameraAnimation
 import org.maplibre.compose.camera.CameraFit
 import org.maplibre.compose.camera.CameraPosition
 import org.maplibre.compose.expressions.dsl.const
@@ -27,6 +28,7 @@ import org.maplibre.compose.style.BaseStyle
 import org.maplibre.compose.util.DpPadding
 import org.maplibre.spatialk.geojson.MultiPoint
 import org.maplibre.spatialk.geojson.Position
+import kotlin.time.Duration.Companion.milliseconds
 
 private const val MAP_STYLE_URL = "https://tiles.openfreemap.org/styles/liberty"
 
@@ -91,7 +93,14 @@ fun MapDisplay(
             coordinates = positions,
             fit = CameraFit(fitPadding = DpPadding(FIT_PADDING, FIT_PADDING, FIT_PADDING, FIT_PADDING))
         )
-        mapState.setCameraPosition(fitted.copy(zoom = minOf(fitted.zoom, MAX_FIT_ZOOM)))
+
+        // Jump to a bit far zoomed out, and then zoom in
+        val target = fitted.copy(zoom = minOf(fitted.zoom, MAX_FIT_ZOOM))
+        mapState.setCameraPosition(target.copy(zoom = maxOf(target.zoom - 3.0, 0.0)))
+        mapState.animateCamera(
+            target.toCameraUpdate(),
+            CameraAnimation.Ease { duration = 1500.milliseconds }
+        )
     }
 
     MaplibreMap(
