@@ -55,6 +55,9 @@ import com.impala.campala.ui_sections.view_lotteries.ViewLotteriesView
 import com.impala.campala.ui_sections.view_profile.ViewProfileController
 import com.impala.campala.ui_sections.view_profile.ViewProfileModel
 import com.impala.campala.ui_sections.view_profile.ViewProfileView
+import com.impala.campala.ui_sections.visited_map.VisitedMapController
+import com.impala.campala.ui_sections.visited_map.VisitedMapModel
+import com.impala.campala.ui_sections.visited_map.VisitedMapView
 import com.impala.campala.ui_sections.admin_profiles.AdminProfilesModel
 import com.impala.campala.ui_sections.admin_profiles.AdminProfilesController
 import com.impala.campala.ui_sections.admin_profiles.AdminProfilesView
@@ -158,6 +161,11 @@ fun SignedInApp(deepLinkCampsiteId: String? = null, onDeepLinkHandled: () -> Uni
     val viewProfileView = remember { ViewProfileView(viewProfileController) }
     viewProfileModel.addObserver(viewProfileView)
 
+    val visitedMapModel = remember { VisitedMapModel(coroutineScope) }
+    val visitedMapController = remember { VisitedMapController(visitedMapModel) }
+    val visitedMapView = remember { VisitedMapView(visitedMapController) }
+    visitedMapModel.addObserver(visitedMapView)
+
     val adminProfilesModel = remember { AdminProfilesModel(coroutineScope) }
     val adminProfilesController = remember { AdminProfilesController(adminProfilesModel) }
     val adminProfilesView = remember {
@@ -220,6 +228,7 @@ fun SignedInApp(deepLinkCampsiteId: String? = null, onDeepLinkHandled: () -> Uni
                 createReservationScreen = createReservationView,
                 viewProfileScreen = viewProfileView,
                 editProfileScreen = editProfileView,
+                visitedMapScreen = visitedMapView,
                 deepLinkCampsiteId = deepLinkCampsiteId,
                 onDeepLinkHandled = onDeepLinkHandled,
                 onSwitchRole = { needsRoleChoice = true })
@@ -253,6 +262,7 @@ fun SignedInApp(deepLinkCampsiteId: String? = null, onDeepLinkHandled: () -> Uni
                     createReservationScreen = createReservationView,
                     viewProfileScreen = viewProfileView,
                     editProfileScreen = editProfileView,
+                    visitedMapScreen = visitedMapView,
                     deepLinkCampsiteId = deepLinkCampsiteId,
                     onDeepLinkHandled = onDeepLinkHandled,
                     onSwitchRole = { needsRoleChoice = true })
