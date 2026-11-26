@@ -85,4 +85,6 @@ dependencies {
     implementation(libs.androidx.compose.foundation.layout)
     implementation(libs.firebase.messaging)
     implementation("io.github.g0dkar:qrcode-kotlin:4.5.0")
+    implementation(libs.maplibre.compose)
+    runtimeOnly(libs.maplibre.compose.runtime.opengl)
 }

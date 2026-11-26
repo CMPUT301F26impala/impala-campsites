@@ -66,6 +66,16 @@ class FormCampsitesController(
     }
 
     /**
+     * Called when the user confirms a location in the map picker
+     *
+     * @param latitude Latitude of the picked location
+     * @param longitude Longitude of the picked location
+     */
+    fun onMapLocationPicked(latitude: Double, longitude: Double) {
+        model.updateMapLocation(latitude, longitude)
+    }
+
+    /**
      * Adds a tag to the list of tags
      *
      * @param newTag Tag to be added

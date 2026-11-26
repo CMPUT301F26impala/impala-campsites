@@ -352,8 +352,9 @@ service cloud.firestore {
 
     // A single message (MessageModel). FromOwner has to match who is really sending it
     function validMessage(m, d) {
-      return m.keys().hasOnly(['body', 'fromOwner', 'FromOwner'])
+      return m.keys().hasOnly(['body', 'fromOwner', 'FromOwner', 'date'])
         && m.body is string && m.body.size() <= 2000
+        && m.date is timestamp
         && sentByOwner(m) is bool
         && ((sentByOwner(m) == true && isSelf(d.ownerId))
             || (sentByOwner(m) == false && isSelf(d.entrantId)));

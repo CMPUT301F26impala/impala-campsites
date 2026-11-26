@@ -60,6 +60,7 @@ import com.impala.campala.ui_sections.search_campsites.SearchCampsitesView
 import com.impala.campala.ui_sections.see_reservation.SeeReservationsView
 import com.impala.campala.ui_sections.view_lotteries.ViewLotteriesView
 import com.impala.campala.ui_sections.view_profile.ViewProfileView
+import com.impala.campala.ui_sections.visited_map.VisitedMapView
 
 /**
  * Composable class that sets up the navigation for a user signed in as a Campsite Owner
@@ -71,6 +72,7 @@ import com.impala.campala.ui_sections.view_profile.ViewProfileView
  * @param createReservationScreen The View where the user can make a reservation from
  * @param viewProfileScreen The View where the user can see their entrant profile
  * @param editProfileScreen The View where the user can edit their entrant profile
+ * @param visitedMapScreen The View with a map of the campsites the user has been to
  * @param deepLinkCampsiteId The campsite a deep link asked to open, or null if there isn't one
  * @param onDeepLinkHandled Called once the app has navigated to the deep linked campsite
  * @param onSwitchRole a function to be executed when the user clicks the button to switch roles
@@ -85,6 +87,7 @@ fun EntrantNavigationRoot(
     createReservationScreen: CreateReservationView,
     viewProfileScreen: ViewProfileView,
     editProfileScreen: EditProfileView,
+    visitedMapScreen: VisitedMapView,
     deepLinkCampsiteId: String? = null,
     onDeepLinkHandled: () -> Unit = {},
     onSwitchRole: () -> Unit
@@ -176,6 +179,13 @@ fun EntrantNavigationRoot(
             Scaffold { padding ->
                 Box(Modifier.padding(padding)) {
                     AppPoliciesView(navController)
+                }
+            }
+        }
+        composable("visitedMap") {
+            Scaffold { padding ->
+                Box(Modifier.padding(padding)) {
+                    visitedMapScreen.Render(navController)
                 }
             }
         }

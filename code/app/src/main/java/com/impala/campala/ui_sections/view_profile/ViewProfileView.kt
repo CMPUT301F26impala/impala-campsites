@@ -19,6 +19,7 @@ import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
@@ -129,6 +130,8 @@ class ViewProfileView(val controller: ViewProfileController) : ViewObserver<View
 
                 if (!isViewingProfileAsAdmin) {
                     Spacer(modifier = Modifier.height(40.dp))
+                    DrawActionButton(Icons.Default.LocationOn, "Places You've Been", MaterialTheme.colorScheme.primary, onClick = { controller.onViewVisitedMapPress(navController) })
+                    Spacer(modifier = Modifier.height(8.dp))
                     DrawActionButton(Icons.AutoMirrored.Filled.List, "View App Policies", MaterialTheme.colorScheme.primary, onClick = { controller.onViewAppPoliciesPress(navController) })
                     Spacer(modifier = Modifier.height(8.dp))
                     DrawActionButton(Icons.Default.Delete, "Delete Profile", MaterialTheme.colorScheme.tertiary, onClick = { controller.onDeleteProfilePress() })

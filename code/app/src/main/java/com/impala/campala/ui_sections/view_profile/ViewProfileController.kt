@@ -35,6 +35,15 @@ class ViewProfileController(val model: ViewProfileModel) : Controller {
     }
 
     /**
+     * Takes the user to the map of campsites they've been to
+     *
+     * @param navController the root NavController, assumes 'visitedMap' is on this nav stack
+     */
+    fun onViewVisitedMapPress(navController: NavController) {
+        navController.navigate("visitedMap")
+    }
+
+    /**
      * Opens the delete confirm modal
      */
     fun onDeleteProfilePress() {

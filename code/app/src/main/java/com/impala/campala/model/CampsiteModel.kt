@@ -5,6 +5,8 @@ import com.google.firebase.Firebase
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.Exclude
+import com.google.firebase.firestore.GeoPoint
+import com.google.firebase.firestore.IgnoreExtraProperties
 import com.google.firebase.firestore.firestore
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
@@ -17,7 +19,7 @@ import kotlin.uuid.Uuid
  * @param location String name of the campsite location
  * @param description Campsite description as a String
  * @param maxOccupancy Integer for the campsite's maximum occupancy
- * @param mapLocation TODO: Implement this as likely a pair of floats with coordinates
+ * @param coordinates Latitude and longitude of the campsite picked on the map, null if the owner hasn't picked one
  * @param imageId ID of the campsite's image in the images collection, empty if it has no image
  * @param tags A list of Strings with relevant tags
  * @param rules A string containing campsite rules
@@ -26,12 +28,15 @@ import kotlin.uuid.Uuid
  *
  * @property doc A reference to the Firebase document containing this object
  */
+@IgnoreExtraProperties
 data class CampsiteModel @OptIn(ExperimentalUuidApi::class) constructor(
     var name: String = "",
     var location: String = "",
     var description: String = "",
     var maxOccupancy: Int = 0,
-    var mapLocation: String = "", // probably pair of float for lat and longitude
+    // Thank gosh firebase has a GeoPoint datatype
+    // This is lat and long all in one
+    var coordinates: GeoPoint? = null,
     var imageId: String = "",
     var tags: MutableList<String> = mutableListOf(),
     var rules: String="",

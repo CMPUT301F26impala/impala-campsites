@@ -64,7 +64,7 @@ class SearchCampsitesModel(
         // We need to cancel the previous one before starting a new one, that way we don't have a bunch going at once
         resultsJob?.cancel()
         resultsJob = this.scope.launch {
-            var campsites = CampsiteRepository.getFilteredCampsites(searchString, locationFilter, null, minimumOccupantsFilter, null)
+            var campsites = CampsiteRepository.getFilteredCampsites(searchString, locationFilter, minimumOccupantsFilter, null)
             if (viewMode == UserViewMode.CAMPSITE_OWNER) {
                 // Campsite owners only see the campsites listed in their profile
                 val ownedCampsites = CampsiteOwnerProfileRepository.getCampsiteOwnerProfileById(User.getUID())?.ownedCampsites ?: emptyList()
