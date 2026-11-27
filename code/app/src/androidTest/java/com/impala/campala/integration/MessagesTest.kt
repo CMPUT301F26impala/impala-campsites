@@ -5,7 +5,6 @@ import com.google.android.gms.tasks.Tasks
 import com.google.firebase.firestore.FirebaseFirestore
 import com.impala.campala.model.MessagesRepository
 import com.impala.campala.model.ReservationModel
-import com.impala.campala.model.ReservationRepository
 import junit.framework.TestCase.assertEquals
 import junit.framework.TestCase.assertNotNull
 import kotlinx.coroutines.runBlocking
@@ -60,7 +59,7 @@ class MessagesTest {
 
         MessagesRepository.sendMessage("Hello tenet, welcome to the lodge",true,stored)
         assertEquals("Hello tenet, welcome to the lodge",stored.messageThread[0].body)
-        assert(stored.messageThread[0].FromOwner)
+        assert(stored.messageThread[0].fromOwner)
     }
 
     @Test

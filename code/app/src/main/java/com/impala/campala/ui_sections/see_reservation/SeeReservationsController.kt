@@ -1,5 +1,6 @@
 package com.impala.campala.ui_sections.see_reservation;
 
+import androidx.navigation.NavController
 import com.impala.campala.Controller
 import com.impala.campala.model.ReservationModel
 
@@ -31,5 +32,15 @@ public class SeeReservationsController(val model: SeeReservationsModel) : Contro
      */
     public fun rejectReservation(res: ReservationModel) {
         model.rejectReservation(res)
+    }
+
+    /**
+     * Called when the View Messages or Message button is pressed, opens the messages for that reservation
+     *
+     * @param navController the navController object used for navigation
+     * @param res the reservation whose messages are opened
+     */
+    public fun openMessages(navController: NavController, res: ReservationModel) {
+        navController.navigate("messages/${res.id}")
     }
 }

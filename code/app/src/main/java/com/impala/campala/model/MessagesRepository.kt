@@ -4,6 +4,9 @@ import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.tasks.await
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
+import kotlin.time.Clock
 
 /**
  * Repository for storing Messages between Owners and Entrants who reserved campsites
@@ -51,7 +54,7 @@ object MessagesRepository {
      * @param model MessagesModel to use for chat
      */
     suspend fun sendMessage(message: String,isFromOwner: Boolean,model: MessagesModel): Unit{
-        model.messageThread.addLast(MessageModel(message,isFromOwner))
+        model.messageThread.addLast(MessageModel(message,isFromOwner, Clock.System.now()))
         model.save().await()
     }
 

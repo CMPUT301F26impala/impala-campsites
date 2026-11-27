@@ -150,7 +150,7 @@ object User {
      *
      * @param uid The ID of the user to update
      */
-    public fun updateUserProfile(uid: String) { // In a real project this function should be private for security purposes. But this is aight for now
+    public fun updateUserProfile(uid: String) {
         val userData = mutableMapOf(
             "isAdmin" to isAdmin,
             "isOwner" to isOwner,

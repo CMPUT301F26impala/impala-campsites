@@ -102,9 +102,9 @@ class SeeReservationsView(val controller: SeeReservationsController) : ViewObser
             controller.initialize()
         }
 
-        // To preserve Liam's design of the A, B, C screens, I've made Owner just it's own thing
+        // To preserve Liam's design of the A, B, C screens, I've made Owner just its own thing
         if (viewMode == UserViewMode.CAMPSITE_OWNER) {
-            DrawOwnerRes()
+            DrawOwnerRes(navController)
             return
         }
 
@@ -147,7 +147,7 @@ class SeeReservationsView(val controller: SeeReservationsController) : ViewObser
             // Demonstrated by Gemini Flash-lite 3.5 with prompt "how to have a mutable state function that can be one of two composable UI functions in kotlin".
             // This would take zero (0) lines and zero (0) google searches to accomplish in C. Just saying. But OOP is super useful or something trust me
             when (currentScreen) {
-                UiTarget.SCREEN_A -> CurrentRes()
+                UiTarget.SCREEN_A -> CurrentRes(navController)
                 UiTarget.SCREEN_B -> PrevRes(onRate = { res ->
                     reservationBeingRated = res
                     currentScreen = UiTarget.SCREEN_C
@@ -171,7 +171,7 @@ class SeeReservationsView(val controller: SeeReservationsController) : ViewObser
     }
 
     @Composable
-    private fun CurrentRes() {
+    private fun CurrentRes(navController: NavController) {
         LazyColumn(modifier = Modifier.fillMaxWidth()) {
             items(newReservations) { res ->
                 Spacer(modifier = Modifier.height(12.dp))
@@ -189,9 +189,8 @@ class SeeReservationsView(val controller: SeeReservationsController) : ViewObser
                     // Messaging is a final checkpoint thing
                     Button(modifier = Modifier.weight(1f),
                         shape = RoundedCornerShape(8.dp),
-                        enabled = false,
                         onClick = {
-                            //go to messages
+                            controller.openMessages(navController, res)
                         }) {
                         Icon(Icons.AutoMirrored.Filled.Send, contentDescription = null, modifier = Modifier.size(18.dp))
                         Spacer(modifier = Modifier.width(8.dp))
@@ -251,7 +250,7 @@ class SeeReservationsView(val controller: SeeReservationsController) : ViewObser
 
     // The campsite owner's version of this tab, with Active, Past, and Cancelled tabs
     @Composable
-    private fun DrawOwnerRes() {
+    private fun DrawOwnerRes(navController: NavController) {
         // Instead of doing it based off of an enum, I'm just using the index of the tab in the tab bar
         var selectedTabIndex by remember { mutableIntStateOf(0) }
         // This is so that the modal knows what's selected
@@ -283,7 +282,7 @@ class SeeReservationsView(val controller: SeeReservationsController) : ViewObser
             LazyColumn(modifier = Modifier.fillMaxWidth()) {
                 items(shownReservations) { res ->
                     Spacer(modifier = Modifier.height(16.dp))
-                    DrawOwnerResRow(res, showActions = selectedTabIndex == 0, onReject = { reservationBeingRejected = res })
+                    DrawOwnerResRow(res, showActions = selectedTabIndex == 0, onReject = { reservationBeingRejected = res }, onMessage = { controller.openMessages(navController, res) })
                 }
             }
         }
@@ -300,8 +299,9 @@ class SeeReservationsView(val controller: SeeReservationsController) : ViewObser
     // @param res the reservation
     // @param showActions whether to show the Reject and Message buttons, only true on Active
     // @param onReject called when the Reject button is pressed
+    // @param onMessage called when the Message button is pressed
     @Composable
-    private fun DrawOwnerResRow(res: ReservationModel, showActions: Boolean, onReject: () -> Unit) {
+    private fun DrawOwnerResRow(res: ReservationModel, showActions: Boolean, onReject: () -> Unit, onMessage: () -> Unit) {
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 // TODO: Profile pictures
@@ -356,10 +356,7 @@ class SeeReservationsView(val controller: SeeReservationsController) : ViewObser
                     }
                     // Messaging is a final checkpoint thing
                     Button(modifier = Modifier.weight(1f),
-                        enabled = false,
-                        onClick = {
-                            //go to messages
-                        }) {
+                        onClick = onMessage) {
                         Text("Message")
                     }
                 }

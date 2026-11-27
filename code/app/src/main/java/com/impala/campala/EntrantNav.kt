@@ -56,6 +56,7 @@ import com.impala.campala.ui_sections.app_policies.AppPoliciesView
 import com.impala.campala.ui_sections.campsite_details.CampsiteDetailsView
 import com.impala.campala.ui_sections.create_reservation.CreateReservationView
 import com.impala.campala.ui_sections.edit_profile.EditProfileView
+import com.impala.campala.ui_sections.message_user.MessageUserView
 import com.impala.campala.ui_sections.search_campsites.SearchCampsitesView
 import com.impala.campala.ui_sections.see_reservation.SeeReservationsView
 import com.impala.campala.ui_sections.view_lotteries.ViewLotteriesView
@@ -71,6 +72,7 @@ import com.impala.campala.ui_sections.view_profile.ViewProfileView
  * @param createReservationScreen The View where the user can make a reservation from
  * @param viewProfileScreen The View where the user can see their entrant profile
  * @param editProfileScreen The View where the user can edit their entrant profile
+ * @param messageUserScreen The View where the user can message the owner about a reservation
  * @param deepLinkCampsiteId The campsite a deep link asked to open, or null if there isn't one
  * @param onDeepLinkHandled Called once the app has navigated to the deep linked campsite
  * @param onSwitchRole a function to be executed when the user clicks the button to switch roles
@@ -85,6 +87,7 @@ fun EntrantNavigationRoot(
     createReservationScreen: CreateReservationView,
     viewProfileScreen: ViewProfileView,
     editProfileScreen: EditProfileView,
+    messageUserScreen: MessageUserView,
     deepLinkCampsiteId: String? = null,
     onDeepLinkHandled: () -> Unit = {},
     onSwitchRole: () -> Unit
@@ -163,6 +166,14 @@ fun EntrantNavigationRoot(
         composable("createReservation/{lotteryId}") { backStackEntry ->
             val lotteryId = backStackEntry.arguments?.getString("lotteryId") ?: ""
             createReservationScreen.Render(navController, lotteryId)
+        }
+        composable("messages/{reservationId}") { backStackEntry ->
+            val reservationId = backStackEntry.arguments?.getString("reservationId") ?: ""
+            Scaffold { padding ->
+                Box(Modifier.padding(padding)) {
+                    messageUserScreen.render(navController, reservationId)
+                }
+            }
         }
         composable("editProfile") {
             // Scaffold is just here so the screen respects the status bar / nav bar insets

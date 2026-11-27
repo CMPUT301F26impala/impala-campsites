@@ -58,6 +58,9 @@ import com.impala.campala.ui_sections.view_profile.ViewProfileView
 import com.impala.campala.ui_sections.admin_profiles.AdminProfilesModel
 import com.impala.campala.ui_sections.admin_profiles.AdminProfilesController
 import com.impala.campala.ui_sections.admin_profiles.AdminProfilesView
+import com.impala.campala.ui_sections.message_user.MessageUserController
+import com.impala.campala.ui_sections.message_user.MessageUserModel
+import com.impala.campala.ui_sections.message_user.MessageUserView
 
 /**
  * Composable function that acts as the root of the app
@@ -191,6 +194,11 @@ fun SignedInApp(deepLinkCampsiteId: String? = null, onDeepLinkHandled: () -> Uni
     val adminReviewsView = remember { AdminReviewsView(adminReviewsController) }
     adminReviewsModel.addObserver(adminReviewsView)
 
+    val messageUserModel = remember { MessageUserModel(coroutineScope) }
+    val messageUserController = remember { MessageUserController(messageUserModel) }
+    val messageUserView = remember { MessageUserView(messageUserController) }
+    messageUserModel.addObserver(messageUserView)
+
     // Opening a QR code is an entrant thing, so we have to switch to entrant mode to open its
     LaunchedEffect(deepLinkCampsiteId) {
         if (deepLinkCampsiteId != null) {
@@ -220,6 +228,7 @@ fun SignedInApp(deepLinkCampsiteId: String? = null, onDeepLinkHandled: () -> Uni
                 createReservationScreen = createReservationView,
                 viewProfileScreen = viewProfileView,
                 editProfileScreen = editProfileView,
+                messageUserScreen = messageUserView,
                 deepLinkCampsiteId = deepLinkCampsiteId,
                 onDeepLinkHandled = onDeepLinkHandled,
                 onSwitchRole = { needsRoleChoice = true })
@@ -233,6 +242,7 @@ fun SignedInApp(deepLinkCampsiteId: String? = null, onDeepLinkHandled: () -> Uni
                 seeReservationsScreen = seeReservationsView,
                 lotteryDetailsView = lotteryDetailsView,
                 ownerNotifsView = ownerNotifsView,
+                messageUserScreen = messageUserView,
                 onSwitchRole = { needsRoleChoice = true })
 
             UserViewMode.ADMIN -> AdminNavigationRoot(
@@ -253,6 +263,7 @@ fun SignedInApp(deepLinkCampsiteId: String? = null, onDeepLinkHandled: () -> Uni
                     createReservationScreen = createReservationView,
                     viewProfileScreen = viewProfileView,
                     editProfileScreen = editProfileView,
+                    messageUserScreen = messageUserView,
                     deepLinkCampsiteId = deepLinkCampsiteId,
                     onDeepLinkHandled = onDeepLinkHandled,
                     onSwitchRole = { needsRoleChoice = true })

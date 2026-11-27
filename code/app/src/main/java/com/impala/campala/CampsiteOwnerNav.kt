@@ -37,6 +37,7 @@ import com.impala.campala.ui_sections.campsite_details.CampsiteDetailsView
 import com.impala.campala.ui_sections.form_campsites.FormCampsitesView
 import com.impala.campala.ui_sections.form_lotteries.FormLotteriesView
 import com.impala.campala.ui_sections.lottery_details.LotteryDetailsView
+import com.impala.campala.ui_sections.message_user.MessageUserView
 import com.impala.campala.ui_sections.owner_notifs.OwnerNotifsView
 import com.impala.campala.ui_sections.search_campsites.SearchCampsitesView
 import com.impala.campala.ui_sections.see_reservation.SeeReservationsView
@@ -50,6 +51,7 @@ import com.impala.campala.ui_sections.view_lotteries.ViewLotteriesView
  * @param formCampsitesScreen The View where the user can create or edit campsites
  * @param formLotteriesScreen The View where the user can create lotteries
  * @param viewLotteriesScreen The View where the user can see details of a lottery
+ * @param messageUserScreen The View where the user can message the entrant about a reservation
  * @param onSwitchRole a function to be executed when the user clicks the button to switch roles
  */
 @Composable
@@ -62,6 +64,7 @@ fun CampsiteOwnerNavigationRoot(
     seeReservationsScreen: SeeReservationsView,
     lotteryDetailsView: LotteryDetailsView,
     ownerNotifsView: OwnerNotifsView,
+    messageUserScreen: MessageUserView,
     onSwitchRole: () -> Unit
 ) {
     val navController = rememberNavController()
@@ -94,6 +97,14 @@ fun CampsiteOwnerNavigationRoot(
             Scaffold { padding ->
                 Box(Modifier.padding(padding)) {
                     lotteryDetailsView.Render(navController, lotteryId)
+                }
+            }
+        }
+        composable("messages/{reservationId}") { backStackEntry ->
+            val reservationId = backStackEntry.arguments?.getString("reservationId") ?: ""
+            Scaffold { padding ->
+                Box(Modifier.padding(padding)) {
+                    messageUserScreen.render(navController, reservationId)
                 }
             }
         }
