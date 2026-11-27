@@ -9,6 +9,15 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toInstant
 import kotlinx.datetime.toLocalDateTime
 
+/**
+ * The Model responsible for storing and manipulating data associated with the
+ * direct messaging system use within the UI.
+ *
+ * @property reservationId The associated reservation ID of the conversation.
+ * @property entrantId The ID of the entrant.
+ * @property ownerId The ID of the owner.
+ * @property messages The list of messages in a text chain.
+ */
 class MessageUserModel(
     val scope: CoroutineScope,
     ) : ObservableModel<MessageUserModel>() {
@@ -63,6 +72,9 @@ class MessageUserModel(
 
     /**
      * Sends a given message to the list of messages.
+     *
+     * @param text the message to be sent.
+     * @param owner whether the message is from the owner of a campsite.
      */
     public fun send(text: String, owner: Boolean) {
         scope.launch {
@@ -71,6 +83,9 @@ class MessageUserModel(
         }
     }
 
+    /**
+     * Gives information on the message thread; namely the IDs of both users and of the reservation.
+     */
     fun threadInfo(): Map<String, String> {
         return mapOf(
             "entrantId" to entrantId,
@@ -79,6 +94,9 @@ class MessageUserModel(
         )
     }
 
+    /**
+     * Returns the message log.
+     */
     fun messages() : MutableList<MessageModel> {
         return messages
     }
