@@ -19,6 +19,9 @@ import com.impala.campala.ui_sections.admin_images.AdminImagesView
 import com.impala.campala.ui_sections.admin_reviews.AdminReviewsController
 import com.impala.campala.ui_sections.admin_reviews.AdminReviewsModel
 import com.impala.campala.ui_sections.admin_reviews.AdminReviewsView
+import com.impala.campala.ui_sections.admin_messages.AdminMessagesController
+import com.impala.campala.ui_sections.admin_messages.AdminMessagesModel
+import com.impala.campala.ui_sections.admin_messages.AdminMessagesView
 import com.impala.campala.ui_sections.campsite_details.CampsiteDetailsController
 import com.impala.campala.ui_sections.campsite_details.CampsiteDetailsModel
 import com.impala.campala.ui_sections.campsite_details.CampsiteDetailsView
@@ -194,6 +197,11 @@ fun SignedInApp(deepLinkCampsiteId: String? = null, onDeepLinkHandled: () -> Uni
     val adminReviewsView = remember { AdminReviewsView(adminReviewsController) }
     adminReviewsModel.addObserver(adminReviewsView)
 
+    val adminMessagesModel = remember { AdminMessagesModel(coroutineScope) }
+    val adminMessagesController = remember { AdminMessagesController(adminMessagesModel) }
+    val adminMessagesView = remember { AdminMessagesView(adminMessagesController) }
+    adminMessagesModel.addObserver(adminMessagesView)
+
     val messageUserModel = remember { MessageUserModel(coroutineScope) }
     val messageUserController = remember { MessageUserController(messageUserModel) }
     val messageUserView = remember { MessageUserView(messageUserController) }
@@ -251,6 +259,7 @@ fun SignedInApp(deepLinkCampsiteId: String? = null, onDeepLinkHandled: () -> Uni
                 adminProfilesScreen = adminProfilesView,
                 adminImagesScreen = adminImagesView,
                 adminReviewsScreen = adminReviewsView,
+                adminMessagesScreen = adminMessagesView,
                 onSwitchRole = { needsRoleChoice = true })
 
             null -> {

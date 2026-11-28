@@ -371,6 +371,17 @@ service cloud.firestore {
         && validMessage(after[after.size() - 1], resource.data);
     }
 
+    // AdminMessagesModel.deleteMessage saves the whole thread with one message taken
+    // out, so nothing can be added or edited, and exactly one message is removed
+    function onlyRemovesOneMessage() {
+      let before = resource.data.messageThread;
+      let after = request.resource.data.messageThread;
+      return changedKeys().hasOnly(['messageThread'])
+        && after is list
+        && after.size() == before.size() - 1
+        && after.toSet().difference(before.toSet()).size() == 0;
+    }
+
     match /messages/{reservationId} {
       // getOrCreateThreadByReservation reads the thread before it exists, so a
       // missing document can be read (it just comes back empty)
@@ -388,7 +399,9 @@ service cloud.firestore {
         && (request.resource.data.messageThread.size() == 0
             || validMessage(request.resource.data.messageThread[0], request.resource.data));
 
-      allow update: if inThread(resource.data) && onlyAppendsOneMessage();
+      // People in the thread can send a message, admins can remove one
+      allow update: if (inThread(resource.data) && onlyAppendsOneMessage())
+        || (isAdmin() && onlyRemovesOneMessage());
 
       // MessagesRepository.deleteThread
       allow delete: if inThread(resource.data) || isAdmin();
