@@ -15,6 +15,7 @@ import com.google.firebase.firestore.SetOptions
 import com.google.firebase.firestore.firestore
 import com.impala.campala.UserViewMode
 import com.impala.campala.model.CampsiteModel
+import com.impala.campala.model.CampsiteOwnerProfileModel
 import com.impala.campala.model.CampsiteRepository
 import com.impala.campala.model.EntrantProfileModel
 import com.impala.campala.model.LotteryModel
@@ -110,6 +111,18 @@ suspend fun signInAsNewOwner(): String {
 }
 
 /**
+ * Signs in as a brand new anonymous user who has already picked the admin role,
+ * so the app opens straight onto the admin screens
+ *
+ * @return The new user's UID
+ */
+suspend fun signInAsAdmin(): String {
+    val uid = signInAsNewUser()
+    writeUserDoc(uid, UserViewMode.ADMIN)
+    return uid
+}
+
+/**
  * Makes an entrant profile for someone other than the signed in user, without signing in as them
  *
  * Useful for filling lotteries/waitlists/reservations with other people, eg: when testing the owner's screens
@@ -121,6 +134,22 @@ suspend fun signInAsNewOwner(): String {
 suspend fun createOtherEntrant(name: String): String {
     val uid = "other-entrant-" + Uuid.random()
     EntrantProfileModel(userId = uid, name = name).save().await()
+    return uid
+}
+
+/**
+ * Makes an owner profile for someone other than the signed in user, without signing in as them,
+ *
+ * Useful for making profiles an admin can ban
+ *
+ * @return The new user's UID
+ */
+@OptIn(ExperimentalUuidApi::class)
+suspend fun createOtherOwner(): String {
+    val uid = "other-owner-" + Uuid.random()
+    CampsiteOwnerProfileModel(userId = uid).save().await()
+    Firebase.firestore.collection("campsiteOwners").document(uid)
+        .set(mapOf("userId" to uid), SetOptions.merge()).await()
     return uid
 }
 
