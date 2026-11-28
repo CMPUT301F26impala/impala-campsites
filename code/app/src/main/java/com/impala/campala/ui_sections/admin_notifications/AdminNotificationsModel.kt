@@ -5,6 +5,7 @@ import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
 import com.impala.campala.ObservableModel
 import com.impala.campala.model.NotificationModel
+import com.impala.campala.model.EntrantProfileRepository
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -15,43 +16,78 @@ import kotlinx.coroutines.tasks.await
  *
  * @param scope the Coroutine Scope
  *
- * @property allRetrievedNotifications array of all notifications pulled from firebase
- * @property isFetchingStoredNotifications if the array of notifications is still being pulled
- * @property wasNotificationRetrievalUnsuccessful if fetching array notifications failed
+ * @property everyRetrievedNotification array of all notifications pulled from firebase
+ * @property isNowFetchingEveryStoredNotification if the array of notifications is still being pulled
+ * @property didRetrievalOfEveryNotificationFail if fetching array notifications failed
+ * @property everyNotificationParticipantNameById map of names of senders and receivers using their user IDs
  */
 class AdminNotificationsModel(val scope: CoroutineScope) : ObservableModel<AdminNotificationsModel>() {
 
-    var allRetrievedNotifications: List<NotificationModel> = emptyList()
-    var isFetchingStoredNotifications = false
-    var wasNotificationRetrievalUnsuccessful = false
+    var everyRetrievedNotification: List<NotificationModel> = emptyList()
+    var isNowFetchingEveryStoredNotification = false
+    var didRetrievalOfEveryNotificationFail = false
+    var everyNotificationParticipantNameById: Map<String, String> = emptyMap()
 
     /**
-     * Retrieves all notifications stored in the database regardless
-     * of who sent or received them.
-     * Notifies the view before and after retrieving the notifications.
+     * Gets all stored notifications from the database
      */
-    fun retrieveAllStoredNotifications() {
-        if (isFetchingStoredNotifications) { return }
-        isFetchingStoredNotifications = true
-        wasNotificationRetrievalUnsuccessful = false
+    fun retrieveEveryStoredNotification() {
+        if (isNowFetchingEveryStoredNotification) { return }
+        isNowFetchingEveryStoredNotification = true
+        didRetrievalOfEveryNotificationFail = false
         notifyObservers(this)
 
         scope.launch {
             try {
-                val fetchedNotificationDocuments =
+                val everyFetchedNotificationDocument =
                     Firebase.firestore.collection("notifications").get().await().documents
-                allRetrievedNotifications = fetchedNotificationDocuments.map { currentNotificationDocument ->
+                everyRetrievedNotification = everyFetchedNotificationDocument.map { currentNotificationDocument ->
                     NotificationModel.load(currentNotificationDocument)
                 }
+                retrieveNotificationParticipantNames()
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                wasNotificationRetrievalUnsuccessful = true
+                didRetrievalOfEveryNotificationFail = true
                 Log.e("AdminNotifsModel", "Failed to get notifications", e)
             } finally {
-                isFetchingStoredNotifications = false
+                isNowFetchingEveryStoredNotification = false
                 notifyObservers(this@AdminNotificationsModel)
             }
         }
     } // end of retrieve function
+
+    /**
+     * Get the names of all senders and receivers
+     */
+    suspend fun retrieveNotificationParticipantNames() {
+        val everyRetrievedParticipantName = mutableMapOf<String, String>()
+        val everyUniqueNotificationParticipantId = mutableSetOf<String>()
+        for (currentStoredNotification in everyRetrievedNotification) {
+            everyUniqueNotificationParticipantId.add(currentStoredNotification.sender)
+            everyUniqueNotificationParticipantId.addAll(currentStoredNotification.receivers)
+        }
+        for (currentParticipantId in everyUniqueNotificationParticipantId) {
+            everyRetrievedParticipantName[currentParticipantId] = retrieveParticipantNameById(currentParticipantId)
+        }
+        everyNotificationParticipantNameById = everyRetrievedParticipantName
+    }
+
+    /**
+     * Uses user ID and gets the name of the user
+     *
+     * @param participantUserId user ID
+     *
+     * @return name of the user. ID itself if its blank
+     */
+    suspend fun retrieveParticipantNameById(participantUserId: String): String {
+        if (participantUserId.isBlank()) { return "Unknown" }
+        if (participantUserId == "SYSTEM") { return "System" }
+        val retrievedParticipantEntrantProfile = EntrantProfileRepository.getEntrantProfileById(participantUserId)
+        if (retrievedParticipantEntrantProfile != null) { if (retrievedParticipantEntrantProfile.name.isNotBlank()) { return retrievedParticipantEntrantProfile.name } }
+        val retrievedParticipantUserDocument = Firebase.firestore.collection("users").document(participantUserId).get().await()
+        val retrievedParticipantUserName = retrievedParticipantUserDocument.getString("userName")
+        if (retrievedParticipantUserName != null) { if (retrievedParticipantUserName.isNotBlank()) { return retrievedParticipantUserName } }
+        return participantUserId
+    }
 }
