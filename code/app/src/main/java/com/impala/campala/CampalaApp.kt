@@ -61,6 +61,9 @@ import com.impala.campala.ui_sections.view_profile.ViewProfileView
 import com.impala.campala.ui_sections.admin_profiles.AdminProfilesModel
 import com.impala.campala.ui_sections.admin_profiles.AdminProfilesController
 import com.impala.campala.ui_sections.admin_profiles.AdminProfilesView
+import com.impala.campala.ui_sections.admin_notifs.AdminNotificationsController
+import com.impala.campala.ui_sections.admin_notifs.AdminNotificationsModel
+import com.impala.campala.ui_sections.admin_notifs.AdminNotificationsView
 import com.impala.campala.ui_sections.message_user.MessageUserController
 import com.impala.campala.ui_sections.message_user.MessageUserModel
 import com.impala.campala.ui_sections.message_user.MessageUserView
@@ -202,6 +205,14 @@ fun SignedInApp(deepLinkCampsiteId: String? = null, onDeepLinkHandled: () -> Uni
     val adminMessagesView = remember { AdminMessagesView(adminMessagesController) }
     adminMessagesModel.addObserver(adminMessagesView)
 
+    val adminNotificationsModel = remember { AdminNotificationsModel(coroutineScope) }
+    val adminNotificationsController = remember { AdminNotificationsController(adminNotificationsModel) }
+    val adminNotificationsView = remember {
+        val newAdminNotificationsView = AdminNotificationsView(adminNotificationsController)
+        adminNotificationsModel.addObserver(newAdminNotificationsView)
+        newAdminNotificationsView
+    }
+
     val messageUserModel = remember { MessageUserModel(coroutineScope) }
     val messageUserController = remember { MessageUserController(messageUserModel) }
     val messageUserView = remember { MessageUserView(messageUserController) }
@@ -260,6 +271,7 @@ fun SignedInApp(deepLinkCampsiteId: String? = null, onDeepLinkHandled: () -> Uni
                 adminImagesScreen = adminImagesView,
                 adminReviewsScreen = adminReviewsView,
                 adminMessagesScreen = adminMessagesView,
+                adminNotificationsScreen = adminNotificationsView,
                 onSwitchRole = { needsRoleChoice = true })
 
             null -> {
