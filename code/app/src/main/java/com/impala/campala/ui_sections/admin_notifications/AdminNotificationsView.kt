@@ -16,23 +16,17 @@ import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalInspectionMode
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.impala.campala.ViewObserver
 import com.impala.campala.model.NotificationModel
-import com.impala.campala.ui.theme.AppTheme
 import com.impala.campala.ui_sections.components.CardDetail
 
 /**
@@ -60,13 +54,11 @@ class AdminNotificationsView(val controller: AdminNotificationsController) : Vie
     init { update(controller.model) }
 
     /**
-     * Render the actual notifications to the screen
+     * Renders the actual notifications to the screen
      */
     @Composable
     fun Render() {
-        if (!LocalInspectionMode.current) {
-            LaunchedEffect(Unit) { controller.onFirstRender() }
-        }
+        LaunchedEffect(Unit) { controller.onFirstRender() }
         if (isNowFetchingEveryStoredNotification) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
         } else if (didRetrievalOfEveryNotificationFail) {
@@ -122,69 +114,5 @@ class AdminNotificationsView(val controller: AdminNotificationsController) : Vie
         if (retrievedParticipantName != null) { return retrievedParticipantName }
         if (participantUserId.isBlank()) { return "Unknown" }
         return participantUserId
-    }
-}
-
-/**
- * Preview of the admin notifications screen using dummy data
- */
-@Preview(showBackground = true, widthDp = 393, heightDp = 800)
-@Composable
-fun AdminNotificationsViewPreview() {
-    val scope = rememberCoroutineScope()
-    val model = remember(scope) {
-        val previewModel = AdminNotificationsModel(scope)
-
-        previewModel.everyRetrievedNotification = listOf(
-            NotificationModel(
-                title = "New Notification From Camp",
-                body = "Hey! Just letting you know that when you get there, the key is under the doormat.",
-                sender = "owner1",
-                receivers = mutableListOf("entrant1"),
-                sent = true
-            ),
-            NotificationModel(
-                title = "New Notification From Lottery",
-                body = "Hello all waitlist entrants, unfortunately a storm destroyed our 2nd cabin and so with the reduced capacity it's become even harder to get a spot.",
-                sender = "owner2",
-                receivers = mutableListOf("entrant1", "entrant2", "entrant3"),
-                sent = true
-            ),
-            NotificationModel(
-                title = "You Won A Lottery",
-                body = "Reserve dates in the 'Lottery' tab on the home screen.",
-                sender = "SYSTEM",
-                receivers = mutableListOf("entrant2"),
-                sent = true
-            ),
-            NotificationModel(
-                title = "You Lost A Lottery",
-                body = "Better Luck Next Time",
-                sender = "SYSTEM",
-                receivers = mutableListOf("entrant3"),
-                sent = false
-            )
-        )
-
-        previewModel.everyNotificationParticipantNameById = mapOf(
-            "owner1" to "John Smith",
-            "owner2" to "Michael Wilson",
-            "entrant1" to "Alex Johnson",
-            "entrant2" to "Sarah Williams",
-            "entrant3" to "David Brown",
-            "SYSTEM" to "System"
-        )
-        previewModel
-    }
-
-    val controller = remember(model) { AdminNotificationsController(model) }
-    val view = remember(controller) { AdminNotificationsView(controller) }
-
-    AppTheme() {
-        Scaffold { padding ->
-            Box(Modifier.padding(padding).padding(horizontal = 16.dp)) {
-                view.Render()
-            }
-        }
     }
 }
