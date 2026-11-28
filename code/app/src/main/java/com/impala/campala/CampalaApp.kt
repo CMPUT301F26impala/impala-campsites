@@ -61,6 +61,9 @@ import com.impala.campala.ui_sections.view_profile.ViewProfileView
 import com.impala.campala.ui_sections.admin_profiles.AdminProfilesModel
 import com.impala.campala.ui_sections.admin_profiles.AdminProfilesController
 import com.impala.campala.ui_sections.admin_profiles.AdminProfilesView
+import com.impala.campala.ui_sections.admin_notifs.AdminNotificationsController
+import com.impala.campala.ui_sections.admin_notifs.AdminNotificationsModel
+import com.impala.campala.ui_sections.admin_notifs.AdminNotificationsView
 import com.impala.campala.ui_sections.message_user.MessageUserController
 import com.impala.campala.ui_sections.message_user.MessageUserModel
 import com.impala.campala.ui_sections.message_user.MessageUserView
@@ -166,11 +169,8 @@ fun SignedInApp(deepLinkCampsiteId: String? = null, onDeepLinkHandled: () -> Uni
 
     val adminProfilesModel = remember { AdminProfilesModel(coroutineScope) }
     val adminProfilesController = remember { AdminProfilesController(adminProfilesModel) }
-    val adminProfilesView = remember {
-        val newAdminProfilesView = AdminProfilesView(adminProfilesController)
-        adminProfilesModel.addObserver(newAdminProfilesView)
-        newAdminProfilesView
-    }
+    val adminProfilesView = remember { AdminProfilesView(adminProfilesController) }
+    adminProfilesModel.addObserver(adminProfilesView)
 
     val editProfileModel = remember { EditProfileModel(imageCompressor, coroutineScope) }
     val editProfileController = remember { EditProfileController(editProfileModel) }
@@ -201,6 +201,11 @@ fun SignedInApp(deepLinkCampsiteId: String? = null, onDeepLinkHandled: () -> Uni
     val adminMessagesController = remember { AdminMessagesController(adminMessagesModel) }
     val adminMessagesView = remember { AdminMessagesView(adminMessagesController) }
     adminMessagesModel.addObserver(adminMessagesView)
+
+    val adminNotificationsModel = remember { AdminNotificationsModel(coroutineScope) }
+    val adminNotificationsController = remember { AdminNotificationsController(adminNotificationsModel) }
+    val adminNotificationsView = remember { AdminNotificationsView(adminNotificationsController) }
+    adminNotificationsModel.addObserver(adminNotificationsView)
 
     val messageUserModel = remember { MessageUserModel(coroutineScope) }
     val messageUserController = remember { MessageUserController(messageUserModel) }
@@ -260,6 +265,7 @@ fun SignedInApp(deepLinkCampsiteId: String? = null, onDeepLinkHandled: () -> Uni
                 adminImagesScreen = adminImagesView,
                 adminReviewsScreen = adminReviewsView,
                 adminMessagesScreen = adminMessagesView,
+                adminNotificationsScreen = adminNotificationsView,
                 onSwitchRole = { needsRoleChoice = true })
 
             null -> {

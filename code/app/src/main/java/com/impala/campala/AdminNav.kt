@@ -46,6 +46,7 @@ import com.impala.campala.ui_sections.view_profile.ViewProfileView
 import com.impala.campala.ui_sections.admin_images.AdminImagesView
 import com.impala.campala.ui_sections.admin_reviews.AdminReviewsView
 import com.impala.campala.ui_sections.admin_messages.AdminMessagesView
+import com.impala.campala.ui_sections.admin_notifs.AdminNotificationsView
 import com.impala.campala.ui_sections.campsite_details.CampsiteDetailsView
 import com.impala.campala.ui_sections.search_campsites.SearchCampsitesView
 
@@ -58,6 +59,7 @@ import com.impala.campala.ui_sections.search_campsites.SearchCampsitesView
  * @param adminImagesScreen The View where the admin can see and delete every image
  * @param adminReviewsScreen The View where the admin can see and delete reviews
  * @param adminMessagesScreen The View where the admin can see and delete every message
+ * @param adminNotificationsScreen The View where the admin can see all the notifications
  * @param onSwitchRole a function to be executed when the user clicks the button to switch roles
  */
 @Composable
@@ -68,6 +70,7 @@ fun AdminNavigationRoot(
     adminImagesScreen: AdminImagesView,
     adminReviewsScreen: AdminReviewsView,
     adminMessagesScreen: AdminMessagesView,
+    adminNotificationsScreen: AdminNotificationsView,
     onSwitchRole: () -> Unit
 ) {
     val navController = rememberNavController()
@@ -75,7 +78,7 @@ fun AdminNavigationRoot(
     NavHost(navController = navController, startDestination = "home") {
         // "home" is the tab navigation, the 4 tabs inside of home are controlled by the AdminHomeScreen function
         // Any screens that aren't part of the tabs and are 'fullscreen' should be declared here
-        composable("home") { AdminHomeScreen(navController, searchCampsitesScreen, adminProfilesScreen, adminImagesScreen, adminReviewsScreen, adminMessagesScreen, onSwitchRole) }
+        composable("home") { AdminHomeScreen(navController, searchCampsitesScreen, adminProfilesScreen, adminImagesScreen, adminReviewsScreen, adminMessagesScreen, adminNotificationsScreen, onSwitchRole) }
         composable("profile/{userId}") { backStackEntry ->
             val selectedUserProfileId = backStackEntry.arguments?.getString("userId")
             val selectedUserProfile = adminProfilesScreen.controller.model.allActiveUserProfiles.firstOrNull { it.userId == selectedUserProfileId }
@@ -129,11 +132,12 @@ enum class AdminTab(val label: String, val icon: ImageVector) {
  * @param adminImagesScreen The View where the admin can see and delete every image
  * @param adminReviewsScreen The View where the admin can see and delete reviews
  * @param adminMessagesScreen The View where the admin can see and delete every message
+ * @param adminNotificationsScreen The View where the admin can see all the notifications
  * @param onSwitchRole a function to be executed when the user clicks the button to switch roles
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AdminHomeScreen(navController: NavController, searchCampsitesScreen: SearchCampsitesView, adminProfilesScreen: AdminProfilesView, adminImagesScreen: AdminImagesView, adminReviewsScreen: AdminReviewsView, adminMessagesScreen: AdminMessagesView, onSwitchRole: () -> Unit) {
+fun AdminHomeScreen(navController: NavController, searchCampsitesScreen: SearchCampsitesView, adminProfilesScreen: AdminProfilesView, adminImagesScreen: AdminImagesView, adminReviewsScreen: AdminReviewsView, adminMessagesScreen: AdminMessagesView, adminNotificationsScreen: AdminNotificationsView, onSwitchRole: () -> Unit) {
     var selected by rememberSaveable { mutableStateOf(AdminTab.Campsites) }
     val tabState = rememberSaveableStateHolder() // keeps each tab's scroll/state
     Scaffold(
@@ -175,7 +179,7 @@ fun AdminHomeScreen(navController: NavController, searchCampsitesScreen: SearchC
                     AdminTab.Campsites -> searchCampsitesScreen.Render(navController)
                     AdminTab.Profiles -> adminProfilesScreen.Render(navController)
                     AdminTab.Images -> adminImagesScreen.Render()
-                    AdminTab.Notifs -> AdminNotifsTab(navController, adminMessagesScreen)
+                    AdminTab.Notifs -> AdminNotifsTab(navController, adminMessagesScreen, adminNotificationsScreen)
                     AdminTab.Reviews -> adminReviewsScreen.Render()
                 }
             }
@@ -193,9 +197,10 @@ enum class AdminAlertsTab(val label: String) {
  *
  * @param navController The navigation controller for the admin section of the app
  * @param adminMessagesScreen The View where the admin can see and delete every message
+ * @param adminNotificationsScreen The View where the admin can see all the notifications
  */
 @Composable
-fun AdminNotifsTab(navController: NavController, adminMessagesScreen: AdminMessagesView) {
+fun AdminNotifsTab(navController: NavController, adminMessagesScreen: AdminMessagesView, adminNotificationsScreen: AdminNotificationsView) {
     var selected by rememberSaveable { mutableStateOf(AdminAlertsTab.Messages) }
     val tabState = rememberSaveableStateHolder() // keeps each tab's scroll/state
     Column() {
@@ -210,9 +215,8 @@ fun AdminNotifsTab(navController: NavController, adminMessagesScreen: AdminMessa
         }
         tabState.SaveableStateProvider(selected.name) {
             when (selected) {
-                // TODO: swap these placeholders for the Messages and Notifications view once they exist
                 AdminAlertsTab.Messages -> adminMessagesScreen.Render()
-                AdminAlertsTab.Notifications -> Text("Notifications")
+                AdminAlertsTab.Notifications -> adminNotificationsScreen.Render()
             }
         }
     }
