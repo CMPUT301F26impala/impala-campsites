@@ -169,11 +169,8 @@ fun SignedInApp(deepLinkCampsiteId: String? = null, onDeepLinkHandled: () -> Uni
 
     val adminProfilesModel = remember { AdminProfilesModel(coroutineScope) }
     val adminProfilesController = remember { AdminProfilesController(adminProfilesModel) }
-    val adminProfilesView = remember {
-        val newAdminProfilesView = AdminProfilesView(adminProfilesController)
-        adminProfilesModel.addObserver(newAdminProfilesView)
-        newAdminProfilesView
-    }
+    val adminProfilesView = remember { AdminProfilesView(adminProfilesController) }
+    adminProfilesModel.addObserver(adminProfilesView)
 
     val editProfileModel = remember { EditProfileModel(imageCompressor, coroutineScope) }
     val editProfileController = remember { EditProfileController(editProfileModel) }
@@ -207,11 +204,8 @@ fun SignedInApp(deepLinkCampsiteId: String? = null, onDeepLinkHandled: () -> Uni
 
     val adminNotificationsModel = remember { AdminNotificationsModel(coroutineScope) }
     val adminNotificationsController = remember { AdminNotificationsController(adminNotificationsModel) }
-    val adminNotificationsView = remember {
-        val newAdminNotificationsView = AdminNotificationsView(adminNotificationsController)
-        adminNotificationsModel.addObserver(newAdminNotificationsView)
-        newAdminNotificationsView
-    }
+    val adminNotificationsView = remember { AdminNotificationsView(adminNotificationsController) }
+    adminNotificationsModel.addObserver(adminNotificationsView)
 
     val messageUserModel = remember { MessageUserModel(coroutineScope) }
     val messageUserController = remember { MessageUserController(messageUserModel) }
